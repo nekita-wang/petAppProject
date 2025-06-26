@@ -45,3 +45,11 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+
+######################################################################
+# PetLife 项目附加配置
+node_modules/
+dist/
+.env*
+
+
