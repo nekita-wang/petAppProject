@@ -228,6 +228,7 @@
         <module>pet-life-platform-quartz</module>
         <module>pet-life-platform-generator</module>
         <module>pet-life-platform-common</module>
+        <module>pet-life-platform-app</module>
     </modules>
     <packaging>pom</packaging>
 
