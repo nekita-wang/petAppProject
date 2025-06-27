@@ -61,6 +61,11 @@
             <artifactId>pet-life-platform-generator</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.petlife</groupId>
+            <artifactId>pet-life-platform-app</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

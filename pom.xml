@@ -218,6 +218,12 @@
                 <version>${pet-life-platform.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.petlife</groupId>
+                <artifactId>pet-life-platform-app</artifactId>
+                <version>${pet-life-platform.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
