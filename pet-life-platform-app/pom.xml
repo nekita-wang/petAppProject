@@ -16,11 +16,13 @@
     </description>
 
     <dependencies>
-
         <!-- 通用工具-->
         <dependency>
             <groupId>com.petlife</groupId>
             <artifactId>pet-life-platform-common</artifactId>
         </dependency>
+
+
+
     </dependencies>
 </project>
