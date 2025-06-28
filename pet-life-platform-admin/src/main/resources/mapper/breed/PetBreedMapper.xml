@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petlife.platform.breeds.mapper.PetBreedMapper">
+
+    <resultMap type="PetBreed" id="PetBreedResult">
+        <result property="cnNo"    column="cn_no"    />
+        <result property="enNo"    column="en_no"    />
+        <result property="petClass"    column="pet_class"    />
+        <result property="petClassId"    column="pet_class_id"    />
+        <result property="cnInitials"    column="cn_initials"    />
+        <result property="petBreedId"    column="pet_breed_id"    />
+        <result property="petBreed"    column="pet_breed"    />
+        <result property="enInitials"    column="en_initials"    />
+        <result property="petBreedEn"    column="pet_breed_en"    />
+        <result property="status"    column="status"    />
+        <result property="lastUpdateTime"    column="last_update_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="creator"    column="creator"    />
+        <result property="lastUpdater"    column="last_updater"    />
+    </resultMap>
+
+    <sql id="selectPetBreedVo">
+        select cn_no, en_no, pet_class, pet_class_id, cn_initials, pet_breed_id, pet_breed, en_initials, pet_breed_en, status, last_update_time, create_time, creator, last_updater from pet_breed
+    </sql>
+
+    <select id="selectPetBreedList" parameterType="PetBreed" resultMap="PetBreedResult">
+        <include refid="selectPetBreedVo"/>
+        <where>
+            <if test="petClass != null  and petClass != ''"> and pet_class = #{petClass}</if>
+            <if test="petBreed != null  and petBreed != ''"> and pet_breed like concat('%', #{petBreed}, '%')</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="petBreedEn != null  and petBreedEn != ''"> and pet_breed_en = #{petBreedEn}</if>
+        </where>
+        order by cn_no asc, en_no asc
+    </select>
+
+    <select id="selectPetBreedByPetClassId" parameterType="String" resultMap="PetBreedResult">
+        <include refid="selectPetBreedVo"/>
+        where pet_breed_id = #{petBreedId}
+    </select>
+
+    <insert id="insertPetBreed" parameterType="PetBreed">
+        insert into pet_breed
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cnNo != null and cnNo != ''">cn_no,</if>
+            <if test="enNo != null and enNo != ''">en_no,</if>
+            <if test="petClass != null and petClass != ''">pet_class,</if>
+            <if test="petClassId != null">pet_class_id,</if>
+            <if test="cnInitials != null and cnInitials != ''">cn_initials,</if>
+            <if test="petBreedId != null and petBreedId != ''">pet_breed_id,</if>
+            <if test="petBreed != null and petBreed != ''">pet_breed,</if>
+            <if test="enInitials != null and enInitials != ''">en_initials,</if>
+            <if test="petBreedEn != null and petBreedEn != ''">pet_breed_en,</if>
+            <if test="status != null">status,</if>
+            <if test="lastUpdateTime != null">last_update_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="creator != null and creator != ''">creator,</if>
+            <if test="lastUpdater != null and lastUpdater != ''">last_updater,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cnNo != null and cnNo != ''">#{cnNo},</if>
+            <if test="enNo != null and enNo != ''">#{enNo},</if>
+            <if test="petClass != null and petClass != ''">#{petClass},</if>
+            <if test="petClassId != null">#{petClassId},</if>
+            <if test="cnInitials != null and cnInitials != ''">#{cnInitials},</if>
+            <if test="petBreedId != null and petBreedId != ''">#{petBreedId},</if>
+            <if test="petBreed != null and petBreed != ''">#{petBreed},</if>
+            <if test="enInitials != null and enInitials != ''">#{enInitials},</if>
+            <if test="petBreedEn != null and petBreedEn != ''">#{petBreedEn},</if>
+            <if test="status != null">#{status},</if>
+            <if test="lastUpdateTime != null">#{lastUpdateTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="creator != null and creator != ''">#{creator},</if>
+            <if test="lastUpdater != null and lastUpdater != ''">#{lastUpdater},</if>
+         </trim>
+    </insert>
+
+    <update id="updatePetBreed" parameterType="PetBreed">
+        update pet_breed
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cnNo != null and cnNo != ''">cn_no = #{cnNo},</if>
+            <if test="enNo != null and enNo != ''">en_no = #{enNo},</if>
+            <if test="petClass != null and petClass != ''">pet_class = #{petClass},</if>
+            <if test="petClassId != null and petClassId != ''">pet_class_id = #{petClassId},</if>
+            <if test="cnInitials != null and cnInitials != ''">cn_initials = #{cnInitials},</if>
+            <if test="petBreedId != null and petBreedId != ''">pet_breed_id = #{petBreedId},</if>
+            <if test="petBreed != null and petBreed != ''">pet_breed = #{petBreed},</if>
+            <if test="enInitials != null and enInitials != ''">en_initials = #{enInitials},</if>
+            <if test="petBreedEn != null and petBreedEn != ''">pet_breed_en = #{petBreedEn},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="lastUpdateTime != null">last_update_time = #{lastUpdateTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="creator != null and creator != ''">creator = #{creator},</if>
+            <if test="lastUpdater != null and lastUpdater != ''">last_updater = #{lastUpdater},</if>
+        </trim>
+        where pet_breed_id = #{petBreedId}
+    </update>
+
+    <delete id="deletePetBreedByPetClassId" parameterType="String">
+        delete from pet_breed where pet_class_id = #{petClassId}
+    </delete>
+
+    <delete id="deletePetBreedByPetClassIds" parameterType="String">
+        delete from pet_breed where pet_class_id in
+        <foreach item="petClassId" collection="array" open="(" separator="," close=")">
+            #{petClassId}
+        </foreach>
+    </delete>
+
+    <update id="updateBreedStatus" parameterType="list">
+        UPDATE pet_breed
+        SET status = 1
+        WHERE pet_breed_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>
