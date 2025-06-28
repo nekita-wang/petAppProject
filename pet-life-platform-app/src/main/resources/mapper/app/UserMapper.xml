@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petlife.platform.app.mapper.UserMapper">
+
+    <select id="selectByPhoneAndStatusIn" parameterType="map" resultType="com.petlife.platform.app.pojo.entity.User" >
+        SELECT
+        user_id,
+        phone,
+        nick_name,
+        password,
+        gender,
+        birthday,
+        avatar_url,
+        register_time,
+        last_login_time,
+        minor,
+        auth,
+        status
+        FROM user
+        WHERE phone = #{phone}
+        AND status IN
+        <foreach item="status" collection="statuses" open="(" separator="," close=")">
+            #{status}
+        </foreach>
+        LIMIT 1
+    </select>
+
+</mapper>
