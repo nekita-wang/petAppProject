@@ -16,7 +16,7 @@ import com.petlife.platform.common.core.controller.BaseController;
 import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.domain.entity.SysUser;
 import com.petlife.platform.common.core.domain.model.LoginUser;
-import com.petlife.platform.common.enums.BusinessType;
+import com.petlife.platform.common.core.text.enums.BusinessType;
 import com.petlife.platform.common.utils.DateUtils;
 import com.petlife.platform.common.utils.SecurityUtils;
 import com.petlife.platform.common.utils.StringUtils;

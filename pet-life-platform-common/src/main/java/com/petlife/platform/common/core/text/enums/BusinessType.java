@@ -1,4 +1,4 @@
-package com.petlife.platform.common.enums;
+package com.petlife.platform.common.core.text.enums;
 
 /**
  * 业务操作类型

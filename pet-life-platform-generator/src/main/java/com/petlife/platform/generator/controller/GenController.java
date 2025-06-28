@@ -27,7 +27,7 @@ import com.petlife.platform.common.core.controller.BaseController;
 import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.page.TableDataInfo;
 import com.petlife.platform.common.core.text.Convert;
-import com.petlife.platform.common.enums.BusinessType;
+import com.petlife.platform.common.core.text.enums.BusinessType;
 import com.petlife.platform.common.utils.SecurityUtils;
 import com.petlife.platform.common.utils.sql.SqlUtil;
 import com.petlife.platform.generator.config.GenConfig;

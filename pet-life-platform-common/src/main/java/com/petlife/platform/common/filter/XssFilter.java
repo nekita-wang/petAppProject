@@ -12,7 +12,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.petlife.platform.common.utils.StringUtils;
-import com.petlife.platform.common.enums.HttpMethod;
+import com.petlife.platform.common.core.text.enums.HttpMethod;
 
 /**
  * 防止XSS攻击的过滤器

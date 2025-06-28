@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.petlife.platform.common.annotation.Sensitive;
 import com.petlife.platform.common.core.domain.model.LoginUser;
-import com.petlife.platform.common.enums.DesensitizedType;
+import com.petlife.platform.common.core.text.enums.DesensitizedType;
 import com.petlife.platform.common.utils.SecurityUtils;
 
 /**

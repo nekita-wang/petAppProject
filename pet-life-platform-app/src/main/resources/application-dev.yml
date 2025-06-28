@@ -1,0 +1,5 @@
+pet:
+  jwt:
+    expire: 43200                # Token 过期时间（秒）12小时
+    refresh-expire: 86400        # Refresh Token 过期时间（秒）24小时
+    allowable-error-time: 60     # 时间误差允许范围（秒）

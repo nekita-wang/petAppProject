@@ -10,7 +10,7 @@ import com.petlife.platform.common.constant.CacheConstants;
 import com.petlife.platform.common.constant.UserConstants;
 import com.petlife.platform.common.core.redis.RedisCache;
 import com.petlife.platform.common.core.text.Convert;
-import com.petlife.platform.common.enums.DataSourceType;
+import com.petlife.platform.common.core.text.enums.DataSourceType;
 import com.petlife.platform.common.exception.ServiceException;
 import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.system.domain.SysConfig;

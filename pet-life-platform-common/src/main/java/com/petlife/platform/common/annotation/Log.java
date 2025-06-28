@@ -5,8 +5,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import com.petlife.platform.common.enums.BusinessType;
-import com.petlife.platform.common.enums.OperatorType;
+import com.petlife.platform.common.core.text.enums.BusinessType;
+import com.petlife.platform.common.core.text.enums.OperatorType;
 
 /**
  * 自定义操作日志记录注解

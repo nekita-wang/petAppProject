@@ -6,7 +6,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import com.petlife.platform.common.enums.DataSourceType;
+import com.petlife.platform.common.core.text.enums.DataSourceType;
 
 /**
  * 自定义多数据源切换注解

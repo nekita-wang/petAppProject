@@ -22,7 +22,5 @@
             <artifactId>pet-life-platform-common</artifactId>
         </dependency>
 
-
-
     </dependencies>
 </project>
