@@ -1,4 +1,4 @@
-package com.petlife.platform.app.core.api;
+package com.petlife.platform.common.core.api;
 
 import lombok.Data;
 

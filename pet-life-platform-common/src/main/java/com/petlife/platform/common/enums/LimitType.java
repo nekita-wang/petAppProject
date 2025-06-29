@@ -1,4 +1,4 @@
-package com.petlife.platform.common.core.text.enums;
+package com.petlife.platform.common.enums;
 
 /**
  * 限流类型

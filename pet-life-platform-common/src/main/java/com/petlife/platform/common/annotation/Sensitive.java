@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.petlife.platform.common.config.serializer.SensitiveJsonSerializer;
-import com.petlife.platform.common.core.text.enums.DesensitizedType;
+import com.petlife.platform.common.enums.DesensitizedType;
 
 /**
  * 数据脱敏注解

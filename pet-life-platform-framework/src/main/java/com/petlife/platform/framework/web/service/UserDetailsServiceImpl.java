@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import com.petlife.platform.common.core.domain.entity.SysUser;
 import com.petlife.platform.common.core.domain.model.LoginUser;
-import com.petlife.platform.common.core.text.enums.UserStatus;
+import com.petlife.platform.common.enums.UserStatus;
 import com.petlife.platform.common.exception.ServiceException;
 import com.petlife.platform.common.utils.MessageUtils;
 import com.petlife.platform.common.utils.StringUtils;

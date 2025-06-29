@@ -19,7 +19,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
 import com.alibaba.druid.spring.boot.autoconfigure.properties.DruidStatProperties;
 import com.alibaba.druid.util.Utils;
-import com.petlife.platform.common.core.text.enums.DataSourceType;
+import com.petlife.platform.common.enums.DataSourceType;
 import com.petlife.platform.common.utils.spring.SpringUtils;
 import com.petlife.platform.framework.config.properties.DruidProperties;
 import com.petlife.platform.framework.datasource.DynamicDataSource;

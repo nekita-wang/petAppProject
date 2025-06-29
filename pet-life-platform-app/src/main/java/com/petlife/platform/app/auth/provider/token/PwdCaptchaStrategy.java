@@ -1,7 +1,7 @@
 package com.petlife.platform.app.auth.provider.token;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
-import com.petlife.platform.app.core.exception.PetException;
+import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.pojo.dto.LoginDTO;
 import com.petlife.platform.app.pojo.entity.User;
 import com.petlife.platform.app.token.model.AuthUserInfo;

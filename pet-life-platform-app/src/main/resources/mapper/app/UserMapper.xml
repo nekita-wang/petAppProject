@@ -7,7 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectByPhoneAndStatusIn" parameterType="map" resultType="com.petlife.platform.app.pojo.entity.User" >
         SELECT
         user_id,
-        phone,
+        mobile,
         nick_name,
         password,
         gender,
@@ -19,7 +19,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         auth,
         status
         FROM user
-        WHERE phone = #{phone}
+        WHERE mobile = #{mobile}
         AND status IN
         <foreach item="status" collection="statuses" open="(" separator="," close=")">
             #{status}

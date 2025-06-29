@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.petlife.platform.common.annotation.Log;
 import com.petlife.platform.common.core.controller.BaseController;
 import com.petlife.platform.common.core.domain.AjaxResult;
-import com.petlife.platform.common.core.text.enums.BusinessType;
+import com.petlife.platform.common.enums.BusinessType;
 import ${packageName}.domain.${ClassName};
 import ${packageName}.service.I${ClassName}Service;
 import com.petlife.platform.common.utils.poi.ExcelUtil;

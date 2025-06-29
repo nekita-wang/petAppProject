@@ -1,6 +1,9 @@
 package com.petlife.platform.framework.web.exception;
 
 import javax.servlet.http.HttpServletRequest;
+
+import com.petlife.platform.common.core.api.ResponseData;
+import com.petlife.platform.common.core.exception.PetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
@@ -28,6 +31,20 @@ import com.petlife.platform.common.utils.html.EscapeUtil;
 public class GlobalExceptionHandler
 {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    /**
+     * PetException异常捕获
+     * @param e
+     * @param request
+     * @return
+     */
+    @ExceptionHandler(PetException.class)
+    public ResponseData<?> handlePetException(PetException e, HttpServletRequest request)
+    {
+        String requestURI = request.getRequestURI();
+        log.warn("请求地址'{}'发生业务异常: {}", requestURI, e.getMessage());
+        return ResponseData.error(e.getServiceCode().getCode(), e.getServiceCode().getMsg());
+    }
 
     /**
      * 权限校验异常

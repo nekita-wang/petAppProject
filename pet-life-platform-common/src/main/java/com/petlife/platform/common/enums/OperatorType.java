@@ -1,4 +1,4 @@
-package com.petlife.platform.common.core.text.enums;
+package com.petlife.platform.common.enums;
 
 /**
  * 操作人类别

@@ -2,15 +2,16 @@ package com.petlife.platform.app.auth.provider.token;
 
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
-import com.petlife.platform.app.core.exception.PetException;
+import com.petlife.platform.app.auth.provider.TokenGranterStrategy;
+import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.mapper.UserMapper;
 import com.petlife.platform.app.pojo.dto.LoginDTO;
 import com.petlife.platform.app.pojo.entity.User;
 import com.petlife.platform.app.token.JwtUtil;
 import com.petlife.platform.app.token.config.JwtProperties;
 import com.petlife.platform.app.token.model.AuthUserInfo;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -24,12 +25,14 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public abstract class AbstractTokenGranter {
+public abstract class AbstractTokenGranter implements TokenGranterStrategy {
 
-    private final UserMapper userMapper;
-    private final StringRedisTemplate redisTemplate;
-    private final JwtProperties jwtProperties;
+    @Autowired
+    protected UserMapper userMapper;
+    @Autowired
+    protected StringRedisTemplate redisTemplate;
+    @Autowired
+    protected JwtProperties jwtProperties;
 
     /**
      * 手机号正则，支持中国大陆手机号
@@ -46,7 +49,7 @@ public abstract class AbstractTokenGranter {
         }
         if (!MOBILE_PATTERN.matcher(loginDTO.getMobile()).matches()) {
             log.warn("手机号格式错误: {}", loginDTO.getMobile());
-            throw new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST); // 你可以新增一个手机号格式错误枚举，分开处理
+            throw new PetException(AuthExceptionCode.PHONE_FORMAT_ERROR); // 你可以新增一个手机号格式错误枚举，分开处理
         }
     }
 
@@ -67,9 +70,9 @@ public abstract class AbstractTokenGranter {
             case 2:
                 log.warn("账号已冻结: userId={}", user.getUserId());
                 throw new PetException(AuthExceptionCode.ACCOUNT_FROZEN);
-            case 3:
-                log.warn("账号被禁用: userId={}", user.getUserId());
-                throw new PetException(AuthExceptionCode.ACCOUNT_DISABLED);
+//            case 3:
+//                log.warn("账号被禁用: userId={}", user.getUserId());
+//                throw new PetException(AuthExceptionCode.ACCOUNT_DISABLED);
             default:
                 // 正常状态，继续执行
         }

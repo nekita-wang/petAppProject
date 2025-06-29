@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.petlife.platform.common.constant.CacheConstants;
-import com.petlife.platform.common.core.text.enums.LimitType;
+import com.petlife.platform.common.enums.LimitType;
 
 /**
  * 限流注解

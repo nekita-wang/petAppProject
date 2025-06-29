@@ -18,7 +18,7 @@ import com.petlife.platform.common.constant.Constants;
 import com.petlife.platform.common.core.controller.BaseController;
 import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.page.TableDataInfo;
-import com.petlife.platform.common.core.text.enums.BusinessType;
+import com.petlife.platform.common.enums.BusinessType;
 import com.petlife.platform.common.exception.job.TaskException;
 import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.poi.ExcelUtil;

@@ -1,6 +1,6 @@
-package com.petlife.platform.app.core.exception;
+package com.petlife.platform.common.core.exception;
 
-import com.petlife.platform.app.core.api.ServiceCode;
+import com.petlife.platform.common.core.api.ServiceCode;
 
 /**
  * 全局通用异常码定义

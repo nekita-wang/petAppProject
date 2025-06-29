@@ -1,20 +1,21 @@
-package com.petlife.platform.app.core.exception;
+package com.petlife.platform.common.core.exception;
 
 
-import com.petlife.platform.app.core.api.ServiceCode;
+import com.petlife.platform.common.core.api.ServiceCode;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
 /**
  * 自定义异常
  */
+@Getter
+@Setter
 public class PetException extends RuntimeException {
 
     private ServiceCode serviceCode;
 
     public PetException(ServiceCode serviceCode) {
+        super(serviceCode.getMsg());
         this.serviceCode = serviceCode;
     }
     public PetException(int code, String msg) {

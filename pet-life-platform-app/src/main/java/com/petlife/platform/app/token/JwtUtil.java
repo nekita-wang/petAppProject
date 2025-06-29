@@ -1,7 +1,7 @@
 package com.petlife.platform.app.token;
 
-import com.petlife.platform.app.core.exception.CommonExceptionCode;
-import com.petlife.platform.app.core.exception.PetException;
+import com.petlife.platform.common.core.exception.CommonExceptionCode;
+import com.petlife.platform.common.core.exception.PetException;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.petlife.platform.app.token.model.TokenInfo;
 import io.jsonwebtoken.*;

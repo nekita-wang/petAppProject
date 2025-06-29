@@ -1,14 +1,15 @@
 package com.petlife.platform.app.auth.enums;
 
 
-import com.petlife.platform.app.core.api.ServiceCode;
+import com.petlife.platform.common.core.api.ServiceCode;
 
 public enum AuthExceptionCode implements ServiceCode {
 
     // 登录相关错误
+    PHONE_FORMAT_ERROR(1007, "手机号码格式不正确"),
     ACCOUNT_NOT_EXIST(1000, "该手机号未注册，请先注册"),
     PASSWORD_INCORRECT(1001, "密码错误，请重新输入"),
-    ACCOUNT_LOCKED(1002, "密码错误次数过多，账号已锁定，请30分钟后重试"),
+    ACCOUNT_LOCKED(1002, "密码错误次数过多，账号已临时锁定30分钟，请稍后再试"),
     ACCOUNT_FROZEN(1003, "该账号已被冻结，无法登录"),
     ACCOUNT_CANCELLED(1004, "该账号已注销"),
     ACCOUNT_DISABLED(1005, "账号被禁用"),

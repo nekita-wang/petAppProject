@@ -14,7 +14,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 import com.petlife.platform.common.annotation.RateLimiter;
-import com.petlife.platform.common.core.text.enums.LimitType;
+import com.petlife.platform.common.enums.LimitType;
 import com.petlife.platform.common.exception.ServiceException;
 import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.ip.IpUtils;
