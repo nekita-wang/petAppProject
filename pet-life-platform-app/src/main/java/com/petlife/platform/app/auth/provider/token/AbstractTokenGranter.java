@@ -37,29 +37,48 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     /**
      * 手机号正则，支持中国大陆手机号
      */
-    private static final Pattern MOBILE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
 
     /**
      * 公共参数校验：手机号、密码非空，手机号格式校验
      */
     protected void publicCheck(LoginDTO loginDTO) {
-        if (!StringUtils.hasText(loginDTO.getMobile()) || !StringUtils.hasText(loginDTO.getPassword())) {
-            log.warn("手机号或密码为空");
-            throw new PetException(AuthExceptionCode.PASSWORD_INCORRECT);
+        String rawPhone = loginDTO.getPhone();
+
+        if (rawPhone == null) {
+            log.warn("手机号字段缺失");
+            //同样返回手机号不能为空
+            throw new PetException(AuthExceptionCode.PHONE_IS_EMPTY);
         }
-        if (!MOBILE_PATTERN.matcher(loginDTO.getMobile()).matches()) {
-            log.warn("手机号格式错误: {}", loginDTO.getMobile());
-            throw new PetException(AuthExceptionCode.PHONE_FORMAT_ERROR); // 你可以新增一个手机号格式错误枚举，分开处理
+
+        // 去除空格、横线
+        String cleanedPhone = rawPhone.replaceAll("[\\s\\-]", "");
+
+        // 将清洗后的手机号重新写回 DTO
+        loginDTO.setPhone(cleanedPhone);
+
+        if (!StringUtils.hasText(cleanedPhone)) {
+            log.warn("手机号为空");
+            throw new PetException(AuthExceptionCode.PHONE_IS_EMPTY);
+        }
+
+        if (!PHONE_PATTERN.matcher(cleanedPhone).matches()) {
+            log.warn("手机号格式错误: {}", loginDTO.getPhone());
+            throw new PetException(AuthExceptionCode.PHONE_FORMAT_ERROR);
+        }
+        if (!StringUtils.hasText(loginDTO.getPassword())) {
+            log.warn("密码为空");
+            throw new PetException(AuthExceptionCode.PASSWORD_IS_EMPTY); // 新增错误码
         }
     }
 
     /**
      * 查询用户并校验账号状态
      */
-    protected User checkUser(String mobile) {
-        Optional<User> optionalUser = userMapper.selectByPhoneAndStatusIn(mobile, new int[]{0, 2});
+    protected User checkUser(String phone) {
+        Optional<User> optionalUser = userMapper.selectByPhoneAndStatusIn(phone, new int[]{0, 2});
         User user = optionalUser.orElseThrow(() -> {
-            log.warn("手机号未注册: {}", mobile);
+            log.warn("手机号未注册: {}", phone);
             return new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST);
         });
 

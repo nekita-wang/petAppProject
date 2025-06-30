@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 //授权类型枚举类
 public enum GrantTypeEnum {
-    MOBILE("mobile", "mobileCaptchaStrategy", "手机验证码登录"),
+    PHONE("phone", "phoneCaptchaStrategy", "手机验证码登录"),
     PASSWORD("password", "pwdCaptchaStrategy", "密码登录"),
     ;
     private final String code;

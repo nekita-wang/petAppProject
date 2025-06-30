@@ -36,7 +36,7 @@ public class AuthController {
             throw new PetException(AuthExceptionCode.GRANTER_INEXISTENCE);
         }
 
-        log.info("用户尝试登录，grantType={}, mobile={}", grantType.getCode(), loginDTO.getMobile());
+        log.info("用户尝试登录，grantType={}, phone={}", grantType.getCode(), loginDTO.getPhone());
 
         // 根据不同策略执行登录
         AuthUserInfo authUserInfo = granterContext.getGranter(grantType).grant(loginDTO);

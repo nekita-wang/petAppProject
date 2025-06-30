@@ -15,8 +15,8 @@ public class LoginDTO {
     private String password;
 
     @ApiModelProperty(value = "手机号")
-    private String mobile;
+    private String phone;
 
-    @ApiModelProperty(value = "登录类型：mobile=验证码登录，password=密码登录")
+    @ApiModelProperty(value = "登录类型：phone=验证码登录，password=密码登录")
     private String grantType;
 }

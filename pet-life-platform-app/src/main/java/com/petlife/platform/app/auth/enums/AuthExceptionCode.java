@@ -6,7 +6,6 @@ import com.petlife.platform.common.core.api.ServiceCode;
 public enum AuthExceptionCode implements ServiceCode {
 
     // 登录相关错误
-    PHONE_FORMAT_ERROR(1007, "手机号码格式不正确"),
     ACCOUNT_NOT_EXIST(1000, "该手机号未注册，请先注册"),
     PASSWORD_INCORRECT(1001, "密码错误，请重新输入"),
     ACCOUNT_LOCKED(1002, "密码错误次数过多，账号已临时锁定30分钟，请稍后再试"),
@@ -14,6 +13,10 @@ public enum AuthExceptionCode implements ServiceCode {
     ACCOUNT_CANCELLED(1004, "该账号已注销"),
     ACCOUNT_DISABLED(1005, "账号被禁用"),
     LOGIN_TOO_FREQUENT(1006, "登录过于频繁，请稍后再试"),
+
+    PHONE_FORMAT_ERROR(1007, "手机号码格式不正确"),
+    PHONE_IS_EMPTY(1008, "手机号不能为空"),
+    PASSWORD_IS_EMPTY(1009, "密码不能为空"),
 
     // 认证流程相关错误
     GRANTER_INEXISTENCE(1010, "grantType类型不存在"),

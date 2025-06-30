@@ -11,9 +11,9 @@ public interface UserMapper {
 
     /**
      * 根据手机号和状态查询用户，状态在指定列表中，返回Optional封装单个User
-     * @param mobile 手机号
+     * @param phone 手机号
      * @param statuses 状态数组，如 {0, 2}
      * @return Optional<User>
      */
-    Optional<User> selectByPhoneAndStatusIn(@Param("mobile") String mobile, @Param("statuses") int[] statuses);
+    Optional<User> selectByPhoneAndStatusIn(@Param("phone") String phone, @Param("statuses") int[] statuses);
 }

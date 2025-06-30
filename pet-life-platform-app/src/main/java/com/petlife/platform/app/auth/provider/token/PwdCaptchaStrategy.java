@@ -5,6 +5,7 @@ import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.pojo.dto.LoginDTO;
 import com.petlife.platform.app.pojo.entity.User;
 import com.petlife.platform.app.token.model.AuthUserInfo;
+import com.petlife.platform.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
@@ -24,11 +25,16 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
         // 1. 校验手机号格式和非空
         publicCheck(loginDTO);
 
-        String mobile = loginDTO.getMobile();
+        String phone = loginDTO.getPhone();
         String password = loginDTO.getPassword();
 
+        // 只在手机号密码登录时，才校验密码字段
+        if (!StringUtils.hasText(loginDTO.getPassword())) {
+            log.warn("密码为空");
+            throw new PetException(AuthExceptionCode.PASSWORD_IS_EMPTY);
+        }
         // 2. 查找用户并检查状态
-        User user = checkUser(mobile);
+        User user = checkUser(phone);
 
         Long userId = user.getUserId().longValue();
         String errorCountKey = "login:pwd:errors:" + userId;
