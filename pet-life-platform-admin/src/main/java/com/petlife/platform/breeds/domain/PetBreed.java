@@ -6,6 +6,7 @@ import com.petlife.platform.common.core.domain.BaseEntity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Date;
  * @author ruoyi
  * @date 2025-06-27
  */
-public class PetBreed extends BaseEntity
+public class PetBreed implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
@@ -50,11 +51,11 @@ public class PetBreed extends BaseEntity
     private String enInitials;
 
     /** 宠物品种（英文） */
-    @Excel(name = "宠物品种", readConverterExp = "英=文")
+    @Excel(name = "宠物品种（英文）")
     private String petBreedEn;
 
     /** 状态 */
-    @Excel(name = "状态")
+    @Excel(name = "状态", readConverterExp = "0=生效;1=失效")
     private Integer status;
 
     /** 最后更新时间 */
@@ -66,10 +67,22 @@ public class PetBreed extends BaseEntity
     @Excel(name = "创建人")
     private String creator;
 
+    /** 创建时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
+    private Date createTime;
+
     /** 最后更新人 */
     @Excel(name = "最后更新人")
     private String lastUpdater;
 
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
 
     public void setCnNo(String cnNo)
     {
@@ -215,7 +228,6 @@ public class PetBreed extends BaseEntity
             .append("petBreedEn", getPetBreedEn())
             .append("status", getStatus())
             .append("lastUpdateTime", getLastUpdateTime())
-            .append("createTime", getCreateTime())
             .append("creator", getCreator())
             .append("lastUpdater", getLastUpdater())
             .toString();

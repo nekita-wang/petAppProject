@@ -49,7 +49,6 @@
 <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="中文排序" align="center" prop="cnNo" />
       <el-table-column label="英文排序" align="center" prop="enNo" />
-      <!-- <el-table-column label="宠物分类" align="center" prop="petClass" /> -->
          <el-table-column label="宠物分类" align="center" prop="petClass" width="100">
     <template slot-scope="scope">
       <el-select v-model="scope.row.petClass" placeholder="请选择宠物类型" disabled>

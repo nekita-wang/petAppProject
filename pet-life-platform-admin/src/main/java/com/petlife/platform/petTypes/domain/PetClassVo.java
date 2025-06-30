@@ -5,13 +5,15 @@ import com.petlife.platform.common.core.domain.BaseEntity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.io.Serializable;
+
 /**
  * 宠物分类对象 pet_classification
  *
  * @author ruoyi
  * @date 2025-06-27
  */
-public class PetClassVo extends BaseEntity
+public class PetClassVo implements Serializable
 {
     private static final long serialVersionUID = 1L;
 

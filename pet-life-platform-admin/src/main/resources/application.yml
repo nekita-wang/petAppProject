@@ -75,7 +75,7 @@ spring:
     # 数据库索引
     database: 0
     # 密码
-    password: 123456
+    password:
     # 连接超时时间
     timeout: 10s
     lettuce:
@@ -96,7 +96,7 @@ token:
   # 令牌密钥
   secret: abcdefghijklmnopqrstuvwxyz
   # 令牌有效期（默认30分钟）
-  expireTime: 30
+  expireTime: 36000
 
 # MyBatis配置
 mybatis:

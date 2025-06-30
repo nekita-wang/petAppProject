@@ -6,6 +6,7 @@ import com.petlife.platform.common.core.domain.BaseEntity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Date;
  * @author ruoyi
  * @date 2025-06-27
  */
-public class PetClassification extends BaseEntity
+public class PetClassification implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
@@ -37,6 +38,11 @@ public class PetClassification extends BaseEntity
     @Excel(name = "状态")
     private Integer status;
 
+    /** 创建时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
+    private Date createTime;
+
     /** 创建人 */
     @Excel(name = "创建人")
     private String creator;
@@ -49,6 +55,14 @@ public class PetClassification extends BaseEntity
     /** 最后更新人 */
     @Excel(name = "最后更新人")
     private String lastUpdater;
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
 
     public void setNo(String no)
     {

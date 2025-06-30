@@ -40,6 +40,9 @@ public class PetBreedController extends BaseController
         List<PetBreed> list = petBreedService.selectPetBreedList(petBreed);
         return getDataTable(list);
     }
+    /**
+     * 修改宠物状态
+     */
     @PutMapping("/updateBreedStatus")
     public AjaxResult updateBreedStatus(@RequestBody Map<String, List<String>> request) {
         List<String> ids = request.get("ids");
