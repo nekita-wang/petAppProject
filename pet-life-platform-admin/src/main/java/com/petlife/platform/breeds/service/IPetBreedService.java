@@ -1,8 +1,11 @@
 package com.petlife.platform.breeds.service;
 
 import com.petlife.platform.breeds.domain.PetBreed;
+import com.petlife.platform.breeds.domain.PetBreedQuery;
+import com.petlife.platform.breeds.domain.PetBreedVo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 宠物品种Service接口
@@ -15,10 +18,13 @@ public interface IPetBreedService
     /**
      * 查询宠物品种
      *
-     * @param petClassId 宠物品种主键
+     * @param petBreedId 宠物品种主键
      * @return 宠物品种
      */
     public PetBreed selectPetBreedByPetClassId(String petBreedId);
+
+
+    public Map<String, Object> selectPetBreedAppList(PetBreedQuery petBreedQuery);
 
     /**
      * 查询宠物品种列表

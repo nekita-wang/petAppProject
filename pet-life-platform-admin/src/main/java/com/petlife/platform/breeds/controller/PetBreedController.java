@@ -1,10 +1,13 @@
 package com.petlife.platform.breeds.controller;
 
 import com.petlife.platform.breeds.domain.PetBreed;
+import com.petlife.platform.breeds.domain.PetBreedQuery;
+import com.petlife.platform.breeds.domain.PetBreedVo;
 import com.petlife.platform.breeds.service.IPetBreedService;
 import com.petlife.platform.common.annotation.Log;
 import com.petlife.platform.common.core.controller.BaseController;
 import com.petlife.platform.common.core.domain.AjaxResult;
+import com.petlife.platform.common.core.domain.R;
 import com.petlife.platform.common.core.page.TableDataInfo;
 import com.petlife.platform.common.enums.BusinessType;
 import com.petlife.platform.common.utils.poi.ExcelUtil;
@@ -28,6 +31,13 @@ public class PetBreedController extends BaseController
 {
     @Autowired
     private IPetBreedService petBreedService;
+
+    @GetMapping("/appBreeds")
+    public R list(PetBreedQuery petBreedQuery)
+    {
+        Map<String, Object> map = petBreedService.selectPetBreedAppList(petBreedQuery);
+        return R.ok(map);
+    }
 
     /**
      * 查询宠物品种列表

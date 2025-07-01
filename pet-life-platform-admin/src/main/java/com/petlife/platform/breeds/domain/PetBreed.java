@@ -55,7 +55,7 @@ public class PetBreed implements Serializable
     private String petBreedEn;
 
     /** 状态 */
-    @Excel(name = "状态", readConverterExp = "0=生效;1=失效")
+    @Excel(name = "状态")
     private Integer status;
 
     /** 最后更新时间 */

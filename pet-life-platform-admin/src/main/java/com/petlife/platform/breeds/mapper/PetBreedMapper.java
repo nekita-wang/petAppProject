@@ -1,6 +1,8 @@
 package com.petlife.platform.breeds.mapper;
 
 import com.petlife.platform.breeds.domain.PetBreed;
+import com.petlife.platform.breeds.domain.PetBreedQuery;
+import com.petlife.platform.breeds.domain.PetBreedVo;
 
 import java.util.List;
 
@@ -61,4 +63,8 @@ public interface PetBreedMapper
     public int deletePetBreedByPetClassIds(String[] petClassIds);
 
     public int updateBreedStatus(List<String> ids);
+
+    List<PetBreedVo> selectPetBreedAppList(PetBreedQuery petBreedQuery);
+
+    List<String> selectHot(String petClass);
 }

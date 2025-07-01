@@ -1,15 +1,20 @@
 package com.petlife.platform.breeds.service.impl;
 
 import com.petlife.platform.breeds.domain.PetBreed;
+import com.petlife.platform.breeds.domain.PetBreedQuery;
+import com.petlife.platform.breeds.domain.PetBreedVo;
 import com.petlife.platform.breeds.mapper.PetBreedMapper;
 import com.petlife.platform.breeds.service.IPetBreedService;
 import com.petlife.platform.common.utils.DateUtils;
+import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.petTypes.domain.PetClassVo;
 import com.petlife.platform.petTypes.mapper.PetClassificationMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.petlife.platform.common.utils.SecurityUtils.getUsername;
 
@@ -37,6 +42,21 @@ public class PetBreedServiceImpl implements IPetBreedService
     public PetBreed selectPetBreedByPetClassId(String petBreedId)
     {
         return petBreedMapper.selectPetBreedByPetClassId(petBreedId);
+    }
+
+    @Override
+    public Map<String, Object> selectPetBreedAppList(PetBreedQuery petBreedQuery) {
+
+        List<String> hotPetBreeds = petBreedMapper.selectHot(petBreedQuery.getPetClass());
+
+        List<PetBreedVo> petBreedVos = petBreedMapper.selectPetBreedAppList(petBreedQuery);
+
+        Map<String, Object> result = new HashMap<>();
+        if (StringUtils.isEmpty(petBreedQuery.getPetBreed())){
+            result.put("hotVo", hotPetBreeds);
+        }
+        result.put("petBreedVo", petBreedVos);
+        return result;
     }
 
     /**
