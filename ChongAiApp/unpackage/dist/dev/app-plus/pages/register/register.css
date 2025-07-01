@@ -1,0 +1,194 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 在项目根目录的 uni.scss 中添加 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.profile-container[data-v-bac4a35d] {
+  padding: 0 1.25rem;
+  background-color: #fff;
+}
+
+/* 头像上传 */
+.avatar-upload[data-v-bac4a35d] {
+  position: relative;
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto;
+}
+.avatar[data-v-bac4a35d] {
+  width: 100%;
+  height: 100%;
+  border-radius: 10%;
+}
+.camera-icon[data-v-bac4a35d] {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* 表单样式 */
+.form-item[data-v-bac4a35d] {
+  padding: 0.625rem 0;
+  display: flex;
+  align-items: center;
+}
+.label[data-v-bac4a35d] {
+  text-align: center;
+  width: 5rem;
+  font-size: 1rem;
+  color: #333;
+}
+uni-input[data-v-bac4a35d] {
+  flex: 1;
+  font-size: 1rem;
+  height: 2.03125rem;
+  padding-left: 0.78125rem;
+  border-radius: 0.9375rem;
+  background-color: #e8e8e8;
+}
+.value[data-v-bac4a35d] {
+  flex: 1;
+  font-size: 1rem;
+}
+
+/* 性别选择容器 */
+.gender-container[data-v-bac4a35d] {
+  flex: 1;
+  display: flex;
+  gap: 1.25rem;
+  /* 选项间距 */
+}
+
+/* 单个性别选项 */
+.gender-option[data-v-bac4a35d] {
+  display: flex;
+  align-items: center;
+}
+.gender-option .sex-male[data-v-bac4a35d] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.5625rem;
+  height: 1.5625rem;
+  background-color: #0091ff;
+  margin-right: 0.625rem;
+  border-radius: 50%;
+}
+.gender-option .sex-female[data-v-bac4a35d] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.5625rem;
+  height: 1.5625rem;
+  margin-right: 0.625rem;
+  background-color: #ff4d94;
+  border-radius: 50%;
+}
+.gender-option uni-image[data-v-bac4a35d] {
+  width: 70%;
+  height: 70%;
+}
+
+/* 文字标签 */
+.gender-tag[data-v-bac4a35d] {
+  padding: 0.25rem 1.5625rem;
+  border-radius: 0.9375rem;
+  background-color: #f5f5f5;
+  font-size: 1rem;
+}
+
+/* 性别标签激活状态 */
+.gender-tag.active.male[data-v-bac4a35d] {
+  background-color: #1989fa !important;
+  color: white !important;
+}
+.gender-tag.active.female[data-v-bac4a35d] {
+  background-color: #ff7bac !important;
+  color: white !important;
+}
+
+/* 日期显示容器（完全还原截图样式） */
+.date-display[data-v-bac4a35d] {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.625rem;
+  height: 2.03125rem;
+  background-color: #e8e8e8;
+  border-radius: 0.9375rem;
+  font-size: 1rem;
+}
+.arrow-icon[data-v-bac4a35d] {
+  width: 1rem;
+  height: 1rem;
+}
+.label[data-v-bac4a35d] {
+  width: 5rem;
+  font-size: 1rem;
+  color: #333;
+}
+
+/* 日期选择器容器 */
+.date-picker-container[data-v-bac4a35d] {
+  flex: 1;
+  height: 9.375rem;
+  margin-top: 0.625rem;
+  background-color: #f8f8f8;
+  border-radius: 0.625rem;
+  overflow: hidden;
+}
+
+/* 选择器样式 */
+uni-picker-view[data-v-bac4a35d] {
+  width: 100%;
+  height: 100%;
+}
+
+/* 选择项样式 */
+.item[data-v-bac4a35d] {
+  line-height: 2.5rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #666;
+}
+
+/* 选中项样式 */
+uni-picker-view-column uni-view.item[data-v-bac4a35d] {
+  font-weight: bold;
+  color: black;
+}
+
+/* 下一步按钮 */
+.next-btn[data-v-bac4a35d] {
+  width: 9.375rem;
+  background-color: #1989fa;
+  color: white;
+  border-radius: 1.5625rem;
+  height: 2.1875rem;
+  margin-top: 1.875rem;
+  line-height: 2.1875rem;
+}
