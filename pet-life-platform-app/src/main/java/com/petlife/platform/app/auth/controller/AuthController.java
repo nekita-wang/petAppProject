@@ -3,6 +3,7 @@ package com.petlife.platform.app.auth.controller;
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.auth.enums.GrantTypeEnum;
 import com.petlife.platform.app.auth.provider.CompositeTokenGranterContext;
+import com.petlife.platform.app.auth.provider.token.AbstractTokenGranter;
 import com.petlife.platform.common.core.api.ResponseData;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.pojo.dto.LoginDTO;
@@ -11,8 +12,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
-
+import java.time.Duration;
 import java.util.Objects;
 
 @Slf4j
@@ -23,6 +25,36 @@ public class AuthController {
 
     @Autowired
     private CompositeTokenGranterContext granterContext;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+
+    /**
+     * 发送登录验证码
+     */
+    @PostMapping("/sendCode")
+    @ApiOperation(value = "发送验证码", notes = "手机号格式合法则发送验证码")
+    public ResponseData<String> sendLoginCode(@RequestParam String phone) {
+        if (!AbstractTokenGranter.PHONE_PATTERN.matcher(phone).matches()) {
+            log.warn("手机号格式不合法: {}", phone);
+            return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
+        }
+
+        String code = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
+        redisTemplate.opsForValue().set(
+                AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + phone,
+                code,
+                Duration.ofMinutes(5)
+        );
+
+        // TODO: 调用第三方短信服务发送验证码（暂时只打印）
+        log.info("发送登录验证码: phone={}, code={}", phone, code);
+
+        // 开发环境（临时返回code）：
+        return ResponseData.ok(code);
+    }
+
 
     /**
      * 登录接口：支持手机号密码登录和手机号验证码登录等

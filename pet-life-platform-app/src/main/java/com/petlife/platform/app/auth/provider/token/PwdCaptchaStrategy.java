@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 手机号登录
+ */
 @Slf4j
 @Service("pwdCaptchaStrategy")
 public class PwdCaptchaStrategy extends AbstractTokenGranter {

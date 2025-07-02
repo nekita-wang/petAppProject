@@ -16,4 +16,15 @@ public interface UserMapper {
      * @return Optional<User>
      */
     Optional<User> selectByPhoneAndStatusIn(@Param("phone") String phone, @Param("statuses") int[] statuses);
+
+
+    /**
+     * 插入新用户
+     * @param user 用户实体
+     * @return 影响的行数
+     */
+    int insert(User user);
+
+
+
 }

@@ -37,10 +37,13 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     /**
      * 手机号正则，支持中国大陆手机号
      */
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    public static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+
+    // Redis 验证码 key 前缀
+    public static final String VERIFY_CODE_KEY_PREFIX = "login:code:";
 
     /**
-     * 公共参数校验：手机号、密码非空，手机号格式校验
+     * 公共参数校验：手机号、手机号格式校验
      */
     protected void publicCheck(LoginDTO loginDTO) {
         String rawPhone = loginDTO.getPhone();
@@ -65,10 +68,6 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
         if (!PHONE_PATTERN.matcher(cleanedPhone).matches()) {
             log.warn("手机号格式错误: {}", loginDTO.getPhone());
             throw new PetException(AuthExceptionCode.PHONE_FORMAT_ERROR);
-        }
-        if (!StringUtils.hasText(loginDTO.getPassword())) {
-            log.warn("密码为空");
-            throw new PetException(AuthExceptionCode.PASSWORD_IS_EMPTY); // 新增错误码
         }
     }
 

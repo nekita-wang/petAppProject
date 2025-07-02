@@ -29,4 +29,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LIMIT 1
     </select>
 
+
+    <insert id="insert" parameterType="com.petlife.platform.app.pojo.entity.User" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO user (phone, status)
+        VALUES (#{phone}, #{status})
+    </insert>
+
+
 </mapper>
