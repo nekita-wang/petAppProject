@@ -18,6 +18,8 @@
 
 <script>
 import { updateUserPwd } from "@/api/system/user"
+import { getPublicKey } from '@/api/login'
+import { encrypt } from '@/utils/jsencrypt'
 
 export default {
   data() {
@@ -52,17 +54,38 @@ export default {
     }
   },
   methods: {
+    getPublicKey() {
+      return new Promise((resolve, reject) => {
+        getPublicKey()
+          .then(res => {
+            resolve(res)
+          })
+          .catch(error => {
+            reject(error)
+          })
+      })
+    },
     submit() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          updateUserPwd(this.user.oldPassword, this.user.newPassword).then(response => {
-            this.$modal.msgSuccess("修改成功")
+          this.getPublicKey().then(res=>{
+            let publicKey = res.publicKey
+            console.log("res.publicKey",res.publicKey)
+            const oldPassword = encrypt(this.user.oldPassword, publicKey)
+            const newPassword = encrypt(this.user.newPassword, publicKey)
+            updateUserPwd(oldPassword, newPassword).then(
+              response => {
+                this.msgSuccess("修改成功");
+              }
+            );
           })
+
         }
-      })
+      });
     },
     close() {
-      this.$tab.closePage()
+      this.$store.dispatch("tagsView/delView", this.$route);
+      this.$router.push({ path: "/index" });
     }
   }
 }

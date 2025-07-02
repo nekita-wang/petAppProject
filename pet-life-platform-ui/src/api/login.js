@@ -1,5 +1,14 @@
 import request from '@/utils/request'
 
+// 获取公钥接口 key
+export function getPublicKey() {
+  return request({
+    url: '/publicKey',
+    method: 'get',
+  })
+}
+
+
 // 登录方法
 export function login(username, password, code, uuid) {
   const data = {

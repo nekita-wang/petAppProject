@@ -1,6 +1,8 @@
 package com.petlife.platform.framework.web.service;
 
 import javax.annotation.Resource;
+
+import com.petlife.platform.common.utils.sign.RsaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -65,13 +67,20 @@ public class SysLoginService
     {
         // 验证码校验
         validateCaptcha(username, code, uuid);
-        // 登录前置校验
-        loginPreCheck(username, password);
         // 用户验证
         Authentication authentication = null;
+        // 首先在这里用解密后密码！！不然过不了长度校验！！
+        String passwordUnlock = null;
+        try {
+            passwordUnlock = RsaUtils.decryptByPrivateKey(password);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        // 登录前置校验
+        loginPreCheck(username, passwordUnlock);
         try
         {
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, passwordUnlock);
             AuthenticationContextHolder.setContext(authenticationToken);
             // 该方法会去调用UserDetailsServiceImpl.loadUserByUsername
             authentication = authenticationManager.authenticate(authenticationToken);
@@ -93,8 +102,11 @@ public class SysLoginService
         {
             AuthenticationContextHolder.clearContext();
         }
+        // 认证成功，记录日志
         AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
+        // 从认证结果中获取用户信息
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        // 记录登录信息
         recordLoginInfo(loginUser.getUserId());
         // 生成token
         return tokenService.createToken(loginUser);

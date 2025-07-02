@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petlife.platform.app.mapper.PetMapper">
+
+    <!-- 查询同一用户下是否有相同宠物昵称 -->
+    <select id="countByUserIdAndNickname" resultType="int">
+        SELECT COUNT(*)
+        FROM pet
+        WHERE user_id = #{userId}
+          AND nickname = #{nickname}
+    </select>
+
+    <!-- 添加宠物信息 -->
+    <insert id="insertPet">
+        INSERT INTO pet (
+            user_id,
+            nickname,
+            type,
+            breed,
+            avatar,
+            gender,
+            birthday,
+            arrival_date,
+            is_sterilized
+        ) VALUES (
+                     #{userId},
+                     #{nickname},
+                     #{type},
+                     #{breed},
+                     #{avatar},
+                     #{gender},
+                     #{birthday},
+                     #{arrivalDate},
+                     #{isSterilized}
+                 )
+    </insert>
+
+</mapper>

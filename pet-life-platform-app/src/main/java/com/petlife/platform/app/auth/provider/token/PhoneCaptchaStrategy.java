@@ -24,21 +24,22 @@ public class PhoneCaptchaStrategy extends AbstractTokenGranter {
         String code = loginDTO.getCode();
         if (!org.springframework.util.StringUtils.hasText(code)) {
             log.warn("验证码为空");
-            throw new PetException(AuthExceptionCode.PASSWORD_IS_EMPTY); // 建议新增 CODE_IS_EMPTY 错误码
+            throw new PetException(AuthExceptionCode.CODE_IS_EMPTY);
         }
 
-        // 3️⃣ 校验验证码是否正确
+        // 3️⃣ 校验验证码
         String redisKey = VERIFY_CODE_KEY_PREFIX + phone;
         String cachedCode = redisTemplate.opsForValue().get(redisKey);
         if (cachedCode == null) {
             log.warn("验证码已过期或未发送: phone={}", phone);
-            throw new PetException(AuthExceptionCode.LOGIN_TOO_FREQUENT); // 建议新增 CODE_EXPIRED 错误码
+            throw new PetException(AuthExceptionCode.CODE_EXPIRED);
         }
         if (!code.equals(cachedCode)) {
             log.warn("验证码不正确: 输入={}, 实际={}", code, cachedCode);
-            throw new PetException(AuthExceptionCode.PASSWORD_INCORRECT); // 建议新增 CODE_INCORRECT 错误码
+            throw new PetException(AuthExceptionCode.CODE_INCORRECT);
         }
-        // 删除验证码，防止重复使用
+
+        // 删除验证码
         redisTemplate.delete(redisKey);
 
         // 4️⃣ 查询用户是否存在
@@ -48,19 +49,19 @@ public class PhoneCaptchaStrategy extends AbstractTokenGranter {
 
         if (optionalUser.isPresent()) {
             user = optionalUser.get();
-            // 校验用户状态：冻结、注销等
+            // 校验账号状态
             checkUser(phone);
         } else {
             // 5️⃣ 新用户：注册
             user = new User();
             user.setPhone(phone);
-            user.setStatus((byte) 0); // 正常
+            user.setStatus((byte) 0); // 正常状态
             userMapper.insert(user);
             log.info("新用户注册成功: phone={}", phone);
             isNewUser = true;
         }
 
-        // 6️⃣ 生成 token
+        // 6️⃣ 生成 token 返回
         AuthUserInfo authUserInfo = createToken(user);
         authUserInfo.setNewUser(isNewUser);
 

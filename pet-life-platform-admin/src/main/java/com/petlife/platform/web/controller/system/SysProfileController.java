@@ -1,6 +1,7 @@
 package com.petlife.platform.web.controller.system;
 
-import java.util.Map;
+import com.petlife.platform.common.utils.*;
+import com.petlife.platform.common.utils.sign.RsaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +18,6 @@ import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.domain.entity.SysUser;
 import com.petlife.platform.common.core.domain.model.LoginUser;
 import com.petlife.platform.common.enums.BusinessType;
-import com.petlife.platform.common.utils.DateUtils;
-import com.petlife.platform.common.utils.SecurityUtils;
-import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.file.FileUploadUtils;
 import com.petlife.platform.common.utils.file.FileUtils;
 import com.petlife.platform.common.utils.file.MimeTypeUtils;
@@ -90,31 +88,28 @@ public class SysProfileController extends BaseController
      */
     @Log(title = "个人信息", businessType = BusinessType.UPDATE)
     @PutMapping("/updatePwd")
-    public AjaxResult updatePwd(@RequestBody Map<String, String> params)
-    {
-        String oldPassword = params.get("oldPassword");
-        String newPassword = params.get("newPassword");
-        LoginUser loginUser = getLoginUser();
-        Long userId = loginUser.getUserId();
+    public AjaxResult updatePwd(String oldPassword, String newPassword) throws Exception {
+        LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
+        String userName = loginUser.getUsername();
+        //加密后的
         String password = loginUser.getPassword();
-        if (!SecurityUtils.matchesPassword(oldPassword, password))
-        {
-            return error("修改密码失败，旧密码错误");
+        //解密
+        oldPassword = RsaUtils.decryptByPrivateKey(oldPassword);
+        newPassword = RsaUtils.decryptByPrivateKey(newPassword);
+        //拿原密码和加密后的解密
+        if (!SecurityUtils.matchesPassword(oldPassword, password)) {
+            return AjaxResult.error("修改密码失败，旧密码错误");
         }
-        if (SecurityUtils.matchesPassword(newPassword, password))
-        {
-            return error("新密码不能与旧密码相同");
+        if (SecurityUtils.matchesPassword(newPassword, password)) {
+            return AjaxResult.error("新密码不能与旧密码相同");
         }
-        newPassword = SecurityUtils.encryptPassword(newPassword);
-        if (userService.resetUserPwd(userId, newPassword) > 0)
-        {
-            // 更新缓存用户密码&密码最后更新时间
-            loginUser.getUser().setPwdUpdateDate(DateUtils.getNowDate());
-            loginUser.getUser().setPassword(newPassword);
+        if (userService.resetUserPwd(Long.valueOf(userName), SecurityUtils.encryptPassword(newPassword)) > 0) {
+            // 更新缓存用户密码
+            loginUser.getUser().setPassword(SecurityUtils.encryptPassword(newPassword));
             tokenService.setLoginUser(loginUser);
-            return success();
+            return AjaxResult.success();
         }
-        return error("修改密码异常，请联系管理员");
+        return AjaxResult.error("修改密码异常，请联系管理员");
     }
 
     /**

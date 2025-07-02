@@ -8,6 +8,7 @@ import com.petlife.platform.common.core.api.ResponseData;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.pojo.dto.LoginDTO;
 import com.petlife.platform.app.token.model.AuthUserInfo;
+import com.petlife.platform.common.utils.sign.RsaUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -28,8 +31,7 @@ public class AuthController {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
-
-
+    
     /**
      * 发送登录验证码
      */
@@ -54,7 +56,6 @@ public class AuthController {
         // 开发环境（临时返回code）：
         return ResponseData.ok(code);
     }
-
 
     /**
      * 登录接口：支持手机号密码登录和手机号验证码登录等

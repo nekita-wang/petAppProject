@@ -26,5 +26,23 @@ public interface UserMapper {
     int insert(User user);
 
 
+    /**
+     * 查询同一用户 ID 下是否有相同昵称
+     * @param userId
+     * @param nickname
+     * @return
+     */
+    int countByNickname(Long userId, String nickname);
+
+    /**
+     * 更新用户基本资料
+     * @param userId
+     * @param nickname
+     * @param password
+     * @param avatar
+     * @param gender
+     * @param birthday
+     */
+    void updateProfile(Long userId, String nickname, String password, String avatar, Byte gender, String birthday);
 
 }

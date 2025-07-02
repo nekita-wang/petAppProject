@@ -4,6 +4,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.petlife.platform.app.mapper.UserMapper">
 
+    <!--根据手机号和状态查询用户-->
     <select id="selectByPhoneAndStatusIn" parameterType="map" resultType="com.petlife.platform.app.pojo.entity.User" >
         SELECT
         user_id,
@@ -30,10 +31,31 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
 
+    <!--插入新用户-->
     <insert id="insert" parameterType="com.petlife.platform.app.pojo.entity.User" useGeneratedKeys="true" keyProperty="userId">
         INSERT INTO user (phone, status)
         VALUES (#{phone}, #{status})
     </insert>
+
+    <!-- 查询同一用户 ID 下是否有相同昵称 -->
+    <select id="countByNickname" resultType="int">
+        SELECT COUNT(*)
+        FROM user
+        WHERE user_id = #{userId}
+          AND nick_name = #{nickname}
+    </select>
+
+    <!-- 更新用户基本资料 -->
+    <update id="updateProfile">
+        UPDATE user
+        SET
+            nick_name = #{nickname},
+            password = #{password},
+            avatar_url = #{avatar},
+            gender = #{gender},
+            birthday = #{birthday}
+        WHERE user_id = #{userId}
+    </update>
 
 
 </mapper>
