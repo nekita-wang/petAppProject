@@ -5,7 +5,9 @@ import com.petlife.platform.app.mapper.UserMapper;
 import com.petlife.platform.app.pojo.dto.UserProfileDTO;
 import com.petlife.platform.app.service.UserService;
 import com.petlife.platform.common.core.exception.PetException;
+import com.petlife.platform.common.utils.SecurityUtils;
 import com.petlife.platform.common.utils.StringUtils;
+import com.petlife.platform.common.utils.sign.RsaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,16 +23,25 @@ public class UserServiceImpl implements UserService {
         if (!StringUtils.hasText(dto.getNickname()) || !StringUtils.hasText(dto.getPassword())) {
             throw new PetException(AuthExceptionCode.PHONE_IS_EMPTY);
         }
-        // 密码强度示例（略）
         // 昵称唯一性
         if (isNicknameExist(dto.getUserId(), dto.getNickname())) {
             throw new PetException(AuthExceptionCode.USER_NICKNAME_EXIST);
         }
-        // TODO 密码加密
-//        String saltPwd = PasswordUtil.encode(dto.getPassword());
-        String saltPwd = "1111";
+
+        // 解密：用后端私钥解密前端传来的密文密码
+        String rawPassword;
+        try {
+            rawPassword = RsaUtils.decryptByPrivateKey(RsaUtils.getPrivateKey(), dto.getPassword());
+        } catch (Exception e) {
+            throw new PetException(AuthExceptionCode.PASSWORD_DECRYPT_ERROR);
+        }
+
+        // 对明文密码做哈希：得到真正要存数据库的密文
+        String hashedPassword = SecurityUtils.encryptPassword(rawPassword);
+
         // 更新用户资料
-        userMapper.updateProfile(dto.getUserId(), dto.getNickname(), saltPwd, dto.getAvatar(), dto.getGender(), dto.getBirthday());
+        userMapper.updateProfile(dto.getUserId(), dto.getNickname(), hashedPassword,
+                dto.getAvatar(), dto.getGender(), dto.getBirthday());
     }
 
     @Override

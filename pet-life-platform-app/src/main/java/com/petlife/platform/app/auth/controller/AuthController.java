@@ -4,10 +4,12 @@ import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.auth.enums.GrantTypeEnum;
 import com.petlife.platform.app.auth.provider.CompositeTokenGranterContext;
 import com.petlife.platform.app.auth.provider.token.AbstractTokenGranter;
+import com.petlife.platform.app.pojo.dto.SendCodeDTO;
 import com.petlife.platform.common.core.api.ResponseData;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.pojo.dto.LoginDTO;
 import com.petlife.platform.app.token.model.AuthUserInfo;
+import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.sign.RsaUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -16,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -31,23 +31,45 @@ public class AuthController {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
-    
+
     /**
      * 发送登录验证码
      */
     @PostMapping("/sendCode")
     @ApiOperation(value = "发送验证码", notes = "手机号格式合法则发送验证码")
-    public ResponseData<String> sendLoginCode(@RequestParam String phone) {
+    public ResponseData<String> sendLoginCode(@RequestBody(required = false) SendCodeDTO dto) {
+        String phone = dto.getPhone();
+        if (!StringUtils.hasText(phone)) {
+            log.warn("手机号不能为空");
+            return ResponseData.error(AuthExceptionCode.PHONE_IS_EMPTY);
+        }
+
         if (!AbstractTokenGranter.PHONE_PATTERN.matcher(phone).matches()) {
             log.warn("手机号格式不合法: {}", phone);
             return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
         }
 
+        String limitKey = AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + "limit:" + phone;
+        Boolean exists = redisTemplate.hasKey(limitKey);
+        if (Boolean.TRUE.equals(exists)) {
+            log.warn("发送验证码过于频繁: {}", phone);
+            return ResponseData.error(AuthExceptionCode.CODE_SEND_TOO_FREQUENT);
+        }
+
         String code = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
+
+        // 保存验证码，有效期 5 分钟
         redisTemplate.opsForValue().set(
                 AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + phone,
                 code,
                 Duration.ofMinutes(5)
+        );
+
+        // 保存发送频率标识，有效期 60 秒
+        redisTemplate.opsForValue().set(
+                limitKey,
+                "1",
+                Duration.ofSeconds(60)
         );
 
         // TODO: 调用第三方短信服务发送验证码（暂时只打印）
