@@ -36,8 +36,15 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
             log.warn("密码为空");
             throw new PetException(AuthExceptionCode.PASSWORD_IS_EMPTY);
         }
+
         // 2. 查找用户并检查状态
-        User user = checkUser(phone);
+        User user = userMapper.selectByPhone(phone);
+        if (user == null) {
+            log.warn("手机号未注册: {}", phone);
+            throw new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST);
+        }
+        // 检查状态
+        checkUser(user);
 
         Long userId = user.getUserId().longValue();
         String errorCountKey = "login:pwd:errors:" + userId;

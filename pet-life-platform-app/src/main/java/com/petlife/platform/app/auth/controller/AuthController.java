@@ -20,7 +20,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -54,27 +53,25 @@ public class AuthController {
             return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
         }
 
-        // 检查用户状态
+        // 如果手机号已注册，检查状态
         User user = userMapper.selectByPhone(phone);
-        if (user == null) {
-            log.warn("手机号未注册: {}", phone);
-            return ResponseData.error(AuthExceptionCode.ACCOUNT_NOT_EXIST);
+        if (user != null) {
+            switch (user.getStatus()) {
+                case 1:
+                    log.warn("账号已注销: userId={}", user.getUserId());
+                    throw new PetException(AuthExceptionCode.ACCOUNT_CANCELLED);
+                case 2:
+                    log.warn("账号已冻结: userId={}", user.getUserId());
+                    throw new PetException(AuthExceptionCode.ACCOUNT_FROZEN);
+//                case 3:
+//                    log.warn("账号被禁用: userId={}", user.getUserId());
+//                    throw new PetException(AuthExceptionCode.ACCOUNT_DISABLED);
+                default:
+                    // 正常
+            }
         }
 
-        switch (user.getStatus()) {
-            case 1:
-                log.warn("账号已注销: userId={}", user.getUserId());
-                throw new PetException(AuthExceptionCode.ACCOUNT_CANCELLED);
-            case 2:
-                log.warn("账号已冻结: userId={}", user.getUserId());
-                throw new PetException(AuthExceptionCode.ACCOUNT_FROZEN);
-//            case 3:
-//                log.warn("账号被禁用: userId={}", user.getUserId());
-//                throw new PetException(AuthExceptionCode.ACCOUNT_DISABLED);
-            default:
-                // 正常状态，继续执行
-        }
-
+        // 60 秒内不能重复发送
         String limitKey = AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + "limit:" + phone;
         Boolean exists = redisTemplate.hasKey(limitKey);
         if (Boolean.TRUE.equals(exists)) {
@@ -82,6 +79,7 @@ public class AuthController {
             return ResponseData.error(AuthExceptionCode.CODE_SEND_TOO_FREQUENT);
         }
 
+        // 生成 6 位验证码
         String code = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
 
         // 保存验证码，有效期 5 分钟

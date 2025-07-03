@@ -52,12 +52,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LIMIT 1
     </select>
 
-
-
     <!--插入新用户-->
     <insert id="insert" parameterType="com.petlife.platform.app.pojo.entity.User" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO user (phone, status)
-        VALUES (#{phone}, #{status})
+        INSERT INTO user (phone, status,nick_name,password,birthday,avatar_url,minor)
+        VALUES (#{phone}, #{status},#{nickName},#{password},#{birthday},#{avatarUrl},#{minor})
     </insert>
 
     <!-- 查询同一用户 ID 下是否有相同昵称 -->

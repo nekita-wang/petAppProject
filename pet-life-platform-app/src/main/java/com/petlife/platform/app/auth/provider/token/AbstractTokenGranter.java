@@ -74,13 +74,7 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     /**
      * 查询用户并校验账号状态
      */
-    public User checkUser(String phone) {
-        Optional<User> optionalUser = userMapper.selectByPhoneAndStatusIn(phone, new int[]{0, 2});
-        User user = optionalUser.orElseThrow(() -> {
-            log.warn("手机号未注册: {}", phone);
-            return new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST);
-        });
-
+    public void checkUser(User user) {
         switch (user.getStatus()) {
             case 1:
                 log.warn("账号已注销: userId={}", user.getUserId());
@@ -88,13 +82,12 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
             case 2:
                 log.warn("账号已冻结: userId={}", user.getUserId());
                 throw new PetException(AuthExceptionCode.ACCOUNT_FROZEN);
-//            case 3:
-//                log.warn("账号被禁用: userId={}", user.getUserId());
-//                throw new PetException(AuthExceptionCode.ACCOUNT_DISABLED);
+//        case 3:
+//            log.warn("账号被禁用: userId={}", user.getUserId());
+//            throw new PetException(AuthExceptionCode.ACCOUNT_DISABLED);
             default:
-                // 正常状态，继续执行
+                // 正常状态
         }
-        return user;
     }
 
     /**

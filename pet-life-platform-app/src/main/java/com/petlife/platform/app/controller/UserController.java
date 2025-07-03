@@ -30,4 +30,4 @@ public class UserController {
         userService.completeProfile(dto);
         return ResponseData.ok();
     }
-    }
+}
