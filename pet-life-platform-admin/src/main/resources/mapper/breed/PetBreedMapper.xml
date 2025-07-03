@@ -59,6 +59,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LIMIT 6;
     </select>
 
+    <select id="selectBreedIdMax" resultType="String">
+        SELECT MAX(pet_breed_id)
+        FROM pet_breed
+        WHERE pet_breed_id LIKE CONCAT(#{breedId}, '%')
+
+    </select>
+
     <insert id="insertPetBreed" parameterType="PetBreed">
         insert into pet_breed
         <trim prefix="(" suffix=")" suffixOverrides=",">

@@ -118,6 +118,7 @@ public class PetBreedController extends BaseController
     /**
      * 删除宠物品种
      */
+    
     @PreAuthorize("@ss.hasPermi('breed:breed:remove')")
     @Log(title = "宠物品种", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{petClassIds}")

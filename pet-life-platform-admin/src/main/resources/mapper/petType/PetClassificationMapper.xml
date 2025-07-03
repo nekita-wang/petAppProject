@@ -30,12 +30,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectPetClass" resultType="PetClassVo" >
-        select pet_class_id petClassId, pet_class petClass
+        select pet_class_id petClassId, pet_class petClass,pet_class_en  petClassEn
         from pet_classification
     </select>
 
     <select id="selectPetClassId" resultType="PetClassVo" >
-        select pet_class_id petClassId, pet_class petClass
+        select pet_class_id petClassId, pet_class petClass,pet_class_en petClassEn
         from pet_classification where pet_class=#{petClass}
     </select>
 

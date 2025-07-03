@@ -80,13 +80,36 @@ public class PetBreedServiceImpl implements IPetBreedService
     @Override
     public int insertPetBreed(PetBreed petBreed)
     {
+
+//        更新时间和作者
         petBreed.setCreateTime(DateUtils.getNowDate());
         petBreed.setCreator(getUsername());
         petBreed.setLastUpdateTime(DateUtils.getNowDate());
         petBreed.setLastUpdater(getUsername());
+
+        //状态为生效
         petBreed.setStatus(0);
+
+        //查询宠物分类插入id
         PetClassVo petClassVo = petClassificationMapper.selectPetClassId(petBreed.getPetClass());
         petBreed.setPetClassId(petClassVo.getPetClassId());
+
+        //自动生成breedId   CART_BREED_001
+        String breedId = petClassVo.getPetClassEn().toUpperCase() + "_BREED_";
+        String breedIdMax = petBreedMapper.selectBreedIdMax(breedId);
+
+        //初始值
+        int nextNum = 1;
+
+        //不是空值则数字加一
+        if (StringUtils.isNotBlank(breedIdMax)) {
+            String numPart = breedIdMax.substring(breedId.length());
+            nextNum = Integer.parseInt(numPart) + 1;
+        }
+
+        //数字前面添加3个0
+        String newId = breedId + String.format("%03d", nextNum);
+        petBreed.setPetBreedId(newId);
         return petBreedMapper.insertPetBreed(petBreed);
     }
 

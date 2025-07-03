@@ -145,10 +145,12 @@ export default {
           { required: true, message: "序号不能为空", trigger: "blur" }
         ],
         petClass: [
-          { required: true, message: "宠物分类不能为空", trigger: "change" }
+          { required: true, message: "宠物分类不能为空", trigger: "change" },
+           { max: 40, message: "宠物分类不能超过40个字符", trigger: "blur" }
         ],
         petClassEn: [
-          { required: true, message: "宠物分类不能为空", trigger: "blur" }
+          { required: true, message: "宠物分类不能为空", trigger: "blur" },
+           { max: 40, message: "宠物分类英文不能超过40个字符", trigger: "blur" }
         ]
       }
     }

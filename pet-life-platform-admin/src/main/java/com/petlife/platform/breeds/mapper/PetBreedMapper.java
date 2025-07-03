@@ -67,4 +67,6 @@ public interface PetBreedMapper
     List<PetBreedVo> selectPetBreedAppList(PetBreedQuery petBreedQuery);
 
     List<String> selectHot(String petClass);
+
+    String selectBreedIdMax(String breedId);
 }
