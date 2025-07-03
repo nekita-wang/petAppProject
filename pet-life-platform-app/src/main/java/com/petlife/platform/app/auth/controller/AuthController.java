@@ -4,13 +4,14 @@ import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.auth.enums.GrantTypeEnum;
 import com.petlife.platform.app.auth.provider.CompositeTokenGranterContext;
 import com.petlife.platform.app.auth.provider.token.AbstractTokenGranter;
+import com.petlife.platform.app.mapper.UserMapper;
 import com.petlife.platform.app.pojo.dto.SendCodeDTO;
+import com.petlife.platform.app.pojo.entity.User;
 import com.petlife.platform.common.core.api.ResponseData;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.pojo.dto.LoginDTO;
 import com.petlife.platform.app.token.model.AuthUserInfo;
 import com.petlife.platform.common.utils.StringUtils;
-import com.petlife.platform.common.utils.sign.RsaUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -31,6 +33,9 @@ public class AuthController {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * 发送登录验证码
@@ -47,6 +52,27 @@ public class AuthController {
         if (!AbstractTokenGranter.PHONE_PATTERN.matcher(phone).matches()) {
             log.warn("手机号格式不合法: {}", phone);
             return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
+        }
+
+        // 检查用户状态
+        User user = userMapper.selectByPhone(phone);
+        if (user == null) {
+            log.warn("手机号未注册: {}", phone);
+            return ResponseData.error(AuthExceptionCode.ACCOUNT_NOT_EXIST);
+        }
+
+        switch (user.getStatus()) {
+            case 1:
+                log.warn("账号已注销: userId={}", user.getUserId());
+                throw new PetException(AuthExceptionCode.ACCOUNT_CANCELLED);
+            case 2:
+                log.warn("账号已冻结: userId={}", user.getUserId());
+                throw new PetException(AuthExceptionCode.ACCOUNT_FROZEN);
+//            case 3:
+//                log.warn("账号被禁用: userId={}", user.getUserId());
+//                throw new PetException(AuthExceptionCode.ACCOUNT_DISABLED);
+            default:
+                // 正常状态，继续执行
         }
 
         String limitKey = AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + "limit:" + phone;

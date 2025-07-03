@@ -30,6 +30,29 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LIMIT 1
     </select>
 
+    <!--根据手机号查用户-->
+    <select id="selectByPhone" parameterType="string" resultType="com.petlife.platform.app.pojo.entity.User">
+        SELECT
+            user_id,
+            phone,
+            nick_name,
+            password,
+            gender,
+            birthday,
+            avatar_url,
+            register_time,
+            last_login_time,
+            minor,
+            auth,
+            status,
+            last_logoff_time,
+            personal_signature
+        FROM user
+        WHERE phone = #{phone}
+        LIMIT 1
+    </select>
+
+
 
     <!--插入新用户-->
     <insert id="insert" parameterType="com.petlife.platform.app.pojo.entity.User" useGeneratedKeys="true" keyProperty="userId">

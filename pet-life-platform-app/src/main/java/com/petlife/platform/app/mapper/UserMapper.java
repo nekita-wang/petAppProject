@@ -17,6 +17,12 @@ public interface UserMapper {
      */
     Optional<User> selectByPhoneAndStatusIn(@Param("phone") String phone, @Param("statuses") int[] statuses);
 
+    /**
+     * 只查手机号
+     * @param phone
+     * @return
+     */
+    User selectByPhone(@Param("phone") String phone);
 
     /**
      * 插入新用户

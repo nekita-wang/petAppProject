@@ -74,7 +74,7 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     /**
      * 查询用户并校验账号状态
      */
-    protected User checkUser(String phone) {
+    public User checkUser(String phone) {
         Optional<User> optionalUser = userMapper.selectByPhoneAndStatusIn(phone, new int[]{0, 2});
         User user = optionalUser.orElseThrow(() -> {
             log.warn("手机号未注册: {}", phone);
