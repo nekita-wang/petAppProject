@@ -10,13 +10,14 @@ export function listPetType(query) {
 }
 
 // 查询宠物类别
-export function listPet() {
+export function listPet(state = null) {
+  // 如果status传入为 null，则查询所有记录
   return request({
-    url: '/petType/pet',
-    method: 'get'
-  })
+    url: '/petType/pet',  
+    method: 'get',
+    params: { state }    
+  });
 }
-
 
 // 查询宠物分类详细
 export function getPetType(petClassId) {

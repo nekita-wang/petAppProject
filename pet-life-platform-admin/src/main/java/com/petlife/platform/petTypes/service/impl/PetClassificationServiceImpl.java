@@ -49,8 +49,16 @@ public class PetClassificationServiceImpl implements IPetClassificationService
     }
 
     @Override
-    public List<PetClassVo> selectPetClass() {
-        return petClassificationMapper.selectPetClass();
+    public List<PetClassVo> selectPetClass(Boolean state) {
+
+        List<PetClassVo> result=null;
+        if (state){
+            int status=0;
+            result = petClassificationMapper.selectPetClass(status);
+        }else {
+            result =  petClassificationMapper.selectPetClass(null);
+        }
+        return result;
     }
 
     /**

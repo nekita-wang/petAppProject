@@ -34,7 +34,7 @@ public interface IPetClassificationService
      *
      * @return 宠物分类集合
      */
-    public List<PetClassVo> selectPetClass();
+    public List<PetClassVo> selectPetClass(Boolean state );
 
     /**
      * 新增宠物分类

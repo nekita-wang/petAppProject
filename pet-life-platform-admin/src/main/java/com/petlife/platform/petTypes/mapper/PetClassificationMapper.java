@@ -2,6 +2,7 @@ package com.petlife.platform.petTypes.mapper;
 
 import com.petlife.platform.petTypes.domain.PetClassVo;
 import com.petlife.platform.petTypes.domain.PetClassification;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -61,9 +62,19 @@ public interface PetClassificationMapper
      */
     public int deletePetClassificationByPetClassIds(String[] petClassIds);
 
-    public  List<PetClassVo> selectPetClass();
+    /**
+     * 查询宠物类别
+     * @param status
+     * @return
+     */
+    public  List<PetClassVo> selectPetClass(@Param("status") Integer status);
 
     public PetClassVo selectPetClassId(String petClass);
 
+    /**
+     * 修改状态失效
+     * @param ids
+     * @return
+     */
     public int petClassificationByPetClassIds(List<String> ids);
 }

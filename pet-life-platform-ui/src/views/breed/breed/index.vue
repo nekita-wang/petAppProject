@@ -109,7 +109,7 @@
           <el-col :span="11">
             <el-form-item label="宠物类型" prop="petClass" label-width="140px">
               <el-select v-model="form.petClass" placeholder="请选择宠物类型" clearable>
-                <el-option v-for="pet in petClassType" :key="pet.petClassId" :label="pet.petClass"
+                <el-option v-for="pet in addPetClassType" :key="pet.petClassId" :label="pet.petClass"
                   :value="pet.petClass"></el-option>
               </el-select>
             </el-form-item>
@@ -156,7 +156,8 @@ export default {
   dicts: ['pet_class_status'],
   data() {
     return {
-      petClassType: null,
+      addPetClassType: [],
+      petClassType: [],
       // 遮罩层
       loading: true,
       // 选中数组
@@ -217,7 +218,8 @@ export default {
   },
   created() {
     this.getList()
-    this.getListPet()
+    this.getListPet(false)
+    this.getAddPet(true)
   },
   methods: {
     /** 查询宠物品种列表 */
@@ -229,11 +231,23 @@ export default {
         this.loading = false
       })
     },
-    getListPet() {
-      listPet().then(response => {
-        console.log(response)
-        this.petClassType = response.data
-      })
+    //全部查询
+      async getListPet(includeInactive) {
+      try {
+        const response = await listPet(includeInactive);
+        this.petClassType = response.data;  
+      } catch (error) {
+        console.error('查询失败', error);
+      }
+    },
+    //筛选查询生效
+      async getAddPet(includeInactive) {
+      try {
+        const response = await listPet(includeInactive);
+        this.addPetClassType = response.data;  
+      } catch (error) {
+        console.error('查询失败', error);
+      }
     },
     // 取消按钮
     cancel() {

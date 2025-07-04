@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
+import static com.sun.xml.internal.ws.api.model.wsdl.WSDLBoundOperation.ANONYMOUS.required;
+
 /**
  * 宠物分类Controller
  *
@@ -47,9 +49,9 @@ public class PetClassificationController extends BaseController
      * 查询宠物类别
      */
     @GetMapping("/pet")
-    public R petList()
+    public R petList(@RequestParam(required = false) Boolean state)
     {
-        List<PetClassVo> petClassVos = petClassificationService.selectPetClass();
+        List<PetClassVo> petClassVos = petClassificationService.selectPetClass(state);
         return R.ok(petClassVos);
     }
 

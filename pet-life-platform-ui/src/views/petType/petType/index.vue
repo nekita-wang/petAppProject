@@ -157,7 +157,7 @@ export default {
   },
   created() {
     this.getList()
-    this.getListPet()
+    this.getListPet(false)
   },
   methods: {
     /** 查询宠物分类列表 */
@@ -169,12 +169,21 @@ export default {
         this.loading = false
       })
     },
-    getListPet() {
-      listPet().then(response => {
-         console.log(response)
-        this.petClassType = response.data
-      })
+    
+      async getListPet(includeInactive) {
+      try {
+        const response = await listPet(includeInactive);
+        this.petClassType = response.data;  
+      } catch (error) {
+        console.error('查询失败', error);
+      }
     },
+    // getListPet() {
+    //   listPet().then(response => {
+    //      console.log(response)
+    //     this.petClassType = response.data
+    //   })
+    // },
     // 取消按钮
     cancel() {
       this.open = false
