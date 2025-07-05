@@ -17,7 +17,7 @@
 			<view class="input-group">
 				<view class="prefix">+86</view>
 				<input v-model="phone" type="number" placeholder="请输入手机号" placeholder-class="placeholder" maxlength="11"
-					:class="{ error: showPhoneError }" @input="handlePhoneInput" @focus="showKeyboard = true" />
+					:class="{ error: inputClass }" @input="handlePhoneInput" @focus="showKeyboard = true" />
 			</view>
 
 			<!-- 验证码输入组 -->
@@ -26,10 +26,10 @@
 				<input v-model="code" type="number" placeholder="输入验证码" placeholder-class="placeholder" maxlength="6" />
 
 				<!-- 分隔线 -->
-				<view class="divider"></view>
+				<view v-if="showPhoneError" class="divider"></view>
 
 				<!-- 获取验证码按钮 -->
-				<view class="get-code-btn" @click="getSMSCode">
+				<view v-if="showPhoneError" class="get-code-btn" @click="getSMSCode">
 					{{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
 				</view>
 			</view>
@@ -54,15 +54,10 @@
 
 	const phone = ref('') //手机号
 	const code = ref('') //验证码
-	const showPhoneError = ref(false) //验证手机号
+	const showPhoneError = ref(false) //手机号格式
+	const inputClass = ref(false)
 	const showKeyboard = ref(false) //显示键盘
 	const countdown = ref(0) //验证码倒计时
-	const handleLogin = () => {
-		console.log("1111");
-		uni.navigateTo({
-			url: '/pages/register/register'
-		})
-	}
 	//点击跳转手机密码登录
 	const ToPasswordLogin = () => {
 		uni.navigateTo({
@@ -73,27 +68,22 @@
 	const handleBack = () => {
 		uni.navigateBack()
 	}
-	// 手机号输入处理（自动清理无效字符）
-	const handlePhoneInput = (e) => {
-		// 移除所有非数字字符
-		phone.value = e.detail.value.replace(/[^\d]/g, '')
-		let value = e.detail.value
-		if (value.length === 1 && value !== '1') {
-			phone.value = ''
-			return uni.showToast({
-				title: '请输入正确的手机号',
-				icon: 'none'
-			})
-		}
-		// 实时校验格式
-		showPhoneError.value = phone.value.length > 0 && !isPhoneValid.value
-	}
-
-	// 手机号验证（11位且1开头）
+	// 保证手机号1开头
 	const isPhoneValid = computed(() => {
 		return /^1[3-9]\d{9}$/.test(phone.value)
 	})
-	// 表单验证
+	// 手机号输入处理
+	const handlePhoneInput = (e) => {
+		// 移除所有非数字字符
+		phone.value = e.detail.value.replace(/[^\d]/g, '')
+		// 实时校验格式
+		showPhoneError.value = isPhoneValid.value
+		// input格式
+		inputClass.value = !isPhoneValid.value
+	}
+
+
+	// 登录按钮状态
 	const isFormValid = computed(() => {
 		return phone.value.length === 11 && code.value.length >= 4
 	})
@@ -101,25 +91,83 @@
 	// 获取验证码
 	const getSMSCode = () => {
 		if (countdown.value > 0) return
-		if (phone.value.length !== 11) {
-			uni.showToast({
-				title: '请输入正确手机号',
-				icon: 'none'
-			})
-			return
-		}
-		// 手机验证码倒计时
-		countdown.value = 60
-		const timer = setInterval(() => {
-			if (countdown.value <= 0) {
-				clearInterval(timer)
-				return
-			}
-			countdown.value--
-		}, 1000)
+		//获取验证码接口
+		uni.request({
+			// url: 'http://localhost/dev-api/auth/sendCode',
+			url:'http://192.168.0.224:8080/auth/sendCode',
+			data: {
+				phone: phone.value,
+			},
+			method: 'POST',
+			header: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			success: (res) => {
+				console.log(res.data);
+				if (res.data.success == true) {
+					// 提示发送手机验证码成功
+					uni.showToast({
+							title: '验证码已发送,注意短信通知',
+							icon: 'success'
+						}),
+						// 开启验证码倒计时
+						countdown.value = 60
+					const timer = setInterval(() => {
+						if (countdown.value <= 0) {
+							clearInterval(timer)
+							return
+						}
+						countdown.value--
+					}, 1000)
+					console.log('验证码：', res.data.data);
+					code.value = res.data.data
+				} else {
+					// 提示验证码接口错误消息
+					uni.showToast({
+						title: res.data.msg,
+						icon: 'error'
+					})
+				}
 
-		// 发送到手机验证码
-		console.log('发送验证码到:', phone.value)
+			},
+		});
+	}
+	//点击登录
+	const handleLogin = () => {
+		// 测试
+		uni.navigateTo({
+			url: '/pages/petSelection/petSelection'
+		})
+		// uni.request({
+		// 	url: 'http://localhost/dev-api/auth/login',
+		// 	data: {
+		// 		grantType: "phone", //后端指定类型
+		// 		nick_name: "BOb", //测试...
+		// 		phone: phone.value,
+		// 		code: code.value
+		// 	},
+		// 	method: 'POST',
+		// 	header: {
+		// 		'Content-Type': 'application/json;charset=UTF-8'
+		// 	},
+		// 	success: (res) => {
+		// 		if (res.data.success == true) {
+		// 			// 验证码正确跳转
+		// 			uni.navigateTo({
+		// 				url: '/pages/petSelection/petSelection'
+		// 			})
+		// 		} else {
+		// 			// 显示错误消息
+		// 			console.log(res);
+		// 			uni.showToast({
+		// 				title: res.data.msg,
+		// 				icon: 'error'
+		// 			})
+		// 		}
+
+		// 	},
+		// });
+
 	}
 </script>
 

@@ -4,7 +4,7 @@
     "iPhone",
     "iPad"
   ],
-  "id": "",
+  "id": "__UNI__8A235A8",
   "name": "ChongAiApp",
   "version": {
     "name": "1.0.0",
@@ -61,7 +61,9 @@
           "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
         ]
       },
-      "apple": {},
+      "apple": {
+        "dSYMs": false
+      },
       "plugins": {
         "audio": {
           "mp3": {

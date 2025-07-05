@@ -1,13 +1,13 @@
 <template>
 	<view class="login-container">
 		<view class="status_bar">
-			<!-- 这里是状态栏 -->
+			<!-- 状态栏 -->
 		</view>
 		<view class="custom-navbar">
 			<view class="nav-left">
 				<uni-icons @click="handleBack" type="arrow-left" size="24"></uni-icons>
 			</view>
-			<view class="nav-right" @click="ToPasswordLogin">
+			<view class="nav-right" @click="ToSMSLogin">
 				手机号验证码登录
 			</view>
 		</view>
@@ -25,13 +25,16 @@
 					:disable-default-paste="true" />
 				<!-- 眼睛图标按钮 -->
 				<view class="eye-btn" @click="togglePassword">
-					<image :src="showPassword ? '/static/眼睛.svg' : '/static/眼睛_隐藏.svg'" class="eye-icon" />
+					<image :src="showPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
 				</view>
 			</view>
 			<!-- 登录按钮 -->
 			<button class="login-btn" :class="{ active: isFormValid }" @click="handleLogin">
 				登录
 			</button>
+			<view class="">
+				{{msg}}
+			</view>
 		</view>
 	</view>
 
@@ -42,12 +45,11 @@
 		ref,
 		computed
 	} from 'vue'
-
-	const phone = ref('') //手机号
+	const phone = ref('13812345678') //手机号
 	const password = ref('') //密码
 	const showPhoneError = ref(false) //验证手机号
 	const showPassword = ref(false) //密码显示按钮
-
+	const msg = ref('')
 	//点击跳转手机密码登录
 	const ToSMSLogin = () => {
 		uni.navigateTo({
@@ -81,20 +83,68 @@
 	const togglePassword = () => {
 		showPassword.value = !showPassword.value
 	}
-
 	// 禁止复制粘贴
 	const handlePaste = (e) => {
 		e.preventDefault()
 	}
-	// 表单验证
+	// 登录按钮状态
 	const isFormValid = computed(() => {
 		return phone.value.length === 11 && password.value.length >= 6
 	})
+	// 点击登录
 	const handleLogin = () => {
-		console.log("1111");
-		uni.navigateTo({
-			url: '/pages/register/register'
-		})
+		uni.request({
+			// url: 'http://localhost/dev-api/auth/login',  //本地地址
+			url: 'http://192.168.0.224:8080/auth/login', //真机调试地址
+			// url:'https://637c-112-48-4-41.ngrok-free.app/auth/login', 
+			sslVerify: false, // 真机调试时关闭证书验证（仅开发环境）
+			data: {
+				grantType: "password", //后端指定类型
+				phone: phone.value,
+				password: password.value
+			},
+			method: 'POST',
+			header: {
+				'Content-Type': 'application/json',
+				// 添加必要头信息
+				'Accept': 'application/json',
+				'ngrok-skip-browser-warning': 'true', // 关键！
+			},
+			success: (res) => {
+				console.log(res.data);
+				// 成功跳转
+				if (res.data.code == 200) {
+					console.log(res.data.data.token);
+					uni.setStorageSync('token', res.data.data.token)
+					uni.navigateTo({
+						url: '/pages/petSelection/petSelection'
+					})
+				} else if (res.data.code == 1000) {
+					uni.showToast({
+							title: res.data.msg,
+							icon: 'none'
+						}),
+						// 跳转到注册页面
+						uni.navigateTo({
+							url: '/pages/register/register'
+						})
+				} else {
+					// 显示其他情况
+					uni.showToast({
+						title: res.data.msg,
+						icon: 'error'
+					})
+				}
+			},
+			fail: (err) => {
+				msg.value = err.errMsg
+				uni.showToast({
+					title: err.errMsg,
+					icon: 'none'
+				})
+			}
+		});
+
 	}
 </script>
 

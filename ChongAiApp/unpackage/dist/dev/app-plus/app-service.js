@@ -858,14 +858,9 @@ if (uni.restoreGlobal) {
       const phone = vue.ref("");
       const code = vue.ref("");
       const showPhoneError = vue.ref(false);
+      const inputClass = vue.ref(false);
       const showKeyboard = vue.ref(false);
       const countdown = vue.ref(0);
-      const handleLogin = () => {
-        formatAppLog("log", "at pages/login/sms.vue:61", "1111");
-        uni.navigateTo({
-          url: "/pages/register/register"
-        });
-      };
       const ToPasswordLogin = () => {
         uni.navigateTo({
           url: "/pages/login/pwd"
@@ -874,45 +869,62 @@ if (uni.restoreGlobal) {
       const handleBack = () => {
         uni.navigateBack();
       };
-      const handlePhoneInput = (e) => {
-        phone.value = e.detail.value.replace(/[^\d]/g, "");
-        let value = e.detail.value;
-        if (value.length === 1 && value !== "1") {
-          phone.value = "";
-          return uni.showToast({
-            title: "请输入正确的手机号",
-            icon: "none"
-          });
-        }
-        showPhoneError.value = phone.value.length > 0 && !isPhoneValid.value;
-      };
       const isPhoneValid = vue.computed(() => {
         return /^1[3-9]\d{9}$/.test(phone.value);
       });
+      const handlePhoneInput = (e) => {
+        phone.value = e.detail.value.replace(/[^\d]/g, "");
+        showPhoneError.value = isPhoneValid.value;
+        inputClass.value = !isPhoneValid.value;
+      };
       const isFormValid = vue.computed(() => {
         return phone.value.length === 11 && code.value.length >= 4;
       });
       const getSMSCode = () => {
         if (countdown.value > 0)
           return;
-        if (phone.value.length !== 11) {
-          uni.showToast({
-            title: "请输入正确手机号",
-            icon: "none"
-          });
-          return;
-        }
-        countdown.value = 60;
-        const timer = setInterval(() => {
-          if (countdown.value <= 0) {
-            clearInterval(timer);
-            return;
+        uni.request({
+          // url: 'http://localhost/dev-api/auth/sendCode',
+          url: "http://192.168.0.224:8080/auth/sendCode",
+          data: {
+            phone: phone.value
+          },
+          method: "POST",
+          header: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          success: (res) => {
+            formatAppLog("log", "at pages/login/sms.vue:106", res.data);
+            if (res.data.success == true) {
+              uni.showToast({
+                title: "验证码已发送,注意短信通知",
+                icon: "success"
+              }), // 开启验证码倒计时
+              countdown.value = 60;
+              const timer = setInterval(() => {
+                if (countdown.value <= 0) {
+                  clearInterval(timer);
+                  return;
+                }
+                countdown.value--;
+              }, 1e3);
+              formatAppLog("log", "at pages/login/sms.vue:122", "验证码：", res.data.data);
+              code.value = res.data.data;
+            } else {
+              uni.showToast({
+                title: res.data.msg,
+                icon: "error"
+              });
+            }
           }
-          countdown.value--;
-        }, 1e3);
-        formatAppLog("log", "at pages/login/sms.vue:122", "发送验证码到:", phone.value);
+        });
       };
-      const __returned__ = { phone, code, showPhoneError, showKeyboard, countdown, handleLogin, ToPasswordLogin, handleBack, handlePhoneInput, isPhoneValid, isFormValid, getSMSCode, ref: vue.ref, computed: vue.computed };
+      const handleLogin = () => {
+        uni.navigateTo({
+          url: "/pages/petSelection/petSelection"
+        });
+      };
+      const __returned__ = { phone, code, showPhoneError, inputClass, showKeyboard, countdown, ToPasswordLogin, handleBack, isPhoneValid, handlePhoneInput, isFormValid, getSMSCode, handleLogin, ref: vue.ref, computed: vue.computed };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -949,7 +961,7 @@ if (uni.restoreGlobal) {
               placeholder: "请输入手机号",
               "placeholder-class": "placeholder",
               maxlength: "11",
-              class: vue.normalizeClass({ error: $setup.showPhoneError }),
+              class: vue.normalizeClass({ error: $setup.inputClass }),
               onInput: $setup.handlePhoneInput,
               onFocus: _cache[1] || (_cache[1] = ($event) => $setup.showKeyboard = true)
             },
@@ -979,18 +991,22 @@ if (uni.restoreGlobal) {
             [vue.vModelText, $setup.code]
           ]),
           vue.createCommentVNode(" 分隔线 "),
-          vue.createElementVNode("view", { class: "divider" }),
+          $setup.showPhoneError ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "divider"
+          })) : vue.createCommentVNode("v-if", true),
           vue.createCommentVNode(" 获取验证码按钮 "),
-          vue.createElementVNode(
+          $setup.showPhoneError ? (vue.openBlock(), vue.createElementBlock(
             "view",
             {
+              key: 1,
               class: "get-code-btn",
               onClick: $setup.getSMSCode
             },
             vue.toDisplayString($setup.countdown > 0 ? `${$setup.countdown}s` : "获取验证码"),
             1
             /* TEXT */
-          )
+          )) : vue.createCommentVNode("v-if", true)
         ]),
         vue.createCommentVNode(" 登录按钮 "),
         vue.createElementVNode(
@@ -1013,10 +1029,11 @@ if (uni.restoreGlobal) {
     __name: "pwd",
     setup(__props, { expose: __expose }) {
       __expose();
-      const phone = vue.ref("");
+      const phone = vue.ref("13812345678");
       const password = vue.ref("");
       const showPhoneError = vue.ref(false);
       const showPassword = vue.ref(false);
+      const msg = vue.ref("");
       const ToSMSLogin = () => {
         uni.navigateTo({
           url: "/pages/login/sms"
@@ -1050,12 +1067,60 @@ if (uni.restoreGlobal) {
         return phone.value.length === 11 && password.value.length >= 6;
       });
       const handleLogin = () => {
-        formatAppLog("log", "at pages/login/pwd.vue:94", "1111");
-        uni.navigateTo({
-          url: "/pages/register/register"
+        uni.request({
+          // url: 'http://localhost/dev-api/auth/login',  //本地地址
+          url: "http://192.168.0.224:8080/auth/login",
+          //真机调试地址
+          // url:'https://637c-112-48-4-41.ngrok-free.app/auth/login', 
+          sslVerify: false,
+          // 真机调试时关闭证书验证（仅开发环境）
+          data: {
+            grantType: "password",
+            //后端指定类型
+            phone: phone.value,
+            password: password.value
+          },
+          method: "POST",
+          header: {
+            "Content-Type": "application/json",
+            // 添加必要头信息
+            "Accept": "application/json",
+            "ngrok-skip-browser-warning": "true"
+            // 关键！
+          },
+          success: (res) => {
+            formatAppLog("log", "at pages/login/pwd.vue:114", res.data);
+            if (res.data.code == 200) {
+              formatAppLog("log", "at pages/login/pwd.vue:117", res.data.data.token);
+              uni.setStorageSync("token", res.data.data.token);
+              uni.navigateTo({
+                url: "/pages/petSelection/petSelection"
+              });
+            } else if (res.data.code == 1e3) {
+              uni.showToast({
+                title: res.data.msg,
+                icon: "none"
+              }), // 跳转到注册页面
+              uni.navigateTo({
+                url: "/pages/register/register"
+              });
+            } else {
+              uni.showToast({
+                title: res.data.msg,
+                icon: "error"
+              });
+            }
+          },
+          fail: (err) => {
+            msg.value = err.errMsg;
+            uni.showToast({
+              title: err.errMsg,
+              icon: "none"
+            });
+          }
         });
       };
-      const __returned__ = { phone, password, showPhoneError, showPassword, ToSMSLogin, handleBack, handlePhoneInput, isPhoneValid, togglePassword, handlePaste, isFormValid, handleLogin, ref: vue.ref, computed: vue.computed };
+      const __returned__ = { phone, password, showPhoneError, showPassword, msg, ToSMSLogin, handleBack, handlePhoneInput, isPhoneValid, togglePassword, handlePaste, isFormValid, handleLogin, ref: vue.ref, computed: vue.computed };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -1064,7 +1129,7 @@ if (uni.restoreGlobal) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0);
     return vue.openBlock(), vue.createElementBlock("view", { class: "login-container" }, [
       vue.createElementVNode("view", { class: "status_bar" }, [
-        vue.createCommentVNode(" 这里是状态栏 ")
+        vue.createCommentVNode(" 状态栏 ")
       ]),
       vue.createElementVNode("view", { class: "custom-navbar" }, [
         vue.createElementVNode("view", { class: "nav-left" }, [
@@ -1076,7 +1141,7 @@ if (uni.restoreGlobal) {
         ]),
         vue.createElementVNode("view", {
           class: "nav-right",
-          onClick: _cache[0] || (_cache[0] = (...args) => _ctx.ToPasswordLogin && _ctx.ToPasswordLogin(...args))
+          onClick: $setup.ToSMSLogin
         }, " 手机号验证码登录 ")
       ]),
       vue.createCommentVNode(" 手机号输入 "),
@@ -1086,14 +1151,14 @@ if (uni.restoreGlobal) {
           vue.withDirectives(vue.createElementVNode(
             "input",
             {
-              "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.phone = $event),
+              "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.phone = $event),
               type: "number",
               placeholder: "请输入手机号",
               "placeholder-class": "placeholder",
               maxlength: "11",
               class: vue.normalizeClass({ error: $setup.showPhoneError }),
               onInput: $setup.handlePhoneInput,
-              onFocus: _cache[2] || (_cache[2] = ($event) => _ctx.showKeyboard = true)
+              onFocus: _cache[1] || (_cache[1] = ($event) => _ctx.showKeyboard = true)
             },
             null,
             34
@@ -1105,7 +1170,7 @@ if (uni.restoreGlobal) {
         vue.createCommentVNode(" 密码输入组 "),
         vue.createElementVNode("view", { class: "input-group-pwd" }, [
           vue.withDirectives(vue.createElementVNode("input", {
-            "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.password = $event),
+            "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.password = $event),
             password: !$setup.showPassword,
             placeholder: "请输入密码",
             "placeholder-class": "placeholder",
@@ -1119,7 +1184,7 @@ if (uni.restoreGlobal) {
             onClick: $setup.togglePassword
           }, [
             vue.createElementVNode("image", {
-              src: $setup.showPassword ? "/static/眼睛.svg" : "/static/眼睛_隐藏.svg",
+              src: $setup.showPassword ? "/static/eye.svg" : "/static/eye_close.svg",
               class: "eye-icon"
             }, null, 8, ["src"])
           ])
@@ -1134,13 +1199,20 @@ if (uni.restoreGlobal) {
           " 登录 ",
           2
           /* CLASS */
+        ),
+        vue.createElementVNode(
+          "view",
+          { class: "" },
+          vue.toDisplayString($setup.msg),
+          1
+          /* TEXT */
         )
       ])
     ]);
   }
   const PagesLoginPwd = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-8032d478"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/pwd.vue"]]);
-  const _imports_0$1 = "/static/性别男.svg";
-  const _imports_1 = "/static/性别女.svg";
+  const _imports_0$1 = "/static/nan.svg";
+  const _imports_1 = "/static/nv.svg";
   const _sfc_main$6 = {
     __name: "register",
     setup(__props, { expose: __expose }) {
@@ -2259,80 +2331,20 @@ if (uni.restoreGlobal) {
     ]);
   }
   const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-f07ef577"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-search-bar/components/uni-search-bar/uni-search-bar.vue"]]);
-  const _imports_0 = "/static/猫和狗图片.png";
+  const _imports_0 = "/static/home.png";
   const _sfc_main$2 = {
     __name: "petSelection",
     setup(__props, { expose: __expose }) {
       __expose();
-      const tabs = [
-        {
-          label: "尚未养宠",
-          value: "none"
-        },
-        {
-          label: "猫",
-          value: "cat"
-        },
-        {
-          label: "狗",
-          value: "dog"
-        }
-      ];
+      const tabs = vue.ref("");
+      const token = vue.ref(
+        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImxvZ2luX3VzZXJfa2V5IjoiMWMwNTRiOTItYzQyZi00OTI0LWI1YzgtYzlmNzU3ZDUxNGVjIn0.C9rJ-jH5ZTPh7YQzDql2_O1uLlrCfaa-AcOI79cUoCpowTJ9qC3RP_JOuQ2lfkYn5BB_f75mmHA83fQ1OXseEw"
+      );
       const buttonText = vue.ref("完成");
       const activeTab = vue.ref("none");
       const currentLetter = vue.ref("letter-A");
-      const petData = {
-        cat: {
-          "A": ["阿比西尼亚猫", "埃及猫", "澳大利亚雾猫"],
-          "B": ["巴厘猫", "布偶猫", "伯曼猫", "波斯猫", "褴褛猫"],
-          "C": ["褴褛猫", "柯尼斯卷毛猫", "卡尔特猫"],
-          "D": ["德文卷毛猫", "东方短毛猫", "东奇尼猫", "短腿猫"],
-          "E": ["俄罗斯蓝猫"],
-          "F": ["菲律宾无毛猫"],
-          "G": ["暹罗猫", "冠毛猫"],
-          "H": ["暹罗猫", "喜马拉雅猫", "虎斑猫"],
-          "J": ["金吉拉", "加菲猫", "橘猫"],
-          "K": ["科拉特猫"],
-          "L": ["临清狮猫"],
-          "M": ["美国短毛猫", "美国卷耳猫", "缅因猫", "孟买猫"],
-          "N": ["挪威森林猫", "拿破仑猫"],
-          "O": ["欧西猫", "奥西猫"],
-          "P": ["皮特博德猫"],
-          "Q": ["奇异猫"],
-          "R": ["日本短尾猫", "热带草原猫"],
-          "S": ["苏格兰折耳猫", "斯芬克斯猫", "山东狮子猫"],
-          "T": ["土耳其安哥拉猫", "土耳其梵猫"],
-          "W": ["威尔士猫"],
-          "X": ["新加坡猫"],
-          "Y": ["英国短毛猫", "异国短毛猫", "云南森林猫"],
-          "Z": ["中国狸花猫", "折耳猫"]
-        },
-        dog: {
-          "A": ["阿拉斯加犬", "阿富汗猎犬", "澳大利亚牧牛犬", "阿根廷杜高犬"],
-          "B": ["比格犬", "边境牧羊犬", "波士顿梗", "比利时牧羊犬", "巴哥犬", "贝灵顿梗"],
-          "C": ["柴犬", "藏獒", "查理王小猎犬", "大白熊犬", "川东猎犬"],
-          "D": ["杜宾犬", "大丹犬", "斗牛犬", "德国牧羊犬", "杜高犬"],
-          "E": ["俄罗斯黑梗", "恶霸犬"],
-          "F": ["法国斗牛犬", "法老王猎犬"],
-          "G": ["贵宾犬", "格力犬", "高加索牧羊犬", "冠毛犬"],
-          "H": ["哈士奇", "惠比特犬", "蝴蝶犬", "哈巴狗"],
-          "J": ["金毛犬", "吉娃娃", "杰克罗素梗", "京巴犬"],
-          "K": ["柯基犬", "可卡犬", "昆明犬"],
-          "L": ["拉布拉多", "罗威纳犬", "腊肠犬"],
-          "M": ["马耳他犬", "迷你杜宾", "牧羊犬"],
-          "N": ["牛头梗", "挪威猎鹿犬"],
-          "O": ["欧亚大陆犬"],
-          "P": ["彭布罗克威尔士柯基", "平毛寻回犬"],
-          "Q": ["秋田犬", "骑士查理王小猎犬"],
-          "R": ["日本柴犬", "瑞典瓦赫德犬"],
-          "S": ["萨摩耶", "松狮犬", "沙皮犬", "圣伯纳犬"],
-          "T": ["泰迪犬", "土佐犬", "泰皇犬"],
-          "W": ["威尔士柯基", "万能梗"],
-          "X": ["西施犬", "雪纳瑞", "西伯利亚哈士奇"],
-          "Y": ["英国斗牛犬", "约克夏梗", "意大利灵缇"],
-          "Z": ["中国冠毛犬", "藏獒", "中亚牧羊犬"]
-        }
-      };
+      const petClass = vue.ref("");
+      const petData = vue.ref("");
       const hotPets = vue.ref([
         "布偶猫",
         "欧洲蓝猫",
@@ -2350,17 +2362,67 @@ if (uni.restoreGlobal) {
         });
       };
       const handleTabChange = (tab) => {
-        activeTab.value = tab;
+        petClass.value = tab.petClass;
+        activeTab.value = tab.petClassEn;
         if (activeTab.value != "none") {
           buttonText.value = "下一个";
         } else {
           buttonText.value = "完成";
         }
+        uni.request({
+          // url: 'http://localhost/dev-api/breed/list',
+          url: "http://192.168.0.224:8080/breed/list",
+          method: "GET",
+          header: {
+            "Authorization": `Bearer ${token.value}`
+          },
+          data: {
+            petClass: petClass.value,
+            pageNum: 1,
+            pageSize: 9999
+            // 模拟获取全部
+          },
+          success: (res) => {
+            if (res.data.rows.length === 0) {
+              uni.showToast({ title: "暂无数据", icon: "none" });
+              petData.value = {};
+              return;
+            }
+            const groupedData = {};
+            const sortedRows = [...res.data.rows].sort((a, b) => {
+              return (a.cnInitials || a.petBreed.charAt(0)).localeCompare(b.cnInitials || b.petBreed.charAt(0), "zh-Hans-CN");
+            });
+            sortedRows.forEach((item) => {
+              const initial = item.cnInitials || item.petBreed.charAt(0).toUpperCase();
+              if (!groupedData[initial]) {
+                groupedData[initial] = [];
+              }
+              groupedData[initial].push(item.petBreed);
+            });
+            petData.value = groupedData;
+          }
+        });
       };
       const scrollToLetter = (letter) => {
         currentLetter.value = `letter-${letter}`;
       };
-      const __returned__ = { tabs, buttonText, activeTab, currentLetter, petData, hotPets, handleBack, handleSkip, handleTabChange, scrollToLetter, ref: vue.ref, onMounted: vue.onMounted, nextTick: vue.nextTick, getCurrentInstance: vue.getCurrentInstance };
+      uni.request({
+        // url: `http://localhost/dev-api/petType/list`,
+        url: "http://192.168.0.224:8080/petType/list",
+        method: "GET",
+        header: {
+          "Authorization": `Bearer ${token.value}`
+        },
+        success: (res) => {
+          formatAppLog("log", "at pages/petSelection/petSelection.vue:236", res);
+          tabs.value = res.data.rows;
+          tabs.value.unshift({
+            petClass: "尚未养宠",
+            petClassEn: "none"
+          });
+        }
+      });
+      const __returned__ = { tabs, token, buttonText, activeTab, currentLetter, petClass, petData, hotPets, handleBack, handleSkip, handleTabChange, scrollToLetter, ref: vue.ref, onMounted: vue.onMounted, nextTick: vue.nextTick, getCurrentInstance: vue.getCurrentInstance };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -2404,18 +2466,18 @@ if (uni.restoreGlobal) {
       }),
       vue.createCommentVNode(" 页签区域 "),
       vue.createElementVNode("view", { class: "tabs" }, [
-        (vue.openBlock(), vue.createElementBlock(
+        (vue.openBlock(true), vue.createElementBlock(
           vue.Fragment,
           null,
           vue.renderList($setup.tabs, (tab) => {
-            return vue.createElementVNode("view", {
-              key: tab.value,
-              class: vue.normalizeClass(["tab-item", { active: $setup.activeTab === tab.value }]),
-              onClick: ($event) => $setup.handleTabChange(tab.value)
-            }, vue.toDisplayString(tab.label), 11, ["onClick"]);
+            return vue.openBlock(), vue.createElementBlock("view", {
+              key: tab.petClassEn,
+              class: vue.normalizeClass(["tab-item", { active: $setup.activeTab === tab.petClassEn }]),
+              onClick: ($event) => $setup.handleTabChange(tab)
+            }, vue.toDisplayString(tab.petClass), 11, ["onClick"]);
           }),
-          64
-          /* STABLE_FRAGMENT */
+          128
+          /* KEYED_FRAGMENT */
         ))
       ]),
       vue.createCommentVNode(" 未养宠内容区域 "),
@@ -2486,9 +2548,8 @@ if (uni.restoreGlobal) {
                 (vue.openBlock(true), vue.createElementBlock(
                   vue.Fragment,
                   null,
-                  vue.renderList($setup.petData[$setup.activeTab], (pets, letter) => {
+                  vue.renderList($setup.petData, (pets, letter) => {
                     return vue.openBlock(), vue.createElementBlock("view", {
-                      onClick: ($event) => $setup.currentLetter = `letter-${letter}`,
                       key: letter,
                       id: `letter-${letter}`
                     }, [
@@ -2502,11 +2563,11 @@ if (uni.restoreGlobal) {
                       (vue.openBlock(true), vue.createElementBlock(
                         vue.Fragment,
                         null,
-                        vue.renderList(pets, (pet) => {
+                        vue.renderList(pets, (pet, index) => {
                           return vue.openBlock(), vue.createElementBlock(
                             "view",
                             {
-                              key: pet,
+                              key: index,
                               class: "pet-item"
                             },
                             vue.toDisplayString(pet),
@@ -2517,7 +2578,7 @@ if (uni.restoreGlobal) {
                         128
                         /* KEYED_FRAGMENT */
                       ))
-                    ], 8, ["onClick", "id"]);
+                    ], 8, ["id"]);
                   }),
                   128
                   /* KEYED_FRAGMENT */
@@ -2529,7 +2590,7 @@ if (uni.restoreGlobal) {
                   (vue.openBlock(true), vue.createElementBlock(
                     vue.Fragment,
                     null,
-                    vue.renderList(Object.keys($setup.petData[$setup.activeTab]), (letter) => {
+                    vue.renderList(Object.keys($setup.petData), (letter) => {
                       return vue.openBlock(), vue.createElementBlock("text", {
                         key: letter,
                         class: vue.normalizeClass(["alphabet-char", { active: $setup.currentLetter === `letter-${letter}` }]),
@@ -2564,7 +2625,7 @@ if (uni.restoreGlobal) {
     __name: "petInfo",
     setup(__props, { expose: __expose }) {
       __expose();
-      const imagePath = vue.ref("/static/图片.svg");
+      const imagePath = vue.ref("/static/touxiang.svg");
       const phone = vue.ref("");
       const nickname = vue.ref("");
       const password = vue.ref("");

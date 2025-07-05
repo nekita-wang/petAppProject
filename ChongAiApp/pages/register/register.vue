@@ -28,7 +28,7 @@
 					<!-- 男性选项 -->
 					<view class="gender-option">
 						<view class="sex-male" :class="{ active: gender === 'male' }">
-							<image src="/static/性别男.svg" class="gender-icon" />
+							<image src="/static/nan.svg" class="gender-icon" />
 						</view>
 						<text class="gender-tag male" :class="{ active: gender === 'male' }"
 							@click="gender = 'male'">男</text>
@@ -37,7 +37,7 @@
 					<!-- 女性选项 -->
 					<view class="gender-option">
 						<view class="sex-female" :class="{ active: gender === 'female' }">
-							<image src="/static/性别女.svg" class="gender-icon" />
+							<image src="/static/nv.svg" class="gender-icon" />
 						</view>
 						<text class="gender-tag female" :class="{ active: gender === 'female' }"
 							@click="gender = 'female'">女</text>
