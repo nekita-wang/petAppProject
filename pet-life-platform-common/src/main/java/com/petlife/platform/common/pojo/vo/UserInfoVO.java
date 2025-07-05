@@ -1,4 +1,4 @@
-package com.petlife.platform.app.pojo.vo;
+package com.petlife.platform.common.pojo.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

@@ -2,7 +2,7 @@ package com.petlife.platform.app.service.impl;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.mapper.PetMapper;
-import com.petlife.platform.app.pojo.dto.PetDTO;
+import com.petlife.platform.common.pojo.dto.PetDTO;
 import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.common.utils.StringUtils;

@@ -2,6 +2,8 @@ package com.petlife.platform.common.core.domain.model;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.petlife.platform.common.core.domain.entity.SysUser;
+import com.petlife.platform.common.enums.UserType;
+import com.petlife.platform.common.pojo.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
@@ -66,26 +68,41 @@ public class LoginUser implements UserDetails
      */
     private Set<String> permissions;
 
-    /**
-     * 用户信息
-     */
-    private SysUser user;
+    // 新增用户类型字段（关键修改）
+    private UserType userType;
+
+    // 原有字段保持不变...
+    private SysUser sysUser;  // 系统用户数据
+    private User appUser;     // App用户数据
+
 
     public LoginUser()
     {
     }
 
-    public LoginUser(SysUser user, Set<String> permissions)
+    public LoginUser(SysUser sysUser, Set<String> permissions)
     {
-        this.user = user;
+        this.userType = UserType.SYS_USER;
+        this.sysUser = sysUser;
+        this.userId = sysUser.getUserId();
         this.permissions = permissions;
     }
 
-    public LoginUser(Long userId, Long deptId, SysUser user, Set<String> permissions)
+
+    public LoginUser(User appUser, Set<String> permissions)
+    {
+        this.userType = UserType.APP_USER;
+        this.appUser = appUser;
+        this.userId = appUser.getUserId();
+        this.permissions = permissions;
+    }
+
+
+    public LoginUser(Long userId, Long deptId, SysUser sysUser, Set<String> permissions)
     {
         this.userId = userId;
         this.deptId = deptId;
-        this.user = user;
+        this.sysUser = sysUser;
         this.permissions = permissions;
     }
 
@@ -123,13 +140,27 @@ public class LoginUser implements UserDetails
     @Override
     public String getPassword()
     {
-        return user.getPassword();
+        // 如果是后台登录
+        if (sysUser != null) {
+            return sysUser.getPassword();
+        }
+        // 如果是app登录
+        if (appUser != null) {
+            return appUser.getPassword();
+        }
+        return null;
     }
 
     @Override
     public String getUsername()
     {
-        return user.getUserName();
+        if (sysUser != null) {
+            return sysUser.getUserName();
+        }
+        if (appUser != null) {
+            return appUser.getNickName();  // 或手机号等
+        }
+        return null;
     }
 
     /**
@@ -250,13 +281,30 @@ public class LoginUser implements UserDetails
 
     public SysUser getUser()
     {
-        return user;
+        return sysUser;
     }
 
-    public void setUser(SysUser user)
+    public void setUser(SysUser sysUser)
     {
-        this.user = user;
+        this.sysUser = sysUser;
     }
+
+    public User getAppUser() {
+        return appUser;
+    }
+
+    public void setAppUser(User appUser) {
+        this.appUser = appUser;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities()

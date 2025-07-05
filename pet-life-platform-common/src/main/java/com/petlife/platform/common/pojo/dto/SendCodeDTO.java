@@ -1,4 +1,4 @@
-package com.petlife.platform.app.pojo.dto;
+package com.petlife.platform.common.pojo.dto;
 
 import lombok.Data;
 

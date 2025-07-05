@@ -17,7 +17,7 @@ public enum AuthExceptionCode implements ServiceCode {
     PHONE_FORMAT_ERROR(1007, "手机号格式不正确"),
     PHONE_IS_EMPTY(1008, "手机号不能为空"),
     PASSWORD_IS_EMPTY(1009, "密码不能为空"),
-    USER_NICKNAME_EXIST(1017, "用户昵称已存在，请更换"),
+    USER_NICKNAME_EXIST(1018, "用户昵称已存在，请更换"),
 
     // 验证码相关
     CODE_IS_EMPTY(1014, "验证码不能为空"),
@@ -35,6 +35,8 @@ public enum AuthExceptionCode implements ServiceCode {
     PARAMS_MISSING(1013, "缺少必要参数"),
 
     PASSWORD_DECRYPT_ERROR(1014,"密码解密失败"),
+    PASSWORD_TOO_WEAK(1019, "密码强度不足"),
+
 
     // 通用/系统错误
     INTERNAL_ERROR(1999, "系统内部错误，请联系管理员");

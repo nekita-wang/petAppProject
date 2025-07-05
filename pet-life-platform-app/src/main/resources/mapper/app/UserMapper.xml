@@ -5,7 +5,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.petlife.platform.app.mapper.UserMapper">
 
     <!--根据手机号和状态查询用户-->
-    <select id="selectByPhoneAndStatusIn" parameterType="map" resultType="com.petlife.platform.app.pojo.entity.User" >
+    <select id="selectByPhoneAndStatusIn" parameterType="map" resultType="com.petlife.platform.common.pojo.entity.User" >
         SELECT
         user_id,
         phone,
@@ -31,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <!--根据手机号查用户-->
-    <select id="selectByPhone" parameterType="string" resultType="com.petlife.platform.app.pojo.entity.User">
+    <select id="selectByPhone" parameterType="string" resultType="com.petlife.platform.common.pojo.entity.User">
         SELECT
             user_id,
             phone,
@@ -53,7 +53,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <!--插入新用户-->
-    <insert id="insert" parameterType="com.petlife.platform.app.pojo.entity.User" useGeneratedKeys="true" keyProperty="userId">
+    <insert id="insert" parameterType="com.petlife.platform.common.pojo.entity.User" useGeneratedKeys="true" keyProperty="userId">
         INSERT INTO user (phone, status,nick_name,password,birthday,avatar_url,minor)
         VALUES (#{phone}, #{status},#{nickName},#{password},#{birthday},#{avatarUrl},#{minor})
     </insert>

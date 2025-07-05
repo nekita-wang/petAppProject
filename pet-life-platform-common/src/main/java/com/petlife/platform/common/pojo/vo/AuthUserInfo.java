@@ -1,4 +1,4 @@
-package com.petlife.platform.app.token.model;
+package com.petlife.platform.common.pojo.vo;
 
 import lombok.Data;
 

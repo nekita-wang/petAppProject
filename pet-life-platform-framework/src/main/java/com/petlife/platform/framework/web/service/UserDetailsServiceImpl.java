@@ -1,5 +1,7 @@
 package com.petlife.platform.framework.web.service;
 
+import com.petlife.platform.common.enums.UserType;
+import com.petlife.platform.common.pojo.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,8 @@ public class UserDetailsServiceImpl implements UserDetailsService
 
     public UserDetails createLoginUser(SysUser user)
     {
-        return new LoginUser(user.getUserId(), user.getDeptId(), user, permissionService.getMenuPermission(user));
+        LoginUser loginUser = new LoginUser(user.getUserId(), user.getDeptId(), user, permissionService.getMenuPermission(user));
+        loginUser.setUserType(UserType.SYS_USER); // 设置后台用户类型
+        return loginUser;
     }
 }

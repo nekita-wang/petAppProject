@@ -10,6 +10,15 @@ import io.jsonwebtoken.Claims;
  */
 public class Constants
 {
+
+    /** JWT中存储的用户类型字段名 */
+    public static final String JWT_USER_TYPE = "user_type";
+
+    /** 用户类型值 */
+    public static final String USER_TYPE_ADMIN = "SYS_USER";
+    public static final String USER_TYPE_APP = "APP_USER";
+//    public static final String USER_TYPE_MINI_PROGRAM = "MINI_PROGRAM";
+
     /**
      * UTF-8 字符集
      */

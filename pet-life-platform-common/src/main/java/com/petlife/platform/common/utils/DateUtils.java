@@ -34,6 +34,21 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils
             "yyyy.MM.dd", "yyyy.MM.dd HH:mm:ss", "yyyy.MM.dd HH:mm", "yyyy.MM"};
 
     /**
+     * 自动尝试把各种格式日期字符串（如 yyyy/MM/dd）转成 yyyy-MM-dd
+     */
+    public static String parseDateToYmd(String dateStr) {
+        if (dateStr == null) {
+            return null;
+        }
+        Date date = parseDate(dateStr); // 用已有的 parseDate 支持多种格式
+        if (date != null) {
+            return parseDateToStr(YYYY_MM_DD, date);
+        } else {
+            return null; // 返回null
+        }
+    }
+
+    /**
      * 获取当前Date型日期
      * 
      * @return Date() 当前日期

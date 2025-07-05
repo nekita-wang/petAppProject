@@ -1,6 +1,7 @@
 package com.petlife.platform.app.mapper;
 
-import com.petlife.platform.app.pojo.entity.User;
+import com.petlife.platform.common.pojo.dto.UserProfileDTO;
+import com.petlife.platform.common.pojo.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -38,17 +39,11 @@ public interface UserMapper {
      * @param nickname
      * @return
      */
-    int countByNickname(Long userId, String nickname);
+    int countByNickname( @Param("userId") Long userId,@Param("nickname") String nickname);
 
     /**
      * 更新用户基本资料
-     * @param userId
-     * @param nickname
-     * @param password
-     * @param avatar
-     * @param gender
-     * @param birthday
      */
-    void updateProfile(Long userId, String nickname, String password, String avatar, Byte gender, String birthday);
+    void updateProfile(UserProfileDTO userProfileDTO);
 
 }

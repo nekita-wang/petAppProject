@@ -2,9 +2,9 @@ package com.petlife.platform.app.auth.provider.token;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.common.core.exception.PetException;
-import com.petlife.platform.app.pojo.dto.LoginDTO;
-import com.petlife.platform.app.pojo.entity.User;
-import com.petlife.platform.app.token.model.AuthUserInfo;
+import com.petlife.platform.common.pojo.dto.LoginDTO;
+import com.petlife.platform.common.pojo.entity.User;
+import com.petlife.platform.common.pojo.vo.AuthUserInfo;
 import com.petlife.platform.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCrypt;

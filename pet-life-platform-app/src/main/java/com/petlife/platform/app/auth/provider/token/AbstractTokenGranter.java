@@ -3,21 +3,20 @@ package com.petlife.platform.app.auth.provider.token;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.auth.provider.TokenGranterStrategy;
+import com.petlife.platform.common.core.domain.model.LoginUser;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.mapper.UserMapper;
-import com.petlife.platform.app.pojo.dto.LoginDTO;
-import com.petlife.platform.app.pojo.entity.User;
-import com.petlife.platform.app.token.JwtUtil;
-import com.petlife.platform.app.token.config.JwtProperties;
-import com.petlife.platform.app.token.model.AuthUserInfo;
+import com.petlife.platform.common.enums.UserType;
+import com.petlife.platform.common.pojo.dto.LoginDTO;
+import com.petlife.platform.common.pojo.entity.User;
+import com.petlife.platform.common.pojo.vo.AuthUserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import com.petlife.platform.framework.web.service.TokenService;
 
-import java.time.Duration;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -32,7 +31,7 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     @Autowired
     protected StringRedisTemplate redisTemplate;
     @Autowired
-    protected JwtProperties jwtProperties;
+    private TokenService tokenService;
 
     /**
      * 手机号正则，支持中国大陆手机号
@@ -94,19 +93,24 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
      * 生成JWT Token并缓存到Redis
      */
     protected AuthUserInfo createToken(User user) {
-        Long expireSeconds = jwtProperties.getExpire() != null ? jwtProperties.getExpire() : 43200L;
+        // 创建 LoginUser，给 APP 用户
+        LoginUser loginUser = new LoginUser();
+        loginUser.setAppUser(user);                  // 设置 APP 用户
+        loginUser.setUserId(user.getUserId());
+        loginUser.setUserType(UserType.APP_USER);    // 设置用户类型
 
-        String token = JwtUtil.generateToken(user.getUserId().toString(), expireSeconds);
+        // 调用若依生成 token
+        String token = tokenService.createToken(loginUser);
 
-        String redisKey = "login:token:" + user.getUserId();
-        redisTemplate.opsForValue().set(redisKey, token, Duration.ofSeconds(expireSeconds));
 
+        // 返回给前端
         AuthUserInfo authUserInfo = new AuthUserInfo();
         authUserInfo.setUserId(user.getUserId());
         authUserInfo.setToken(token);
-        authUserInfo.setExpire(expireSeconds);
+        // expire 建议从配置里读
+        authUserInfo.setExpire((long) tokenService.getAppExpireTime() * 60); // expireTime 是分钟，要转秒
 
-        log.info("生成token成功，userId={}, expire={}秒", user.getUserId(), expireSeconds);
+        log.info("生成token成功，userId={}, expire={}秒", user.getUserId(), authUserInfo.getExpire());
         return authUserInfo;
     }
 

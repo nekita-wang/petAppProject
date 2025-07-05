@@ -1,4 +1,4 @@
-package com.petlife.platform.app.pojo.entity;
+package com.petlife.platform.common.pojo.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

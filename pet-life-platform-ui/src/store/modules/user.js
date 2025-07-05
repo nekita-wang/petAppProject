@@ -46,7 +46,7 @@ const user = {
       return new Promise((resolve, reject) => {
         getPublicKey()
           .then(res => {
-            console.log('getPublicKey 返回：', res)
+            //console.log('getPublicKey 返回：', res)
             resolve(res)
           })
           .catch(error => {

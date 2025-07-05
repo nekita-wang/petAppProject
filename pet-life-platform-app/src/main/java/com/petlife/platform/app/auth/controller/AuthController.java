@@ -5,12 +5,14 @@ import com.petlife.platform.app.auth.enums.GrantTypeEnum;
 import com.petlife.platform.app.auth.provider.CompositeTokenGranterContext;
 import com.petlife.platform.app.auth.provider.token.AbstractTokenGranter;
 import com.petlife.platform.app.mapper.UserMapper;
-import com.petlife.platform.app.pojo.dto.SendCodeDTO;
-import com.petlife.platform.app.pojo.entity.User;
+import com.petlife.platform.common.pojo.dto.SendCodeDTO;
+import com.petlife.platform.common.pojo.entity.User;
 import com.petlife.platform.common.core.api.ResponseData;
+import com.petlife.platform.common.core.domain.model.LoginUser;
 import com.petlife.platform.common.core.exception.PetException;
-import com.petlife.platform.app.pojo.dto.LoginDTO;
-import com.petlife.platform.app.token.model.AuthUserInfo;
+import com.petlife.platform.common.pojo.dto.LoginDTO;
+import com.petlife.platform.common.pojo.vo.AuthUserInfo;
+import com.petlife.platform.common.utils.ServletUtils;
 import com.petlife.platform.common.utils.StringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -18,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
+import com.petlife.platform.framework.web.service.TokenService;
+
 import java.time.Duration;
 import java.util.Objects;
 
@@ -35,6 +39,9 @@ public class AuthController {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private TokenService tokenService;
 
     /**
      * 发送登录验证码
@@ -123,14 +130,17 @@ public class AuthController {
         return ResponseData.ok(authUserInfo);
     }
 
-    /**
-     * 退出登录接口（简单示例，可根据需要结合 Redis 实现 token 删除等）
-     */
+
     @PostMapping("/logout")
     @ApiOperation(value = "退出登录", notes = "清理登录状态")
     public ResponseData<String> logout() {
-        // 示例：直接返回成功；实际可以结合 redis 删除 token
-        log.info("用户退出登录");
+        LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
+        if (loginUser != null) {
+            String token = loginUser.getToken();
+            // 删除用户缓存记录
+            tokenService.delLoginUser(token);
+            log.info("用户ID={} 退出登录", loginUser.getUserId());
+        }
         return ResponseData.ok("退出成功");
     }
 }

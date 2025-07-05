@@ -1,6 +1,6 @@
 package com.petlife.platform.app.controller;
 
-import com.petlife.platform.app.pojo.dto.PetDTO;
+import com.petlife.platform.common.pojo.dto.PetDTO;
 import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.api.ResponseData;
 import io.swagger.annotations.Api;
