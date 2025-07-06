@@ -39,8 +39,7 @@ import com.petlife.platform.system.service.ISysUserService;
 @Component
 public class SysLoginService
 {
-    @Autowired
-    private TokenService tokenService;
+    private final TokenService tokenService;
 
     @Resource
     private AuthenticationManager authenticationManager;
@@ -53,6 +52,10 @@ public class SysLoginService
 
     @Autowired
     private ISysConfigService configService;
+
+    public SysLoginService(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
 
     /**
      * 登录验证

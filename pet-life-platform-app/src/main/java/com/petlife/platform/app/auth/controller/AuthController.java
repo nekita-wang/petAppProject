@@ -27,7 +27,7 @@ import java.util.Objects;
 
 @Slf4j
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/app/auth")
 @Api(tags = "登录模块")
 public class AuthController {
 
@@ -134,12 +134,22 @@ public class AuthController {
     @PostMapping("/logout")
     @ApiOperation(value = "退出登录", notes = "清理登录状态")
     public ResponseData<String> logout() {
-        LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
-        if (loginUser != null) {
-            String token = loginUser.getToken();
-            // 删除用户缓存记录
-            tokenService.delLoginUser(token);
-            log.info("用户ID={} 退出登录", loginUser.getUserId());
+        // 从请求头拿到完整的 JWT
+        String jwtToken = ServletUtils.getRequest().getHeader("Authorization");
+
+        if (StringUtils.isEmpty(jwtToken) || !jwtToken.startsWith("Bearer ")) {
+            log.warn("退出登录时未获取到正确的JWT token: {}", jwtToken);
+            return ResponseData.error(400,"未获取到正确的JWT token");
+        }
+
+        // 去掉前缀
+        jwtToken = jwtToken.replace("Bearer ", "");
+
+        try {
+            tokenService.delLoginUser(jwtToken);
+            log.info("退出登录成功");
+        } catch (Exception e) {
+            log.error("退出登录时解析 token 出错: {}", e.getMessage());
         }
         return ResponseData.ok("退出成功");
     }

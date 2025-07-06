@@ -3,6 +3,7 @@ package com.petlife.platform.web.controller.system;
 import java.util.*;
 
 import com.petlife.platform.common.utils.sign.RsaUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ import com.petlife.platform.system.service.ISysMenuService;
  * 
  * @author pet-life
  */
+@Slf4j
 @RestController
 public class SysLoginController
 {
@@ -46,6 +48,20 @@ public class SysLoginController
 
     @Autowired
     private ISysConfigService configService;
+
+    /**
+     * 后台退出登录
+     */
+    @PostMapping("/logout")
+    public AjaxResult logout() {
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        if (loginUser != null) {
+            String token = loginUser.getToken();
+            tokenService.delLoginUser(token);
+            log.info("后台用户ID={} 退出登录", loginUser.getUserId());
+        }
+        return AjaxResult.success("退出成功");
+    }
 
     /**
      * 获取公钥 前端用来密码加密
