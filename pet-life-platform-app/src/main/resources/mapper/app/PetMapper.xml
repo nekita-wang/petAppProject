@@ -37,4 +37,57 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                  )
     </insert>
 
+    <select id="selectPetBreedAppList" resultType="com.petlife.platform.common.pojo.vo.PetBreedVo">
+        SELECT cn_initials AS cnInitials,
+        pet_class ,
+        pet_breed ,
+        pet_breed_en
+        FROM pet_breed
+        WHERE pet_class = #{petClass}
+        <if test="petBreed != null and petBreed != ''">
+            AND pet_breed LIKE CONCAT('%', #{petBreed}, '%')
+        </if>
+        ORDER BY cn_initials ASC, pet_breed ASC;
+    </select>
+
+    <!-- 添加宠物信息 -->
+    <insert id="insertPetInfo">
+            INSERT INTO pet_info (
+               user_id,
+               pet_nick_name,
+               pet_class,
+               pet_breed,
+               pet_gender,
+               sterilized,
+               pet_birthday,
+               adoption_date,
+               pet_avatar_url,
+               status)
+        VALUES (#{userId},
+                #{petNickName},
+                #{petClass},
+                #{petBreed},
+                #{petGender},
+                #{sterilized},
+                #{petBirthday},
+                #{adoptionDate},
+                #{petAvatarUrl},
+                #{status})
+    </insert>
+
+    <select id="selectHot" resultType="String">
+        SELECT pet_breed
+        FROM pet_info
+        WHERE pet_class = #{petClass}
+        <if test="petBreed != null  and petBreed != ''"> and pet_breed like concat('%', #{petBreed}, '%')</if>
+        GROUP BY pet_breed
+        ORDER BY COUNT(*) DESC
+        LIMIT 6;
+    </select>
+
+    <select id="selectPetClass" resultType="com.petlife.platform.common.pojo.vo.PetClassVo" >
+        select pet_class_id petClassId, pet_class petClass
+        from pet_classification
+        where status = 0
+    </select>
 </mapper>

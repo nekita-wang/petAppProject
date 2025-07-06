@@ -41,23 +41,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where pet_breed_id = #{petBreedId}
     </select>
 
-    <select id="selectPetBreedAppList" resultType="PetBreedVo">
-        SELECT cn_initials, pet_class, pet_breed
-            FROM pet_breed
-            WHERE pet_class = #{petClass}
-            <if test="petBreed != null  and petBreed != ''"> and pet_breed like concat('%', #{petBreed}, '%')</if>
-            ORDER BY cn_initials ASC, pet_breed ASC;
-    </select>
 
-    <select id="selectHot" resultType="String">
-     SELECT pet_breed
-        FROM pet_info
-        WHERE pet_class = #{petClass}
-        <if test="petBreed != null  and petBreed != ''"> and pet_breed like concat('%', #{petBreed}, '%')</if>
-        GROUP BY pet_breed
-        ORDER BY COUNT(*) DESC
-        LIMIT 6;
-    </select>
 
     <select id="selectBreedIdMax" resultType="String">
         SELECT MAX(pet_breed_id)

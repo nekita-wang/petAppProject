@@ -1,11 +1,44 @@
 package com.petlife.platform.app.mapper;
 
+import com.petlife.platform.common.pojo.dto.PetBreedQuery;
 import com.petlife.platform.common.pojo.dto.PetDTO;
+import com.petlife.platform.common.pojo.dto.PetInfoQuery;
+import com.petlife.platform.common.pojo.entity.PetInfo;
+import com.petlife.platform.common.pojo.vo.PetBreedVo;
+import com.petlife.platform.common.pojo.vo.PetClassVo;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 @Mapper
 public interface PetMapper {
     int countByUserIdAndNickname(Long userId, String nickname);
 
     void insertPet(PetDTO dto);
+
+    /**
+     * 获取宠物品种列表
+     * @param petBreedQuery
+     * @return
+     */
+    List<PetBreedVo> selectPetBreedAppList(PetBreedQuery petBreedQuery);
+
+    /**
+     * 添加宠物信息
+     * @param petInfo
+     */
+    void insertPetInfo(PetInfo petInfo);
+
+    /**
+     * 获取热门列表
+     * @param petClass
+     * @return
+     */
+    List<String> selectHot(String petClass);
+
+    /**
+     * 宠物类别查询
+     * @return
+     */
+    List<PetClassVo> selectPetClass();
 }

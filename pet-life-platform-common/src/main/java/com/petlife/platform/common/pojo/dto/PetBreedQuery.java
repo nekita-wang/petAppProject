@@ -1,4 +1,4 @@
-package com.petlife.platform.breeds.domain;
+package com.petlife.platform.common.pojo.dto;
 
 import lombok.Data;
 
