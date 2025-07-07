@@ -2,6 +2,8 @@ package com.petlife.platform.app.service.impl;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.mapper.PetMapper;
+
+import com.petlife.platform.common.mapping.PetInfoMapping;
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
 import com.petlife.platform.common.pojo.dto.PetDTO;
 import com.petlife.platform.app.service.PetService;
@@ -11,9 +13,9 @@ import com.petlife.platform.common.pojo.entity.PetInfo;
 import com.petlife.platform.common.pojo.vo.PetBreedListVo;
 import com.petlife.platform.common.pojo.vo.PetBreedVo;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
-import com.petlife.platform.common.utils.DateUtils;
 import com.petlife.platform.common.utils.StringUtils;
-import com.petlife.platform.common.utils.bean.BeanUtils;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,17 +33,9 @@ public class PetServiceImpl implements PetService {
     @Autowired
     private PetMapper petMapper;
 
-    @Override
-    public void addPet(PetDTO dto) {
-        if (!StringUtils.hasText(dto.getNickname()) || dto.getType() == null) {
-            throw new PetException(AuthExceptionCode.PARAMS_MISSING);
-        }
-        if (isPetNicknameExist(dto.getUserId(), dto.getNickname())) {
-            throw new PetException(AuthExceptionCode.PET_NICKNAME_EXIST);
-        }
-        // 保存
-        petMapper.insertPet(dto);
-    }
+    @Autowired
+    private PetInfoMapping petInfoMapping;
+
 
     @Override
     public boolean isPetNicknameExist(Long userId, String nickname) {
@@ -50,6 +44,11 @@ public class PetServiceImpl implements PetService {
 
     @Override
     public void addPetInfo(PetInfoQuery petInfoQuery) {
+
+        //判断到家日期不能早于出生日期
+        if(petInfoQuery.getPetBirthday().isAfter(petInfoQuery.getAdoptionDate())){
+            throw new RuntimeException("到家日期早于生日");
+        }
         //填写日期不能小于当天日期
         LocalDate now = LocalDate.now();
         if (petInfoQuery.getPetBirthday().isAfter(now)) {
@@ -58,18 +57,26 @@ public class PetServiceImpl implements PetService {
         if (petInfoQuery.getAdoptionDate().isAfter(now)) {
             throw new RuntimeException("到家日期不能晚于当前时间");
         }
-
-        PetInfo info=new PetInfo();
-        BeanUtils.copyProperties(info, petInfoQuery);
-        info.setUserID(getUserId().toString());
+        // 使用 MapStruct 进行转换
+        PetInfo info = petInfoMapping.petInfoQueryToPetInfo(petInfoQuery);
+        info.setUserId(getUserId());
         info.setStatus(0L);
-
         //判断是否唯一，不唯一抛异常
-        if (isPetNicknameExist(Long.valueOf(info.getUserID()), info.getPetNickName())) {
-            throw new PetException(AuthExceptionCode.PET_NICKNAME_EXIST);
+        if (isPetNicknameExist(info.getUserId(), info.getPetNickName())) {
+            throw new RuntimeException("宠物昵称已存在，请更换");
         }
 
-        petMapper.insertPetInfo(info);
+        //插入数据
+        try {
+            int insertPetInfo= petMapper.insertPetInfo(info);
+            if (insertPetInfo <= 0) {
+                throw new RuntimeException("插入宠物信息失败，未影响任何行");
+            }
+        }catch (Exception e){
+            throw new RuntimeException("填写数据异常");
+        }
+
+
     }
 
     @Override

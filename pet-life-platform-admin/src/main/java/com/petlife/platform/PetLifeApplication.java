@@ -1,14 +1,16 @@
 package com.petlife.platform;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 /**
  * 启动程序
- * 
+ *
  * @author pet-life
  */
+@MapperScan("com.petlife.platform.app.mapping")
 @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
 public class PetLifeApplication
 {

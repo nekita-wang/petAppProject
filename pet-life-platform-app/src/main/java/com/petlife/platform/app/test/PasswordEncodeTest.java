@@ -8,4 +8,6 @@ public class PasswordEncodeTest {
         String encoded = encoder.encode("123456");
         System.out.println("Encoded password: " + encoded);
     }
+
+
 }

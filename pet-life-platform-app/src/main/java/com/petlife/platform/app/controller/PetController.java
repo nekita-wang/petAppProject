@@ -1,6 +1,7 @@
 package com.petlife.platform.app.controller;
 
 
+
 import com.petlife.platform.common.config.RuoYiConfig;
 import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.domain.R;
@@ -9,7 +10,6 @@ import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.api.ResponseData;
 import com.petlife.platform.common.pojo.dto.PetInfoQuery;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
-import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.file.FileUploadUtils;
 import com.petlife.platform.common.utils.file.FileUtils;
 import com.petlife.platform.framework.config.ServerConfig;
@@ -17,6 +17,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,17 +36,6 @@ public class PetController {
     @Autowired
     private ServerConfig serverConfig;
 
-//    /**
-//     * 您养的宠物
-//     * @param dto
-//     * @return
-//     */
-//    @PostMapping("/addPet")
-//    @ApiOperation(value = "添加宠物信息", notes = "新用户注册后可选择添加宠物")
-//    public ResponseData<Void> addPet(@RequestBody PetDTO dto) {
-//        petService.addPet(dto);
-//        return ResponseData.ok();
-//    }
 
     /**
      * 您养的宠物
@@ -54,10 +44,11 @@ public class PetController {
      */
     @PostMapping("/addPet")
     @ApiOperation(value = "添加宠物信息", notes = "新用户注册后可选择添加宠物")
-    public ResponseData<Void> addPet(@RequestBody PetInfoQuery petInfoQuery) {
+    public ResponseData<Void> addPet( @Validated @RequestBody PetInfoQuery petInfoQuery) {
         petService.addPetInfo(petInfoQuery);
         return ResponseData.ok();
     }
+
     /**
      * 宠物查询
      * @param petBreedQuery

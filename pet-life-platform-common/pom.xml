@@ -141,6 +141,17 @@
             <version>5.8.15</version> <!-- 请使用最新版本 -->
         </dependency>
 
+        <!-- MapStruct 依赖 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+        <!-- MapStruct 编译时处理器 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 

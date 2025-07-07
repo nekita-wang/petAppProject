@@ -7,14 +7,14 @@ import com.petlife.platform.common.pojo.entity.PetInfo;
 import com.petlife.platform.common.pojo.vo.PetBreedVo;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 @Mapper
 public interface PetMapper {
-    int countByUserIdAndNickname(Long userId, String nickname);
+    int countByUserIdAndNickname(@Param("userId") Long userId,@Param("nickname")  String nickname);
 
-    void insertPet(PetDTO dto);
 
     /**
      * 获取宠物品种列表
@@ -27,7 +27,7 @@ public interface PetMapper {
      * 添加宠物信息
      * @param petInfo
      */
-    void insertPetInfo(PetInfo petInfo);
+    int insertPetInfo(PetInfo petInfo);
 
     /**
      * 获取热门列表

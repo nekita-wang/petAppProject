@@ -7,35 +7,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <!-- 查询同一用户下是否有相同宠物昵称 -->
     <select id="countByUserIdAndNickname" resultType="int">
         SELECT COUNT(*)
-        FROM pet
+        FROM pet_info
         WHERE user_id = #{userId}
-          AND nickname = #{nickname}
+          AND pet_nick_name = #{nickname}
     </select>
 
-    <!-- 添加宠物信息 -->
-    <insert id="insertPet">
-        INSERT INTO pet (
-            user_id,
-            nickname,
-            type,
-            breed,
-            avatar,
-            gender,
-            birthday,
-            arrival_date,
-            is_sterilized
-        ) VALUES (
-                     #{userId},
-                     #{nickname},
-                     #{type},
-                     #{breed},
-                     #{avatar},
-                     #{gender},
-                     #{birthday},
-                     #{arrivalDate},
-                     #{isSterilized}
-                 )
-    </insert>
 
     <select id="selectPetBreedAppList" resultType="com.petlife.platform.common.pojo.vo.PetBreedVo">
         SELECT cn_initials AS cnInitials,
@@ -71,7 +47,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 #{sterilized},
                 #{petBirthday},
                 #{adoptionDate},
-                #{petAvatarUrl},
+                #{petAvatarURL},
                 #{status})
     </insert>
 

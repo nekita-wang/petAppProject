@@ -35,6 +35,7 @@
         <logback.version>1.2.13</logback.version>
         <spring-security.version>5.7.12</spring-security.version>
         <spring-framework.version>5.3.39</spring-framework.version>
+        <mapstruct.version>1.4.2.Final</mapstruct.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -223,7 +224,20 @@
                 <artifactId>pet-life-platform-app</artifactId>
                 <version>${pet-life-platform.version}</version>
             </dependency>
+            <!-- MapStruct 依赖 -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
 
+            <!-- MapStruct 编译时处理器 -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
