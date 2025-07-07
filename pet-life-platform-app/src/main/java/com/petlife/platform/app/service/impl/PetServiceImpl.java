@@ -13,6 +13,7 @@ import com.petlife.platform.common.pojo.entity.PetInfo;
 import com.petlife.platform.common.pojo.vo.PetBreedListVo;
 import com.petlife.platform.common.pojo.vo.PetBreedVo;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
+import com.petlife.platform.common.utils.DateValidationUtils;
 import com.petlife.platform.common.utils.StringUtils;
 
 import org.springframework.beans.BeanUtils;
@@ -45,18 +46,18 @@ public class PetServiceImpl implements PetService {
     @Override
     public void addPetInfo(PetInfoQuery petInfoQuery) {
 
-        //判断到家日期不能早于出生日期
-        if(petInfoQuery.getPetBirthday().isAfter(petInfoQuery.getAdoptionDate())){
-            throw new RuntimeException("到家日期早于生日");
-        }
+        DateValidationUtils.validatePetDateLogic(petInfoQuery.getPetBirthday(),
+                petInfoQuery.getAdoptionDate(),"到家日期早于生日");
+
         //填写日期不能小于当天日期
         LocalDate now = LocalDate.now();
-        if (petInfoQuery.getPetBirthday().isAfter(now)) {
-            throw new RuntimeException("宠物生日不能晚于当前时间");
-        }
-        if (petInfoQuery.getAdoptionDate().isAfter(now)) {
-            throw new RuntimeException("到家日期不能晚于当前时间");
-        }
+
+        DateValidationUtils.validatePetDateLogic(petInfoQuery.getPetBirthday(),
+                now,"宠物生日不能晚于当前时间");
+
+        DateValidationUtils.validatePetDateLogic(petInfoQuery.getAdoptionDate(),
+                now,"到家日期不能晚于当前时间");
+
         // 使用 MapStruct 进行转换
         PetInfo info = petInfoMapping.petInfoQueryToPetInfo(petInfoQuery);
         info.setUserId(getUserId());
