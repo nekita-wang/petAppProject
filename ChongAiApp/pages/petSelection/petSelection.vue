@@ -21,8 +21,8 @@
 			</uni-nav-bar>
 			<!-- 页签区域 -->
 			<view class="tabs">
-				<view v-for="tab in tabs" :key="tab.petClassEn"
-					:class="['tab-item', { active: activeTab === tab.petClassEn }]" @click="handleTabChange(tab)">
+				<view v-for="tab in tabs" :key="tab.petClassId"
+					:class="['tab-item', { active: activeTab === tab.petClassId }]" @click="handleTabChange(tab)">
 					{{ tab.petClass }}
 				</view>
 			</view>
@@ -93,7 +93,10 @@
 		import {
 			getCurrentInstance
 		} from 'vue'
-		import { apiGetBreedList,apiGetPetTypeList } from '../../api/petSelection'
+		import {
+			apiGetBreedList,
+			apiGetPetTypeList
+		} from '../../api/petSelection'
 		// 宠物分类
 		const tabs = ref('')
 
@@ -119,80 +122,68 @@
 		}
 		// 切换tab栏
 		const handleTabChange = async (tab) => {
+			console.log(tab);
 			petClass.value = tab.petClass
-			activeTab.value = tab.petClassEn
-			if (activeTab.value != 'none') {
+			activeTab.value = tab.petClassId
+			if (activeTab.value != 0) {
 				buttonText.value = '下一个'
 			} else {
 				buttonText.value = '完成'
 			}
-			// let res = await apiGetBreedList(petClass.value)
-			// console.log(res);
-			// 获取宠物品种
-			// uni.request({
-			// 	// url: 'http://localhost/dev-api/breed/list',
-			// 	url:'http://192.168.0.224:8080/breed/list',
-			// 	method: 'GET',
-			// 	header: {
-			// 		'Authorization': `Bearer ${token.value}`
-			// 	},
-			// 	data: {
-			// 		petClass: petClass.value,
-			// 		pageNum: 1,
-			// 		pageSize: 9999, // 模拟获取全部
-			// 	},
-			// 	success: (res) => {
-			// 		if (res.data.rows.length === 0) {
-			// 		  uni.showToast({ title: '暂无数据', icon: 'none' })
-			// 		  petData.value = {}
-			// 		  return
-			// 		}
-			// 		const groupedData = {}
-
-			// 		// 先排序原始数据
-			// 		const sortedRows = [...res.data.rows].sort((a, b) => {
-			// 			return (a.cnInitials || a.petBreed.charAt(0))
-			// 				.localeCompare(b.cnInitials || b.petBreed.charAt(0), 'zh-Hans-CN')
-			// 		})
-
-			// 		// 再分组
-			// 		sortedRows.forEach(item => {
-			// 			const initial = item.cnInitials || item.petBreed.charAt(0).toUpperCase()
-			// 			if (!groupedData[initial]) {
-			// 				groupedData[initial] = []
-			// 			}
-			// 			groupedData[initial].push(item.petBreed)
-			// 		})
-
-			// 		petData.value = groupedData
-			// 	}
-			// })
+			//获取宠物品种列表
+			GetBreedList()
 		}
 		//点击字母显示高亮
 		const scrollToLetter = (letter) => {
 			currentLetter.value = `letter-${letter}`
 		}
-		onMounted( ()=>{
-			let res  =  apiGetPetTypeList()
-			console.log(res);
+		onMounted(() => {
+			GetPetTypeList()
 		})
-		// 获取宠物分类
-		// uni.request({
-		// 	// url: `http://localhost/dev-api/petType/list`,
-		// 	url: 'http://192.168.0.224:8080/petType/list',
-		// 	method: 'GET',
-		// 	header: {
-		// 		'Authorization': `Bearer ${token.value}`
-		// 	},
-		// 	success: (res) => {
-		// 		console.log(res);
-		// 		tabs.value = res.data.rows
-		// 		tabs.value.unshift({
-		// 			petClass: '尚未养宠',
-		// 			petClassEn: 'none'
-		// 		})
-		// 	}
-		// })
+		//获取宠物分类列表 
+		const GetPetTypeList = async () => {
+			try {
+				const res = await apiGetPetTypeList()
+				console.log('宠物类型：',res);
+				tabs.value = res.data
+			} catch (error) {
+				console.error('获取宠物类型失败:', error)
+			}
+		}
+		const GetBreedList = async () => {
+			try {
+				const res = await apiGetBreedList(petClass.value)
+					console.log('宠物列表：',res);
+				if (res.data.rows.length === 0) {
+					uni.showToast({
+						title: '暂无数据',
+						icon: 'none'
+					})
+					petData.value = {}
+					return
+				}
+				const groupedData = {}
+
+				// 先排序原始数据
+				const sortedRows = [...res.data.rows].sort((a, b) => {
+					return (a.cnInitials || a.petBreed.charAt(0))
+						.localeCompare(b.cnInitials || b.petBreed.charAt(0), 'zh-Hans-CN')
+				})
+
+				// 再分组
+				sortedRows.forEach(item => {
+					const initial = item.cnInitials || item.petBreed.charAt(0).toUpperCase()
+					if (!groupedData[initial]) {
+						groupedData[initial] = []
+					}
+					groupedData[initial].push(item.petBreed)
+				})
+
+				petData.value = groupedData
+			} catch (error) {
+				console.error('获取宠物列表失败:', error)
+			}
+		}
 	</script>
 
 	<style scoped lang="scss">

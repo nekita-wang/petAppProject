@@ -21,7 +21,7 @@
 		</uni-nav-bar>
 		<!-- 头像上传 -->
 		<view class="avatar-upload" @click="UploadImage">
-			<image :src=imagePath class="avatar" />
+			<image :src=avatar class="avatar" />
 
 			<!-- <image src="/static/camera-icon.svg" class="camera-icon" /> -->
 		</view>
@@ -31,13 +31,13 @@
 			<!-- 手机号-->
 			<view class="form-item">
 				<text class="label">宠物品种:</text>
-				<input v-model="phone" placeholder="请输入" />
+				<input v-model="petBreed" placeholder="请输入" />
 			</view>
 
 			<!-- 昵称 -->
 			<view class="form-item">
 				<text class="label">宠物昵称:</text>
-				<input v-model="nickname" placeholder="请输入" />
+				<input v-model="petNickName" placeholder="请输入宠物昵称" />
 			</view>
 			<!-- 性别 -->
 			<view class="form-item">
@@ -45,20 +45,20 @@
 				<view class="gender-container">
 					<!-- 男性选项 -->
 					<view class="gender-option">
-						<view class="sex-male" :class="{ active: gender === 'male' }">
+						<view class="sex-male" :class="{ active: petGender === '0' }">
 							<image src="/static/nan.svg" class="gender-icon" />
 						</view>
-						<text class="gender-tag male" :class="{ active: gender === 'male' }"
-							@click="gender = 'male'">男</text>
+						<text class="gender-tag male" :class="{ active: petGender === '0' }"
+							@click="petGender = '0'">男</text>
 					</view>
 
 					<!-- 女性选项 -->
 					<view class="gender-option">
-						<view class="sex-female" :class="{ active: gender === 'female' }">
+						<view class="sex-female" :class="{ active: petGender === '1' }">
 							<image src="/static/nv.svg" class="gender-icon" />
 						</view>
-						<text class="gender-tag female" :class="{ active: gender === 'female' }"
-							@click="gender = 'female'">女</text>
+						<text class="gender-tag female" :class="{ active: petGender === '1' }"
+							@click="petGender = '1'">女</text>
 					</view>
 				</view>
 			</view>
@@ -66,93 +66,58 @@
 			<view class="form-item">
 				<text class="label">是否绝育:</text>
 				<view class="neuter-options">
-					<view :class="['neuter-option', { active: isNeutered === true }]" @click="isNeutered = true">
+					<view :class="['neuter-option', { active: sterilized === true }]" @click="sterilized = true">
 						是
 					</view>
-					<view :class="['neuter-option', { active: isNeutered === false }]" @click="isNeutered = false">
+					<view :class="['neuter-option', { active: sterilized === false }]" @click="sterilized = false">
 						否
 					</view>
 				</view>
 			</view>
-			<!-- 生日-->
+			<!-- 宠物生日 -->
 			<view class="form-item">
 				<text class="label">宠物生日:</text>
-				<!-- 日期选择器容器 -->
-				<view class="date-picker-container">
-					<picker-view :indicator-style="indicatorStyle" :mask-style="maskStyle" :value="pickerValue"
-						@change="handleDateChange">
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in years" :key="index">{{item}}年</view>
-						</picker-view-column>
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in months" :key="index">{{item}}月</view>
-						</picker-view-column>
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in days" :key="index">{{item}}日</view>
-						</picker-view-column>
-					</picker-view>
-				</view>
+				<DatePicker @date-change="handleBirthdayChange" />
 			</view>
+
+			<!-- 到家日期 -->
 			<view class="form-item">
 				<text class="label">到家日期:</text>
-				<!-- 日期选择器容器 -->
-				<view class="date-picker-container">
-					<picker-view :indicator-style="indicatorStyle" :mask-style="maskStyle" :value="pickerValue"
-						@change="handleDateChange">
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in years" :key="index">{{item}}年</view>
-						</picker-view-column>
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in months" :key="index">{{item}}月</view>
-						</picker-view-column>
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in days" :key="index">{{item}}日</view>
-						</picker-view-column>
-					</picker-view>
-				</view>
+				<DatePicker @date-change="handleArrivalDateChange" />
 			</view>
 		</view>
 
 		<!-- 完成按钮 -->
-		<button class="next-btn">完成</button>
+		<button class="next-btn" :class="{ active: isFormValid }" @click="complete">完成</button>
 
 	</view>
 </template>
 
 <script setup>
+	import DatePicker from '@/components/DatePicker.vue'
 	import {
 		onMounted,
+		computed,
 		ref
 	} from 'vue'
-	const imagePath = ref('/static/touxiang.svg') //默认图片
-	const phone = ref('') //手机号
-	const nickname = ref('') //昵称
-	const password = ref('') //密码
-	const isNeutered = ref(true) //是否绝育
-	const confirmPassword = ref('') // 确认密码
-	const gender = ref('male') // 默认选中男性
+	const avatar = ref('/static/touxiang.svg') //默认图片
+	const petBreed = ref('') //宠物品种
+	const petNickName = ref('') //宠物昵称
+	const petGender = ref('') // 宠物性别
+	const sterilized = ref(false) //是否绝育
+	const petBirthday = ref('') //宠物生日
+	const arrivalDate = ref('') //到家日期
 
-	// 选择器样式
-	const indicatorStyle = ref('') // 选中项样式
-	const maskStyle = ref("") // 遮罩层样式
 
-	// 初始化当前日期
-	const currentDate = new Date()
-	const years = ref([]) // 年份列表
-	const year = ref(currentDate.getFullYear()) // 当前选中年份
-	const months = ref([]) // 月份列表
-	const month = ref(currentDate.getMonth() + 1) // 当前选中月份
-	const days = ref([]) // 日期列表
-	const day = ref(currentDate.getDate()) // 当前选中日期
-	const pickerValue = ref([]) // 选择器默认值
-	// 导航方法
+	// 返回方法
 	const handleBack = () => {
 		uni.navigateBack()
-	}	
+	}
+	// 跳过方法
 	const handleSkip = () => {
-		uni.navigateTo({
-			url:'./petInfo'
-		})
+		// uni.navigateTo({
+		// 	url: './petInfo'
+		// })
 	}
 	//点击上传图片
 	const UploadImage = () => {
@@ -163,43 +128,27 @@
 			}
 		})
 	}
+	// 宠物生日
+	const handleBirthdayChange = (date) => {
+		petBirthday.value = date
+	}
 
-	// 组件挂载时初始化数据
-	onMounted(() => {
-		// 初始化年份范围(1990-当前年份)
-		for (let i = 1990; i <= currentDate.getFullYear(); i++) {
-			years.value.push(i)
-		}
-
-		// 初始化月份(1-12月)
-		for (let i = 1; i <= 12; i++) {
-			months.value.push(i)
-		}
-
-		// 初始化日期(1-31日)
-		for (let i = 1; i <= 31; i++) {
-			days.value.push(i)
-		}
-
-		// 设置初始选择器值
-		const yearIndex = years.value.indexOf(year.value);
-		pickerValue.value = [yearIndex, month.value - 1, day.value - 1];
-
-		// 设置选择器样式
-		indicatorStyle.value = `height: ${uni.upx2px(80)}px;` // 使用uni的转换方法
-
-		// 快手小程序特殊样式
-		// #ifdef MP-KUAISHOU
-		maskStyle.value = "padding:10px 0"
-		// #endif
+	// 到家日期
+	const handleArrivalDateChange = (date) => {
+		arrivalDate.value = date
+	}
+	// 按钮状态
+	const isFormValid = computed(() => {
+		return (
+			petNickName.value !== '' &&
+			petGender.value !== '' &&
+			petBirthday.value !== '' &&
+			arrivalDate.value !== ''
+		)
 	})
-
-	// 处理日期变化事件
-	const handleDateChange = (event) => {
-		const selectedValues = event.detail.value
-		year.value = years.value[selectedValues[0]]
-		month.value = months.value[selectedValues[1]]
-		day.value = days.value[selectedValues[2]]
+	const complete = () => {
+		console.log(petBirthday.value);
+		console.log(arrivalDate.value);
 	}
 </script>
 
@@ -216,14 +165,14 @@
 		height: 44px;
 		line-height: 44px;
 	}
-	
+
 	/* 左侧按钮容器 */
 	.nav-left {
 		padding-left: 10px;
 		display: flex;
 		align-items: center;
 	}
-	
+
 	/* 中间标题样式 */
 	.nav-title {
 		font-size: 17px;
@@ -231,21 +180,22 @@
 		color: #000000;
 		line-height: 44px;
 		text-align: center;
-		flex: 1; 	
+		flex: 1;
 	}
-	
+
 	/* 右侧跳过按钮样式 */
 	.nav-right {
 		padding-right: 13rpx;
 	}
-	
+
 	.skip-text {
-	background-color: #aaaaaa;
-	padding: 12rpx 21rpx;
-	border-radius: 50rpx;
-	color: white;
-	font-size: 26rpx;
+		background-color: #aaaaaa;
+		padding: 12rpx 21rpx;
+		border-radius: 50rpx;
+		color: white;
+		font-size: 26rpx;
 	}
+
 	/* 头像上传 */
 	.avatar-upload {
 		position: relative;
@@ -274,7 +224,7 @@
 
 	/* 表单样式 */
 	.form-item {
-		padding: 20rpx 0;
+		padding: 20rpx 20rpx;
 		display: flex;
 		align-items: center;
 	}
@@ -389,70 +339,18 @@
 		color: white;
 	}
 
-	/* 日期显示容器（完全还原截图样式） */
-	.date-display {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 20rpx;
-		height: 65rpx;
-		background-color: #e8e8e8;
-		border-radius: 30rpx;
-		font-size: 32rpx;
-	}
-
-	.arrow-icon {
-		width: 32rpx;
-		height: 32rpx;
-	}
-
-	.label {
-		width: 160rpx;
-		font-size: 32rpx;
-		color: #333;
-	}
-
-	/* 日期选择器容器 */
-	.date-picker-container {
-		flex: 1;
-		height: 150rpx;
-		margin-top: 20rpx;
-		background-color: #f8f8f8;
-		border-radius: 20rpx;
-		overflow: hidden;
-	}
-
-	/* 选择器样式 */
-	picker-view {
-		width: 100%;
-		height: 100%;
-	}
-
-	/* 选择项样式 */
-	.item {
-		line-height: 80rpx;
-		text-align: center;
-		font-size: 32rpx;
-		color: #666;
-	}
-
-	/* 选中项样式 */
-	picker-view-column view.item {
-		font-weight: bold;
-		color: black;
-	}
-
-
-
 	/* 下一步按钮 */
 	.next-btn {
 		width: 300rpx;
-		background-color: #1989fa;
+		background-color: #f5f5f5;
 		color: white;
 		border-radius: 50rpx;
 		height: 70rpx;
 		margin-top: 60rpx;
 		line-height: 70rpx;
+		
+		&.active {
+			background-color: #007aff;
+		}
 	}
 </style>

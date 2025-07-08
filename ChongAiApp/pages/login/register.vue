@@ -47,20 +47,7 @@
 			<!-- 生日-->
 			<view class="form-item">
 				<text class="label">您的生日:</text>
-				<!-- 日期选择器容器 -->
-				<view class="date-picker-container">
-					<picker-view :indicator-style="indicatorStyle" :value="pickerValue" @change="handleDateChange">
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in years" :key="index">{{item}}年</view>
-						</picker-view-column>
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in months" :key="index">{{item}}月</view>
-						</picker-view-column>
-						<picker-view-column>
-							<view class="item" v-for="(item,index) in days" :key="index">{{item}}日</view>
-						</picker-view-column>
-					</picker-view>
-				</view>
+				<DatePicker @date-change="handleBirthdayChange" />
 			</view>
 
 			<!-- 密码 -->
@@ -101,6 +88,7 @@
 </template>
 
 <script setup>
+	import DatePicker from '@/components/DatePicker.vue'
 	import {
 		onMounted,
 		computed,
@@ -118,114 +106,15 @@
 	} from '@/utils/rsa'
 	const strengthLevel = ref(0) //密码强度
 	const ShowStrenth = ref(false) //显示密码强度
-	const authStore = useAuthStore()
+	const authStore = useAuthStore() //使用pinia
 	const avatar = ref('/static/touxiang.svg')
-	const phone = ref('')
-	const nickname = ref('')
-	const password = ref('')
-	const confirmPassword = ref('')
-	const gender = ref('')
-	// 日期选择器相关
-	const indicatorStyle = ref('')
-	const currentDate = new Date(2025, 6, 7) // 2025年7月7日
-	const years = ref([])
-	const year = ref(currentDate.getFullYear())
-	const months = ref([])
-	const month = ref(currentDate.getMonth() + 1)
-	const days = ref([])
-	const day = ref(currentDate.getDate())
-	const pickerValue = ref([])
-
-	// 更新月份列表
-	const updateMonths = () => {
-		months.value = []
-		const maxMonth = year.value === currentDate.getFullYear() ?
-			currentDate.getMonth() + 1 :
-			12
-
-		for (let i = 1; i <= maxMonth; i++) {
-			months.value.push(i)
-		}
-
-		// 调整当前选择的月份
-		if (month.value > maxMonth) {
-			month.value = maxMonth
-		}
-	}
-
-	// 更新日期列表
-	const updateDays = () => {
-		days.value = []
-		let maxDay = new Date(year.value, month.value, 0).getDate()
-
-		// 如果是当前年月，则最大天数不超过当前日
-		if (year.value === currentDate.getFullYear() && month.value === currentDate.getMonth() + 1) {
-			maxDay = currentDate.getDate()
-		}
-
-		for (let i = 1; i <= maxDay; i++) {
-			days.value.push(i)
-		}
-
-		// 调整当前选择的天数
-		if (day.value > maxDay) {
-			day.value = maxDay
-		}
-	}
-
-	// 初始化日期选择器
-	const initDatePicker = () => {
-		// 年份范围(1950-当前年份)
-		for (let i = 1950; i <= currentDate.getFullYear(); i++) {
-			years.value.unshift(i)
-		}
-
-		// 初始化月份
-		updateMonths()
-
-		// 初始化日期
-		updateDays()
-
-		// 设置初始选择器值
-		const yearIndex = years.value.indexOf(year.value)
-		const monthIndex = months.value.indexOf(month.value)
-		const dayIndex = days.value.indexOf(day.value)
-		pickerValue.value = [yearIndex, monthIndex, dayIndex]
-
-		// 设置选择器样式
-		indicatorStyle.value = `height: ${uni.upx2px(80)}px;`
-	}
-
-	// 处理日期变化
-	const handleDateChange = (event) => {
-		const [yearIndex, monthIndex, dayIndex] = event.detail.value
-
-		// 更新年份
-		year.value = years.value[yearIndex]
-
-		// 更新月份列表（如果年份变化）
-		if (yearIndex !== pickerValue.value[0]) {
-			updateMonths()
-			month.value = months.value[Math.min(monthIndex, months.value.length - 1)]
-		}
-
-		// 更新月份
-		month.value = months.value[monthIndex]
-
-		// 更新日期列表
-		updateDays()
-
-		// 更新选择的日期
-		day.value = days.value[Math.min(dayIndex, days.value.length - 1)]
-
-		// 更新选择器位置
-		pickerValue.value = [
-			years.value.indexOf(year.value),
-			months.value.indexOf(month.value),
-			days.value.indexOf(day.value)
-		]
-	}
-	// 按钮状态
+	const phone = ref('') //手机号
+	const nickname = ref('') //昵称
+	const password = ref('') //密码
+	const confirmPassword = ref('') //确认密码
+	const gender = ref('') //性别
+	const birthday = ref('')
+	// 下一步按钮状态
 	const isFormValid = computed(() => {
 		return (
 			nickname.value.trim() !== '' &&
@@ -234,39 +123,40 @@
 			confirmPassword.value.length !== 0
 		)
 	})
+	//日期选择器
+	const handleBirthdayChange = (date) => {
+	  birthday.value = date
+	}
 	// 点击下一步
 	const handelNext = async () => {
-		// 对生日选择器进行处理
-		const birthday =
-			`${year.value}-${String(month.value).padStart(2, '0')}-${String(day.value).padStart(2, '0')}`
 		if (password.value !== confirmPassword.value) {
 			uni.showToast({
 				title: '两次密码不一致',
 				icon: 'none'
 			})
 		}
-	  // 1. 获取RSA公钥
-	    let publicKey
-	    try {
-	      publicKey = await getPublicKey()
-	    } catch (error) {
-	      uni.showToast({
-	        title: '获取加密密钥失败',
-	        icon: 'none'
-	      })
-	      return
-	    }
-	    // 2. 加密密码
-	    let encryptedPwd
-	    try {
-	      encryptedPwd = encryptWithRSA(publicKey, password.value)
-	    } catch (error) {
-	      uni.showToast({
-	        title: '密码加密失败',
-	        icon: 'none'
-	      })
-	      return
-	    }
+		// 1. 获取RSA公钥
+		let publicKey
+		try {
+			publicKey = await getPublicKey()
+		} catch (error) {
+			uni.showToast({
+				title: '获取加密密钥失败',
+				icon: 'none'
+			})
+			return
+		}
+		// 2. 加密密码
+		let encryptedPwd
+		try {
+			encryptedPwd = encryptWithRSA(publicKey, password.value)
+		} catch (error) {
+			uni.showToast({
+				title: '密码加密失败',
+				icon: 'none'
+			})
+			return
+		}
 		// 调用注册接口接口
 		const res = await apiCompleteProfile({
 			userId: authStore.userId, // 从store获取用户ID
@@ -274,16 +164,15 @@
 			password: encryptedPwd,
 			avatar: avatar.value,
 			gender: gender.value,
-			birthday: birthday
+			birthday: birthday.value
 		})
-		console.log(res);
-		if(res.code ===200){
-				uni.showToast({
-					title:'注册成功',
-					icon:'success'
-				})
+		if (res.code === 200) {
+			uni.showToast({
+				title: '注册成功',
+				icon: 'success'
+			})
 			uni.navigateTo({
-				url:'/pages/petSelection/petSelection'
+				url: '/pages/petSelection/petSelection'
 			})
 		}
 	}
@@ -328,10 +217,6 @@
 			}
 		})
 	}
-
-	onMounted(() => {
-		initDatePicker()
-	})
 </script>
 
 <style scoped lang="scss">
