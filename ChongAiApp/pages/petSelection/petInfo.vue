@@ -29,9 +29,9 @@
 		<!-- 表单区域 -->
 		<view class="form-group">
 			<!-- 手机号-->
-			<view class="form-item">
+			<view class="form-item" @petSelected="handlePetSelected" >
 				<text class="label">宠物品种:</text>
-				<input v-model="petBreed" placeholder="请输入" />
+				<input v-model="petBreed" disabled placeholder="请输入" />
 			</view>
 
 			<!-- 昵称 -->
@@ -100,6 +100,7 @@
 		computed,
 		ref
 	} from 'vue'
+	import { onLoad } from '@dcloudio/uni-app'
 	const avatar = ref('/static/touxiang.svg') //默认图片
 	const petBreed = ref('') //宠物品种
 	const petNickName = ref('') //宠物昵称
@@ -108,7 +109,10 @@
 	const petBirthday = ref('') //宠物生日
 	const arrivalDate = ref('') //到家日期
 
-
+	const handlePetSelected = (selectedPet) => {
+	  console.log('接收到宠物数据:', selectedPet)
+	  
+	}
 	// 返回方法
 	const handleBack = () => {
 		uni.navigateBack()
@@ -147,9 +151,14 @@
 		)
 	})
 	const complete = () => {
+		handlePetSelected()
 		console.log(petBirthday.value);
 		console.log(arrivalDate.value);
 	}
+	onLoad((options) => {
+		petBreed.value = options.petBreed
+		console.log(petBreed.value);
+	})
 </script>
 
 <style scoped lang="scss">

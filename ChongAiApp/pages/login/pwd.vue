@@ -105,8 +105,6 @@
 	// 点击登录
 	const handleLogin = async () => {
 		let res = await apiGetPwd(grantType.value,phone.value, password.value)
-		// 保存token
-		const authStore = useAuthStore()
 		//登录成功跳转
 		if (res.code == 200) {
 			uni.navigateTo({

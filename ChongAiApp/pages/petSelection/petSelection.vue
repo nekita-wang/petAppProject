@@ -27,7 +27,7 @@
 				</view>
 			</view>
 			<!-- 未养宠内容区域 -->
-			<view v-if="activeTab === 'none'" class="no-pet-section">
+			<view v-if="activeTab === '0'" class="no-pet-section">
 				<!-- 全屏背景图 -->
 				<image src="/static/home.png" class="fullscreen-bg" mode="aspectFill" />
 
@@ -43,13 +43,13 @@
 				<!-- 搜索栏 -->
 				<view class="search-bar">
 					<uni-search-bar style="padding: 5rpx 5rpx;" placeholder="搜索宠物品种" radius="30" bgColor="#F5F5F5"
-						cancelButton="none" />
+						cancelButton="none" @confirm="petSearch" v-model="petBreed" />
 				</view>
 				<!-- 热门品种 -->
 				<view class="hot-section">
 					<view class="section-title">热门:</view>
 					<view class="hot-tags">
-						<text v-for="(pet, index) in hotPets" :key="index" class="hot-tag">
+						<text v-for="(pet, index) in hotPets" :key="index" class="hot-tag" @click="checkPet(pet)">
 							{{ pet }}
 						</text>
 					</view>
@@ -60,8 +60,8 @@
 					<scroll-view class="alphabet-list" :show-scrollbar='false' scroll-y :scroll-into-view="currentLetter">
 						<view v-for="(pets, letter) in petData" :key="letter" :id="`letter-${letter}`">
 							<text class="letter-title">{{ letter }}</text>
-							<view v-for="(pet, index) in pets" :key="index" class="pet-item">
-								{{ pet }}
+							<view v-for="(pet, index) in pets" :key="index" class="pet-item" @click="checkPet(pet.petBreed)" >
+								{{ pet.petBreed }}
 							</view>
 						</view>
 					</scroll-view>
@@ -97,20 +97,20 @@
 			apiGetBreedList,
 			apiGetPetTypeList
 		} from '../../api/petSelection'
+		import { useAuthStore } from '@/stores/auth' // 导入Pinia store
 		// 宠物分类
 		const tabs = ref('')
 
 		const buttonText = ref('完成') //默认按钮内容
-		const activeTab = ref('none') //默认按钮
+		const activeTab = ref('0') //默认按钮
 		const currentLetter = ref('letter-A') // 默认选中A字母
-		const petClass = ref('')
+		const petClass = ref('') 
 		const petData = ref('')
-		// 热门品种
-		const hotPets = ref([
-			'布偶猫', '欧洲蓝猫', '美国短毛猫',
-			'埃及猫', '暹罗猫', '日本短尾猫'
-		])
-
+		const petBreed = ref('')
+		const hotPets = ref([]) //热门
+		
+		// 定义触发事件
+		const emit = defineEmits(['petSelected'])
 		// 导航方法
 		const handleBack = () => {
 			uni.navigateBack()
@@ -122,9 +122,9 @@
 		}
 		// 切换tab栏
 		const handleTabChange = async (tab) => {
-			console.log(tab);
 			petClass.value = tab.petClass
 			activeTab.value = tab.petClassId
+			// 按钮文本
 			if (activeTab.value != 0) {
 				buttonText.value = '下一个'
 			} else {
@@ -138,51 +138,67 @@
 			currentLetter.value = `letter-${letter}`
 		}
 		onMounted(() => {
+			// 宠物类别
 			GetPetTypeList()
 		})
-		//获取宠物分类列表 
+		//获取宠物类别列表 
 		const GetPetTypeList = async () => {
 			try {
 				const res = await apiGetPetTypeList()
-				console.log('宠物类型：',res);
 				tabs.value = res.data
 			} catch (error) {
 				console.error('获取宠物类型失败:', error)
 			}
 		}
+		//获取宠物列表
 		const GetBreedList = async () => {
-			try {
-				const res = await apiGetBreedList(petClass.value)
-					console.log('宠物列表：',res);
-				if (res.data.rows.length === 0) {
-					uni.showToast({
-						title: '暂无数据',
-						icon: 'none'
-					})
-					petData.value = {}
-					return
-				}
-				const groupedData = {}
-
-				// 先排序原始数据
-				const sortedRows = [...res.data.rows].sort((a, b) => {
-					return (a.cnInitials || a.petBreed.charAt(0))
-						.localeCompare(b.cnInitials || b.petBreed.charAt(0), 'zh-Hans-CN')
-				})
-
-				// 再分组
-				sortedRows.forEach(item => {
-					const initial = item.cnInitials || item.petBreed.charAt(0).toUpperCase()
-					if (!groupedData[initial]) {
-						groupedData[initial] = []
-					}
-					groupedData[initial].push(item.petBreed)
-				})
-
-				petData.value = groupedData
-			} catch (error) {
-				console.error('获取宠物列表失败:', error)
-			}
+			const authStore = useAuthStore()
+			 const token = authStore.token
+			   uni.request({
+				   // url:'https://637c-112-48-4-41.ngrok-free.app/app/pet/breeds',
+			     url: 'http://115.120.195.253/app/pet/breeds',
+			     method: 'GET',
+			     data: {
+			       petClass: petClass.value,   // 必填参数
+			       petBreed: petBreed.value  // 选填参数
+			     },
+			     header: {
+			       'Authorization': `Bearer ${token}`, // 携带 token
+			       'Content-Type': 'application/json',  // 推荐添加
+				   'ngrok-skip-browser-warning': 'true' //测试 添加请求头绕过ngrok拦截
+			     },
+			     success: (res) => {
+					 console.log(res);
+			       if (res.statusCode === 200) {
+			         console.log('宠物列表数据:', res.data);
+					hotPets.value = res.data.data.hot
+					petData.value = res.data.data.breeds
+			       } else {
+			         console.error('请求失败:', res);
+			         uni.showToast({ title: `请求失败: ${res.data?.message || '未知错误'}`, icon: 'none' });
+			       }
+			     },
+			     fail: (err) => {
+			       console.error('网络错误:', err);
+			       uni.showToast({ title: '网络连接失败', icon: 'none' });
+			     }
+			   });
+			// try {			    
+			// 	    const res = await apiGetBreedList(petClass.value,petBreed.value)
+			// 	console.log('宠物列表：', res);
+			// } catch (error) {
+			// 	console.error('获取宠物列表失败:', error)
+			// }
+		}
+		// 搜索框
+		const petSearch = ()=>{
+			GetBreedList()
+		}
+		// 点击宠物标签
+		const checkPet =(petBreed) =>{
+			 uni.navigateTo({
+			    url: `/pages/petSelection/petInfo?petBreed=${encodeURIComponent(petBreed)}`
+			  })
 		}
 	</script>
 
@@ -322,7 +338,7 @@
 		.hot-tags {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 10px;
+			gap: 5px;
 		}
 
 		.hot-tag {
@@ -336,7 +352,7 @@
 		/* 字母列表 */
 		.alphabet-section {
 			position: relative;
-			height: 60vh;
+			height: 65vh;
 		}
 
 		.alphabet-list {
@@ -404,7 +420,7 @@
 			bottom: 0;
 			left: 0;
 			right: 0;
-			padding: 15px;
+			padding: 10px;
 			z-index: 10;
 		}
 

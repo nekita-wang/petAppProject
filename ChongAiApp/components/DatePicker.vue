@@ -130,8 +130,7 @@
 			days.value.indexOf(day.value)
 		]
 		
-		// 新增：触发事件传递日期数据
-		const selectedDate = `${year.value}-${String(month.value).padStart(2,'0')}-${String(day.value).padStart(2,'0')}`
+		const selectedDate = `${year.value}-${String(month.value).padStart(2,'0')}-${String(day.value).padStart(2,'0')}` //日期格式化
 		emit('date-change', selectedDate)
 	}
 

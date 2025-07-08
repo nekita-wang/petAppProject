@@ -640,6 +640,11 @@
   width: 1.25rem;
   height: 1.25rem;
 }
+.login-container .pwdErr-text[data-v-8032d478] {
+  margin-top: 0.3125rem;
+  color: red;
+  font-size: 0.875rem;
+}
 .login-container .login-btn[data-v-8032d478] {
   background-color: #f5f5f5;
   color: #fff;
@@ -647,7 +652,7 @@
   height: 2.8125rem;
   line-height: 2.8125rem;
   font-size: 1rem;
-  margin-top: 1.875rem;
+  margin-top: 1.25rem;
 }
 .login-container .login-btn.active[data-v-8032d478] {
   background-color: #007aff;

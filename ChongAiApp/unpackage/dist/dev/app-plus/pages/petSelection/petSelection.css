@@ -894,7 +894,7 @@
 .hot-tags[data-v-4cc5dec4] {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px;
 }
 .hot-tag[data-v-4cc5dec4] {
   padding: 6px 12px;
@@ -907,7 +907,7 @@
 /* 字母列表 */
 .alphabet-section[data-v-4cc5dec4] {
   position: relative;
-  height: 60vh;
+  height: 65vh;
 }
 .alphabet-list[data-v-4cc5dec4] {
   height: 100%;
@@ -968,7 +968,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 15px;
+  padding: 10px;
   z-index: 10;
 }
 .next-btn[data-v-4cc5dec4] {

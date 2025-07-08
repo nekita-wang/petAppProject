@@ -1,27 +1,25 @@
-import { request } from '@/utils/request.js'
+import {
+	request
+} from '@/utils/request.js'
 
-// 宠物分类列表
-export function apiGetBreedList(petClass,pageNum, pageSize) {
+// 宠物品种列表
+export function apiGetBreedList(petClass,petBreed) {
   return request({
-    url: "/app/pet/breeds",
+    url: '/app/pet/breeds',
     method: 'GET',
-	header: {
-		'ngrok-skip-browser-warning': 'true' //测试 添加请求头绕过ngrok拦截
-	},
     data: {
-      petClass, 
-      pageNum: 1,
-      pageSize: 9999,
+      petClass,  
+      petBreed   
     }
   })
 }
-//宠物列表
+//宠物分类tab
 export function apiGetPetTypeList() {
-  return request({
-    url: "/app/pet/pet",
-    method: 'GET',
-	header: {
-		'ngrok-skip-browser-warning': 'true' //测试 添加请求头绕过ngrok拦截
-	}
-  })
+	return request({
+		url: "/app/pet/pet",
+		method: 'GET',
+		header: {
+			'ngrok-skip-browser-warning': 'true' //测试 添加请求头绕过ngrok拦截
+		}
+	})
 }
