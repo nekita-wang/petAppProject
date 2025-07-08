@@ -1,0 +1,31 @@
+# 数据源配置（只放需变的部分）
+spring:
+  datasource:
+    druid:
+      master:
+        url: jdbc:mysql://localhost:3306/pet-life-platform?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+        username:
+        password:
+
+  # redis 配置
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    password:
+    timeout: 10s
+    lettuce:
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-active: 8
+        max-wait: -1ms
+
+# token配置
+token:
+  header: Authorization
+  secret: abcdefghijklmnopqrstuvwxyz
+  admin:
+    expireTime: 120 # 后台2小时
+  app:
+    expireTime: 10080 # App 7天

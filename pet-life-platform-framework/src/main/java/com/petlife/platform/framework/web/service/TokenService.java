@@ -99,27 +99,39 @@ public class TokenService
     }
 
     /**
-     * 删除 token
+     * 删除 token，返回是否真的删除了
      */
-    public void delLoginUser(String token) {
+    public boolean delLoginUser(String token) {
         if (StringUtils.isEmpty(token)) {
             log.warn("退出登录时未传入 token，不做处理");
-            return;
+            return false;
         }
 
-        if (StringUtils.isNotEmpty(token)) {
-            try {
-                Claims claims = parseToken(token);
-                String uuid = (String) claims.get(Constants.LOGIN_USER_KEY);
-                String userType = (String) claims.get(Constants.JWT_USER_TYPE);
-                if (StringUtils.isEmpty(userType)) {
-                    log.warn("退出登录时 userType 为空，不删除 redis key");
-                    return;
-                }
-                redisCache.deleteObject(buildTokenKey(uuid, userType));
-            } catch (Exception e) {
-                log.error("退出登录时解析 token 出错: {}", e.getMessage());
+        try {
+            Claims claims = parseToken(token);
+            String uuid = (String) claims.get(Constants.LOGIN_USER_KEY);
+            String userType = (String) claims.get(Constants.JWT_USER_TYPE);
+            if (StringUtils.isEmpty(userType)) {
+                log.warn("退出登录时 userType 为空，不删除 redis key");
+                return false;
             }
+
+            String key = buildTokenKey(uuid, userType);
+            boolean exists = redisCache.hasKey(key);
+            redisCache.deleteObject(key);
+            log.info("尝试删除 redis key: {}，是否存在: {}", key, exists);
+            return exists;
+        } catch (Exception e) {
+            log.error("退出登录时解析 token 出错: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public void delLoginUser(LoginUser loginUser) {
+        if (loginUser != null) {
+            String token = loginUser.getToken();
+            String userType = loginUser.getUserType().name();
+            redisCache.deleteObject(buildTokenKey(token, userType));
         }
     }
 
@@ -147,9 +159,13 @@ public class TokenService
      * 验证 token 快过期时自动刷新
      */
     public void verifyToken(LoginUser loginUser) {
-        if (loginUser.getExpireTime() - System.currentTimeMillis() <= MILLIS_MINUTE_TWENTY) {
-            refreshToken(loginUser);
+        if (loginUser.getUserType() == UserType.APP_USER) {
+            // App 用户做滑动续期
+            if (loginUser.getExpireTime() - System.currentTimeMillis() <= MILLIS_MINUTE_TWENTY) {
+                refreshToken(loginUser);
+            }
         }
+        // 后台用户 SYS_USER 不做滑动续期，不刷新
     }
 
 

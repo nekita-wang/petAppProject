@@ -134,7 +134,6 @@ public class AuthController {
     @PostMapping("/logout")
     @ApiOperation(value = "退出登录", notes = "清理登录状态")
     public ResponseData<String> logout() {
-        // 从请求头拿到完整的 JWT
         String jwtToken = ServletUtils.getRequest().getHeader("Authorization");
 
         if (StringUtils.isEmpty(jwtToken) || !jwtToken.startsWith("Bearer ")) {
@@ -142,15 +141,20 @@ public class AuthController {
             return ResponseData.error(400,"未获取到正确的JWT token");
         }
 
-        // 去掉前缀
         jwtToken = jwtToken.replace("Bearer ", "");
 
         try {
-            tokenService.delLoginUser(jwtToken);
-            log.info("退出登录成功");
+            boolean deleted = tokenService.delLoginUser(jwtToken);
+            if (deleted) {
+                log.info("退出登录成功，已删除 redis 中的 token");
+                return ResponseData.ok("退出成功");
+            } else {
+                log.warn("退出登录时未找到 redis 中的 token");
+                return ResponseData.ok("退出成功（但未找到有效会话）");
+            }
         } catch (Exception e) {
             log.error("退出登录时解析 token 出错: {}", e.getMessage());
+            return ResponseData.error(500, "退出登录失败，请稍后再试");
         }
-        return ResponseData.ok("退出成功");
     }
 }

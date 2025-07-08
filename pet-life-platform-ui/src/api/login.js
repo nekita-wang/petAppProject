@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import {getToken} from "@/utils/auth";
 
 // 获取公钥接口 key
 export function getPublicKey() {
@@ -52,7 +53,10 @@ export function getInfo() {
 export function logout() {
   return request({
     url: '/logout',
-    method: 'post'
+    method: 'post',
+    headers:{
+      'Authorization':'Bearer'+getToken()
+    }
   })
 }
 
