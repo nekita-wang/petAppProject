@@ -22,11 +22,14 @@
 			<!-- 密码输入组 -->
 			<view class="input-group-pwd">
 				<input v-model="password" :password="!showPassword" placeholder="请输入密码" placeholder-class="placeholder"
-					:disable-default-paste="true" />
+					:disable-default-paste="true" maxlength="10" />
 				<!-- 眼睛图标按钮 -->
 				<view class="eye-btn" @click="togglePassword">
 					<image :src="showPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
 				</view>
+			</view>
+			<view class="pwdErr-text" v-if="pwdErr">
+				该账号无法使用密码登录，建议切换其他方式登录。
 			</view>
 			<!-- 登录按钮 -->
 			<button class="login-btn" :class="{ active: isFormValid }" @click="handleLogin">
@@ -45,11 +48,19 @@
 		ref,
 		computed
 	} from 'vue'
+	import {
+		apiGetPwd
+	} from '../../api/login'
+	import {
+		useAuthStore
+	} from '@/stores/auth'
+	const grantType = ref('password') //后端指定类型
 	const phone = ref('13812345678') //手机号
 	const password = ref('') //密码
 	const showPhoneError = ref(false) //验证手机号
 	const showPassword = ref(false) //密码显示按钮
-	const msg = ref('')
+	const msg = ref('') 
+	const pwdErr = ref(false)  //手机号未注册情况
 	//点击跳转手机密码登录
 	const ToSMSLogin = () => {
 		uni.navigateTo({
@@ -92,59 +103,31 @@
 		return phone.value.length === 11 && password.value.length >= 6
 	})
 	// 点击登录
-	const handleLogin = () => {
-		uni.request({
-			// url: 'http://localhost/dev-api/auth/login',  //本地地址
-			url: 'http://192.168.0.224:8080/auth/login', //真机调试地址
-			// url:'https://637c-112-48-4-41.ngrok-free.app/auth/login', 
-			sslVerify: false, // 真机调试时关闭证书验证（仅开发环境）
-			data: {
-				grantType: "password", //后端指定类型
-				phone: phone.value,
-				password: password.value
-			},
-			method: 'POST',
-			header: {
-				'Content-Type': 'application/json',
-				// 添加必要头信息
-				'Accept': 'application/json',
-				'ngrok-skip-browser-warning': 'true', // 关键！
-			},
-			success: (res) => {
-				console.log(res.data);
-				// 成功跳转
-				if (res.data.code == 200) {
-					console.log(res.data.data.token);
-					uni.setStorageSync('token', res.data.data.token)
-					uni.navigateTo({
-						url: '/pages/petSelection/petSelection'
-					})
-				} else if (res.data.code == 1000) {
-					uni.showToast({
-							title: res.data.msg,
-							icon: 'none'
-						}),
-						// 跳转到注册页面
-						uni.navigateTo({
-							url: '/pages/register/register'
-						})
-				} else {
-					// 显示其他情况
-					uni.showToast({
-						title: res.data.msg,
-						icon: 'error'
-					})
-				}
-			},
-			fail: (err) => {
-				msg.value = err.errMsg
-				uni.showToast({
-					title: err.errMsg,
-					icon: 'none'
-				})
-			}
-		});
-
+	const handleLogin = async () => {
+		let res = await apiGetPwd(grantType.value,phone.value, password.value)
+		// 保存token
+		const authStore = useAuthStore()
+		//登录成功跳转
+		if (res.code == 200) {
+			uni.navigateTo({
+				url: '/pages/petSelection/petSelection'
+			})
+			// 保存token
+			const authStore = useAuthStore()
+			authStore.setUserInfo({
+				token: res.data.token,
+				userId: res.data.userId, // 确保后端返回userId
+				phone: phone.value // 使用前端输入或后端返回的phone
+			})
+		} else if (res.code == 1000) {
+			pwdErr.value = true
+		} else {
+			// 显示其他情况
+			uni.showToast({
+				title: res.msg,
+				icon: 'none'
+			})
+		}
 	}
 </script>
 
@@ -250,7 +233,11 @@
 				height: 40rpx;
 			}
 		}
-
+		.pwdErr-text{
+			margin-top: 10rpx;
+			color: red;
+			font-size: 28rpx;
+		}
 		.login-btn {
 			background-color: #f5f5f5;
 			color: #fff;
@@ -258,7 +245,7 @@
 			height: 90rpx;
 			line-height: 90rpx;
 			font-size: 32rpx;
-			margin-top: 60rpx;
+			margin-top: 40rpx;
 
 			&.active {
 				background-color: #007aff;

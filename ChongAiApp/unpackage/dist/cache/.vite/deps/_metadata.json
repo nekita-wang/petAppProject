@@ -1,8 +1,21 @@
 {
-  "hash": "251d5d2d",
+  "hash": "6e9980ac",
   "configHash": "f5dec2f0",
-  "lockfileHash": "ed57a407",
-  "browserHash": "157fb50f",
-  "optimized": {},
+  "lockfileHash": "9efe00de",
+  "browserHash": "a69ac4a5",
+  "optimized": {
+    "lodash-es": {
+      "src": "../../../../../node_modules/lodash-es/lodash.js",
+      "file": "lodash-es.js",
+      "fileHash": "94a78219",
+      "needsInterop": false
+    },
+    "jsencrypt": {
+      "src": "../../../../../node_modules/jsencrypt/lib/index.js",
+      "file": "jsencrypt.js",
+      "fileHash": "644e5f82",
+      "needsInterop": false
+    }
+  },
   "chunks": {}
 }

@@ -19,7 +19,7 @@
 				<input v-model="phone" type="number" placeholder="请输入手机号" placeholder-class="placeholder" maxlength="11"
 					:class="{ error: inputClass }" @input="handlePhoneInput" @focus="showKeyboard = true" />
 			</view>
-
+			
 			<!-- 验证码输入组 -->
 			<view class="input-group-code">
 				<!-- 输入框 -->
@@ -51,7 +51,14 @@
 		ref,
 		computed
 	} from 'vue'
-
+	import {
+		apiGetCode,
+		apiGetPwd
+	} from '../../api/login'
+	import {
+		useAuthStore
+	} from '@/stores/auth'
+	const grantType = ref('phone') //后端指定类型
 	const phone = ref('') //手机号
 	const code = ref('') //验证码
 	const showPhoneError = ref(false) //手机号格式
@@ -81,93 +88,71 @@
 		// input格式
 		inputClass.value = !isPhoneValid.value
 	}
-
-
 	// 登录按钮状态
 	const isFormValid = computed(() => {
 		return phone.value.length === 11 && code.value.length >= 4
 	})
 
 	// 获取验证码
-	const getSMSCode = () => {
+	const getSMSCode = async () => {
 		if (countdown.value > 0) return
-		//获取验证码接口
-		uni.request({
-			// url: 'http://localhost/dev-api/auth/sendCode',
-			url:'http://192.168.0.224:8080/auth/sendCode',
-			data: {
-				phone: phone.value,
-			},
-			method: 'POST',
-			header: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			},
-			success: (res) => {
-				console.log(res.data);
-				if (res.data.success == true) {
-					// 提示发送手机验证码成功
-					uni.showToast({
-							title: '验证码已发送,注意短信通知',
-							icon: 'success'
-						}),
-						// 开启验证码倒计时
-						countdown.value = 60
-					const timer = setInterval(() => {
-						if (countdown.value <= 0) {
-							clearInterval(timer)
-							return
-						}
-						countdown.value--
-					}, 1000)
-					console.log('验证码：', res.data.data);
-					code.value = res.data.data
-				} else {
-					// 提示验证码接口错误消息
-					uni.showToast({
-						title: res.data.msg,
-						icon: 'error'
-					})
+		let res = await apiGetCode(phone.value)
+		if (res.success == true) {
+			// 提示发送手机验证码成功
+			uni.showToast({
+					title: '验证码已发送,注意短信通知',
+					icon: 'success'
+				}),
+				// 开启验证码倒计时
+				countdown.value = 60
+			const timer = setInterval(() => {
+				if (countdown.value <= 0) {
+					clearInterval(timer)
+					return
 				}
-
-			},
-		});
+				countdown.value--
+			}, 1000)
+			console.log('验证码：', res.data);
+			code.value = res.data
+		} else {
+			// 提示验证码接口错误消息
+			uni.showToast({
+				title: res.msg,
+				icon: 'error'
+			})
+		}
 	}
 	//点击登录
-	const handleLogin = () => {
-		// 测试
-		uni.navigateTo({
-			url: '/pages/petSelection/petSelection'
-		})
-		// uni.request({
-		// 	url: 'http://localhost/dev-api/auth/login',
-		// 	data: {
-		// 		grantType: "phone", //后端指定类型
-		// 		nick_name: "BOb", //测试...
-		// 		phone: phone.value,
-		// 		code: code.value
-		// 	},
-		// 	method: 'POST',
-		// 	header: {
-		// 		'Content-Type': 'application/json;charset=UTF-8'
-		// 	},
-		// 	success: (res) => {
-		// 		if (res.data.success == true) {
-		// 			// 验证码正确跳转
-		// 			uni.navigateTo({
-		// 				url: '/pages/petSelection/petSelection'
-		// 			})
-		// 		} else {
-		// 			// 显示错误消息
-		// 			console.log(res);
-		// 			uni.showToast({
-		// 				title: res.data.msg,
-		// 				icon: 'error'
-		// 			})
-		// 		}
+	const handleLogin = async () => {
+		let res = await apiGetPwd(grantType.value, phone.value, null, code.value)
+		if (res.success == true) {
+			// 保存token
+			const authStore = useAuthStore()
+			authStore.setUserInfo({
+				token: res.data.token,
+				userId: res.data.userId, // 确保后端返回userId
+				phone: phone.value // 使用前端输入或后端返回的phone
+			})
+			// 判断是否是新用户
+			if (res.data.newUser = true) {
+				uni.navigateTo({
+					url: '/pages/login/register'
+				})
+			} else {
+				//跳转到您养的宠物
+				uni.navigateTo({
+					url: '/pages/petSelection/petSelection'
+				})
+			}
 
-		// 	},
-		// });
-
+		} else {
+			// 显示错误消息
+			console.log(res);
+			uni.showToast({
+				title: res.msg,
+				icon: 'error'
+			})
+		}
 	}
 </script>
 

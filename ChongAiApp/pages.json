@@ -23,7 +23,7 @@
 			}
 		},
 		{
-			"path" : "pages/register/register",
+			"path" : "pages/login/register",
 			"style" : 
 			{
 				"navigationBarTitleText" : "完善个人资料"
