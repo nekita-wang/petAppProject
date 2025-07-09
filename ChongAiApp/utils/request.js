@@ -1,6 +1,7 @@
 import { useAuthStore } from '@/stores/auth' // 导入Pinia store
 // const BASE_URL = 'https://637c-112-48-4-41.ngrok-free.app';
 const BASE_URL = 'http://115.120.195.253';  //服务器地址
+// const BASE_URL = 'https://60.215.128.50:38911';
 
 
 // 请求拦截器
@@ -15,6 +16,7 @@ const requestInterceptor = (config) => {
       'Authorization': `Bearer ${token}`
     };
   }  
+  
   return config;
 }
 
@@ -25,7 +27,6 @@ export function request(config = {}) {
     data = {},
     header = {}
   } = config;
-
   url = BASE_URL + url;
 
   // 统一处理请求头

@@ -18,7 +18,7 @@
 			<!-- 昵称 -->
 			<view class="form-item">
 				<text class="label">昵称:</text>
-				<input v-model="nickname" placeholder="请输入" />
+				<input v-model="nickname" placeholder="请输入" maxlength="10" />
 			</view>
 			<!-- 性别 -->
 			<!-- 性别选择区域 -->
@@ -53,7 +53,14 @@
 			<!-- 密码 -->
 			<view class="form-item">
 				<text class="label">密码:</text>
-				<input v-model="password" placeholder="请输入" @input="checkPasswordStrength" maxlength="10" />
+				<view class="form-item-pwd"> <input v-model="password"   style="ime-mode:disabled;"  :password="!showPassword" placeholder="请输入" @input="checkPasswordStrength"
+						maxlength="10" />
+					<view class="eye-btn" @click="togglePassword">
+						<image :src="showPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
+					</view>
+				</view>
+
+
 			</view>
 			<!-- 密码强度 -->
 			<view class="password-strength" v-if="ShowStrenth">
@@ -61,7 +68,7 @@
 							'weak': strengthLevel === 1,
 							'medium': strengthLevel === 2,
 							'strong': strengthLevel === 3,
-							'active': strengthLevel >= 1
+							'active': strengthLevel >= 0
 						}"></view>
 				<view class="strength-bar" :class="{
 							'medium': strengthLevel === 2,
@@ -73,21 +80,27 @@
 							'active': strengthLevel >= 3
 						}"></view>
 				<text class="strength-text">{{ strengthText }}</text>
-
 			</view>
 			<!-- 密码确认 -->
 			<view class="form-item">
 				<text class="label">密码确认:</text>
-				<input v-model="confirmPassword" placeholder="请输入" maxlength="10" />
+				<view class="form-item-pwd">
+					<input v-model="confirmPassword" :password="!showCmPassword" placeholder="请输入" maxlength="10" />
+					<view class="eye-btn" @click="toggleCmPassword">
+						<image :src="showCmPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
+					</view>
+				</view>
+				
 			</view>
 		</view>
 
 		<!-- 下一步按钮 -->
-		<button class="next-btn" :class="{ active: isFormValid }" @click="handelNext">下一步</button>
+		<button class="next-btn"  @click="handelNext" :disabled="!isFormValid">下一步</button>
 	</view>
 </template>
 
 <script setup>
+	import { debounce } from 'lodash-es'	
 	import DatePicker from '@/components/DatePicker.vue'
 	import {
 		onMounted,
@@ -113,19 +126,30 @@
 	const password = ref('') //密码
 	const confirmPassword = ref('') //确认密码
 	const gender = ref('') //性别
-	const birthday = ref('')
-	// 下一步按钮状态
+	const birthday = ref('') //生日
+	const showPassword = ref(false) //密码显示按钮
+	const showCmPassword = ref(false) //确认密码显示按钮
+	// 切换密码可见状态
+	const togglePassword = () => {
+		showPassword.value = !showPassword.value
+	}
+	// 切换确认密码可见状态
+	const toggleCmPassword = () => {
+		showCmPassword.value = !showCmPassword.value
+	}
+	// 按钮状态
 	const isFormValid = computed(() => {
-		return (
-			nickname.value.trim() !== '' &&
-			gender.value !== '' &&
-			password.value.length !== 0 &&
-			confirmPassword.value.length !== 0
-		)
+	  return (
+	    nickname.value.trim() !== '' &&
+	    gender.value !== '' &&
+		birthday.value !== '' &&
+	    password.value.length !== 0 &&          // 密码长度要求 、
+		confirmPassword.value.length !== 0
+	  )
 	})
 	//日期选择器
 	const handleBirthdayChange = (date) => {
-	  birthday.value = date
+		birthday.value = date
 	}
 	// 点击下一步
 	const handelNext = async () => {
@@ -134,6 +158,14 @@
 				title: '两次密码不一致',
 				icon: 'none'
 			})
+			return
+		}
+		if(strengthLevel.value <=1){
+			uni.showToast({
+				title: '密码较弱请重新设置',
+				icon: 'none'
+			})
+			return
 		}
 		// 1. 获取RSA公钥
 		let publicKey
@@ -167,12 +199,18 @@
 			birthday: birthday.value
 		})
 		if (res.code === 200) {
+			console.log(avatar.value);
 			uni.showToast({
 				title: '注册成功',
 				icon: 'success'
 			})
 			uni.navigateTo({
 				url: '/pages/petSelection/petSelection'
+			})
+		}else{
+			uni.showToast({
+				title:res.msg,
+				icon:'none'
 			})
 		}
 	}
@@ -183,31 +221,34 @@
 		if (strengthLevel.value === 2) return '中'
 		return '强'
 	})
-	//输入框判断密码强度
-	const checkPasswordStrength = () => {
-		const pass = password.value
-		if (pass.length > 7) {
-			ShowStrenth.value = true
-		} else {
-			ShowStrenth.value = false
-		}
-		if (!pass || pass.length < 8) {
-			strengthLevel.value = 0
-			return
-		}
-
-		let score = 0
-		if (pass.length >= 5) score += 1
-		if (pass.length >= 7) score += 1
-		if (/[a-z]/.test(pass)) score += 1
-		if (/[A-Z]/.test(pass)) score += 1
-		if (/\d/.test(pass)) score += 1
-		if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) score += 2
-
-		if (score <= 3) strengthLevel.value = 1
-		else if (score <= 6) strengthLevel.value = 2
-		else strengthLevel.value = 3
-	}
+	//输入框判断密码强度（防抖判断输入中文）
+	const checkPasswordStrength = debounce((e)=>{
+			const replaceValue = e.detail.value
+			password.value = replaceValue.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
+			const pass = password.value
+			if (pass.length > 0) {
+				ShowStrenth.value = true
+			} else {
+				ShowStrenth.value = false
+			}
+			if (!pass || pass.length < 8) {
+				strengthLevel.value = 0
+				return
+			}
+			//密码登记判定
+			let score = 0
+			if (pass.length >= 2) score += 1
+			if (pass.length >= 5) score += 1
+			if (/[a-z]/.test(pass)) score += 1
+			if (/[A-Z]/.test(pass)) score += 1
+			if (/\d/.test(pass)) score += 1
+			if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) score += 2
+			
+			if (score <= 1) strengthLevel.value = 1
+			if (score <= 3) strengthLevel.value = 1
+			else if (score <= 6) strengthLevel.value = 2
+			else strengthLevel.value = 3
+	},300)
 	// 上传图片
 	const UploadImage = () => {
 		uni.chooseImage({
@@ -221,7 +262,7 @@
 
 <style scoped lang="scss">
 	.profile-container {
-		padding: 0 40rpx;
+		padding: 0 40rpx 0 20rpx;
 		background-color: #fff;
 	}
 
@@ -250,14 +291,14 @@
 
 	/* 表单样式 */
 	.form-item {
-		padding: 20rpx 0;
+		padding: 20rpx 0;	
 		display: flex;
 		align-items: center;
 	}
 
 	.label {
 		text-align: center;
-		width: 160rpx;
+		width: 180rpx;
 		font-size: 32rpx;
 		color: #333;
 	}
@@ -364,7 +405,7 @@
 	}
 
 	.label {
-		width: 160rpx;
+		width: 180rpx;
 		font-size: 32rpx;
 		color: #333;
 	}
@@ -399,13 +440,36 @@
 		color: black;
 	}
 
+	.form-item-pwd {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		border-radius: 30rpx;
+		background-color: #e8e8e8;
+	}
+
+	/* 眼睛图标按钮 */
+	.eye-btn {
+		width: 40rpx;
+		height: 40rpx;
+		// background-color: white;
+		padding: 10rpx;
+		margin-right: 20rpx;
+	}
+
+	.eye-icon {
+		width: 40rpx;
+		height: 40rpx;
+	}
+
+	// 密码错误提示
 	.error-mimatext {
 		color: black;
 		font-size: 30rpx;
-
 		text-align: center;
 	}
 
+	//密码强度
 	.password-strength {
 		margin-left: 160rpx;
 		display: flex;
@@ -447,7 +511,7 @@
 	/* 下一步按钮 */
 	.next-btn {
 		width: 300rpx;
-		background-color: #f5f5f5;
+		background-color: #007aff;
 		color: white;
 		border-radius: 50rpx;
 		height: 70rpx;

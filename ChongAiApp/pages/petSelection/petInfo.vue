@@ -37,7 +37,7 @@
 			<!-- 昵称 -->
 			<view class="form-item">
 				<text class="label">宠物昵称:</text>
-				<input v-model="petNickName" placeholder="请输入宠物昵称" />
+				<input v-model="petNickName" placeholder="请输入宠物昵称" maxlength="10" />
 			</view>
 			<!-- 性别 -->
 			<view class="form-item">
@@ -88,7 +88,7 @@
 		</view>
 
 		<!-- 完成按钮 -->
-		<button class="next-btn" :class="{ active: isFormValid }" @click="complete">完成</button>
+		<button class="next-btn" :disabled="!isFormValid" @click="complete">完成</button>
 
 	</view>
 </template>
@@ -145,9 +145,7 @@
 	const isFormValid = computed(() => {
 		return (
 			petNickName.value !== '' &&
-			petGender.value !== '' &&
-			petBirthday.value !== '' &&
-			arrivalDate.value !== ''
+			petGender.value !== '' 
 		)
 	})
 	const complete = () => {
@@ -156,7 +154,10 @@
 		console.log(arrivalDate.value);
 	}
 	onLoad((options) => {
-		petBreed.value = options.petBreed
+		petBreed.value = decodeURIComponent(options.petBreed) // 必须解码
+			if(petBreed.value === 'undefined'){
+				petBreed.value = ''
+			}
 		console.log(petBreed.value);
 	})
 </script>
@@ -351,7 +352,7 @@
 	/* 下一步按钮 */
 	.next-btn {
 		width: 300rpx;
-		background-color: #f5f5f5;
+			background-color: #007aff;
 		color: white;
 		border-radius: 50rpx;
 		height: 70rpx;

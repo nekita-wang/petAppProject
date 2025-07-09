@@ -379,7 +379,7 @@
 		/* 字母导航容器（ */
 		.alphabet-nav-wrapper {
 			position: fixed;
-			top: 55%;
+			top: 57%;
 			right: 12rpx;
 			transform: translateY(-50%);
 			z-index: 100;

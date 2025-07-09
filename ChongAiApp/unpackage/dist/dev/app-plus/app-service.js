@@ -6855,7 +6855,7 @@ This will fail in production.`);
         //测试 添加请求头绕过ngrok拦截
       }
     });
-    formatAppLog("log", "at utils/rsa.js:17", "公钥接口完整响应:", res.publicKey);
+    formatAppLog("log", "at utils/rsa.js:16", "公钥接口完整响应:", res.publicKey);
     return res.publicKey;
   }
   function encryptWithRSA(publicKey, text) {
@@ -6941,6 +6941,7 @@ This will fail in production.`);
         return "强";
       });
       const checkPasswordStrength = () => {
+        password.value = password.value.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, "");
         const pass = password.value;
         if (pass.length > 7) {
           ShowStrenth.value = true;
@@ -7032,7 +7033,8 @@ This will fail in production.`);
             "input",
             {
               "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.nickname = $event),
-              placeholder: "请输入"
+              placeholder: "请输入",
+              maxlength: "10"
             },
             null,
             512
@@ -8398,7 +8400,7 @@ This will fail in production.`);
         formatAppLog("log", "at pages/petSelection/petInfo.vue:156", arrivalDate.value);
       };
       onLoad((options) => {
-        petBreed.value = options.petBreed;
+        petBreed.value = decodeURIComponent(options.petBreed);
         formatAppLog("log", "at pages/petSelection/petInfo.vue:160", petBreed.value);
       });
       const __returned__ = { avatar, petBreed, petNickName, petGender, sterilized, petBirthday, arrivalDate, handlePetSelected, handleBack, handleSkip, UploadImage, handleBirthdayChange, handleArrivalDateChange, isFormValid, complete, DatePicker, onMounted: vue.onMounted, computed: vue.computed, ref: vue.ref, get onLoad() {

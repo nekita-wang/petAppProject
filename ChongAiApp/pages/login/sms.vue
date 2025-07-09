@@ -35,7 +35,7 @@
 			</view>
 
 			<!-- 登录按钮 -->
-			<button class="login-btn" :class="{ active: isFormValid }" @click="handleLogin">
+			<button class="login-btn" :disabled="!isFormValid" @click="handleLogin">
 				登录
 			</button>
 
@@ -88,9 +88,12 @@
 		// input格式
 		inputClass.value = !isPhoneValid.value
 	}
-	// 登录按钮状态
+	// 按钮状态
 	const isFormValid = computed(() => {
-		return phone.value.length === 11 && code.value.length >= 4
+	  return (
+	    phone.value.length !== 0 &&       
+		code.value.length !== 0
+	  )
 	})
 
 	// 获取验证码
@@ -270,19 +273,7 @@
 		}
 
 
-		.login-btn {
-			background-color: #f5f5f5;
-			color: #fff;
-			border-radius: 50rpx;
-			height: 90rpx;
-			line-height: 90rpx;
-			font-size: 32rpx;
-			margin-top: 60rpx;
 
-			&.active {
-				background-color: #007aff;
-			}
-		}
 
 		.tip {
 			color: #999;
@@ -291,5 +282,18 @@
 			margin-top: 30rpx;
 		}
 
+	}
+	.login-btn {
+		background-color: #007aff;
+		color: #fff;
+		border-radius: 50rpx;
+		height: 90rpx;
+		line-height: 90rpx;
+		font-size: 32rpx;
+		margin-top: 60rpx;
+	
+		&.active {
+			background-color: #007aff;
+		}
 	}
 </style>

@@ -32,12 +32,7 @@
 				该账号无法使用密码登录，建议切换其他方式登录。
 			</view>
 			<!-- 登录按钮 -->
-			<button class="login-btn" :class="{ active: isFormValid }" @click="handleLogin">
-				登录
-			</button>
-			<view class="">
-				{{msg}}
-			</view>
+			<button class="login-btn" :disabled="!isFormValid" @click="handleLogin">登录</button>
 		</view>
 	</view>
 
@@ -55,12 +50,12 @@
 		useAuthStore
 	} from '@/stores/auth'
 	const grantType = ref('password') //后端指定类型
-	const phone = ref('13812345678') //手机号
+	const phone = ref('') //手机号
 	const password = ref('') //密码
 	const showPhoneError = ref(false) //验证手机号
 	const showPassword = ref(false) //密码显示按钮
-	const msg = ref('') 
-	const pwdErr = ref(false)  //手机号未注册情况
+	const msg = ref('')
+	const pwdErr = ref(false) //手机号未注册情况
 	//点击跳转手机密码登录
 	const ToSMSLogin = () => {
 		uni.navigateTo({
@@ -98,13 +93,18 @@
 	const handlePaste = (e) => {
 		e.preventDefault()
 	}
-	// 登录按钮状态
+	// 按钮状态
 	const isFormValid = computed(() => {
-		return phone.value.length === 11 && password.value.length >= 6
+	  return (
+	    phone.value.length !== 0 &&       
+		password.value.length !== 0
+	  )
 	})
 	// 点击登录
 	const handleLogin = async () => {
-		let res = await apiGetPwd(grantType.value,phone.value, password.value)
+		
+		let res = await apiGetPwd(grantType.value, phone.value, password.value)
+		console.log(res);
 		//登录成功跳转
 		if (res.code == 200) {
 			uni.navigateTo({
@@ -118,7 +118,13 @@
 				phone: phone.value // 使用前端输入或后端返回的phone
 			})
 		} else if (res.code == 1000) {
+			// 手机号未注册
 			pwdErr.value = true
+			// 显示其他情况
+			// uni.showToast({
+			// 	title: res.msg,
+			// 	icon: 'none'
+			// })
 		} else {
 			// 显示其他情况
 			uni.showToast({
@@ -231,23 +237,25 @@
 				height: 40rpx;
 			}
 		}
-		.pwdErr-text{
+
+		.pwdErr-text {
 			margin-top: 10rpx;
 			color: red;
 			font-size: 28rpx;
 		}
+
+		}
 		.login-btn {
-			background-color: #f5f5f5;
+			background-color: #007aff;
 			color: #fff;
 			border-radius: 50rpx;
 			height: 90rpx;
 			line-height: 90rpx;
 			font-size: 32rpx;
 			margin-top: 40rpx;
-
 			&.active {
 				background-color: #007aff;
 			}
-		}
 	}
+	
 </style>

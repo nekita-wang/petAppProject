@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@dcloudio/uni-ui": "^1.5.8",
     "jsencrypt": "^3.3.2",
     "lodash-es": "^4.17.21",
     "pinia": "^3.0.3"

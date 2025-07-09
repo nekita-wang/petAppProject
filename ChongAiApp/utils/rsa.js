@@ -12,7 +12,6 @@ export async function getPublicKey() {
 			'ngrok-skip-browser-warning': 'true' //测试 添加请求头绕过ngrok拦截
 		}
 	})
-
 	// 调试输出完整响应
 	console.log('公钥接口完整响应:', res.publicKey)
 	return res.publicKey

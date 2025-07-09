@@ -16,7 +16,7 @@
 		<view class="desc">
 			 <view class="desc-content">
 			      <checkbox-group @change="handleAgreeChange">
-			        <checkbox  style="transform:scale(0.7)" color="#50C2C1" />
+			        <checkbox  style="transform:scale(0.7)" color="#007aff" />
 			      </checkbox-group>
 			      <text class="desc">
 			        我已阅读并同意
