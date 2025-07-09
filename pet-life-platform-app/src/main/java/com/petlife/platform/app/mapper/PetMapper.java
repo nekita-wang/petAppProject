@@ -34,7 +34,7 @@ public interface PetMapper {
      * @param petClass
      * @return
      */
-    List<String> selectHot(String petClass);
+    List<String> selectHot( String petClass);
 
     /**
      * 宠物类别查询

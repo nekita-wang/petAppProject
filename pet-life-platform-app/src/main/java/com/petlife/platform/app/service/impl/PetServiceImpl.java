@@ -91,9 +91,10 @@ public class PetServiceImpl implements PetService {
                         Collectors.mapping(pet -> new PetBreedListVo(pet.getPetBreed(),pet.getPetBreedEn()), // 将每个品种包装成 PetBreedListVo 对象
                                 Collectors.toList())));
 
+        System.out.println(petBreedQuery.getPetClass());
         //获取热门列表
         List<String> hotPetBreeds = petMapper.selectHot(petBreedQuery.getPetClass());
-
+        System.out.println(hotPetBreeds);
         // 构建返回的结果
         Map<String, Object> result = new HashMap<>();
         //petBreed是空的时候才有热门

@@ -55,7 +55,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT pet_breed
         FROM pet_info
         WHERE pet_class = #{petClass}
-        <if test="petBreed != null  and petBreed != ''"> and pet_breed like concat('%', #{petBreed}, '%')</if>
         GROUP BY pet_breed
         ORDER BY COUNT(*) DESC
         LIMIT 6;

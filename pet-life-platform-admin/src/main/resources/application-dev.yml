@@ -7,16 +7,16 @@ spring:
   datasource:
     druid:
       master:
-        url: jdbc:mysql://localhost:3306/pet-life-platform?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+        url: jdbc:mysql://122.228.237.118:54307/pet-life-platform?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
         username: root
         password: 123456
 
   # redis 配置
   redis:
-    host: localhost
-    port: 6379
+    host: 122.228.237.118
+    port: 45659
     database: 0
-    password:
+    password: 123456
     timeout: 10s
     lettuce:
       pool:
