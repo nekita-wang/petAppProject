@@ -73,31 +73,4 @@ public class PetController {
         return R.ok(petClassVos);
     }
 
-
-    /**
-     * 图片上传
-     */
-    @PostMapping("/upload")
-    public AjaxResult uploadFile(MultipartFile file) throws Exception
-    {
-        try
-        {
-            // 上传文件路径
-            String filePath = RuoYiConfig.getUploadPath();
-            System.out.println(filePath);
-            // 上传并返回新文件名称
-            String fileName = FileUploadUtils.upload(filePath, file);
-            String url = serverConfig.getUrl() + fileName;
-            AjaxResult ajax = AjaxResult.success();
-            ajax.put("url", url);
-            ajax.put("fileName", fileName);
-            ajax.put("newFileName", FileUtils.getName(fileName));
-            ajax.put("originalFilename", file.getOriginalFilename());
-            return ajax;
-        }
-        catch (Exception e)
-        {
-            return AjaxResult.error(e.getMessage());
-        }
-    }
 }
