@@ -53,7 +53,8 @@ node_modules/
 dist/
 .env*
 
-# 忽略生产环境配置文件
-application-prod.yml
+# 忽略配置文件
+**/application-prod.yml
+**/application-test.yml
 
 

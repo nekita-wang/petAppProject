@@ -16,8 +16,6 @@ ruoyi:
 
 # 开发环境配置
 server:
-  # 服务器的HTTP端口，默认为8080
-  port: 8080
   servlet:
     # 应用的访问路径
     context-path: /
@@ -53,7 +51,7 @@ spring:
     # 国际化资源文件路径
     basename: i18n/messages
   profiles:
-    active: dev # 默认使用开发环境，生产时改成 prod
+    active: test # 默认使用开发环境，生产时改成 prod
   # 文件上传
   servlet:
     multipart:

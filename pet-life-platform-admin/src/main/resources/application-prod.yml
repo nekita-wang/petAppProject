@@ -1,18 +1,22 @@
+# 开发环境配置
+server:
+  # 服务器的HTTP端口，默认为8080
+  port: 8890
 # 数据源配置（只放需变的部分）
 spring:
   datasource:
     druid:
       master:
         url: jdbc:mysql://localhost:3306/pet-life-platform?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-        username:
-        password:
+        username: pet-user
+        password: Pet753159
 
   # redis 配置
   redis:
     host: localhost
     port: 6379
     database: 0
-    password:
+    password: Pet753159
     timeout: 10s
     lettuce:
       pool:

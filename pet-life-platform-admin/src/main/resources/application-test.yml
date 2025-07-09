@@ -1,7 +1,7 @@
 # 开发环境配置
 server:
   # 服务器的HTTP端口，默认为8080
-  port: 8080
+  port: 8890
 # 数据源配置（只放需变的部分）
 spring:
   datasource:
@@ -16,7 +16,7 @@ spring:
     host: localhost
     port: 6379
     database: 0
-    password:
+    password: 123456
     timeout: 10s
     lettuce:
       pool:
