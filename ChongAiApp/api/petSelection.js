@@ -23,3 +23,11 @@ export function apiGetPetTypeList() {
 		}
 	})
 }
+// 添加宠物
+export function apiaddPet(data) {
+	return request({
+		url: "/app/pet/addPet",
+		method: 'POST',
+		data
+	})
+}

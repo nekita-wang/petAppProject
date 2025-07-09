@@ -96,7 +96,7 @@
 		const yearIndex = years.value.indexOf(year.value)
 		const monthIndex = months.value.indexOf(month.value)
 		const dayIndex = days.value.indexOf(day.value)
-		pickerValue.value = [74, 5, 5]  //选择器默认值
+		pickerValue.value = [yearIndex, monthIndex, dayIndex]  //选择器默认值
 		// 设置选择器样式
 		indicatorStyle.value = `height: ${uni.upx2px(80)}px;`
 	}

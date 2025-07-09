@@ -29,7 +29,7 @@
 		<!-- 表单区域 -->
 		<view class="form-group">
 			<!-- 手机号-->
-			<view class="form-item" @petSelected="handlePetSelected" >
+			<view class="form-item">
 				<text class="label">宠物品种:</text>
 				<input v-model="petBreed" disabled placeholder="请输入" />
 			</view>
@@ -66,10 +66,10 @@
 			<view class="form-item">
 				<text class="label">是否绝育:</text>
 				<view class="neuter-options">
-					<view :class="['neuter-option', { active: sterilized === true }]" @click="sterilized = true">
+					<view :class="['neuter-option', { active: sterilized === '1' }]" @click="sterilized = '1'">
 						是
 					</view>
-					<view :class="['neuter-option', { active: sterilized === false }]" @click="sterilized = false">
+					<view :class="['neuter-option', { active: sterilized === '0' }]" @click="sterilized = '0'">
 						否
 					</view>
 				</view>
@@ -94,6 +94,7 @@
 </template>
 
 <script setup>
+	import { apiaddPet } from '../../api/petSelection'
 	import DatePicker from '@/components/DatePicker.vue'
 	import {
 		onMounted,
@@ -105,14 +106,9 @@
 	const petBreed = ref('') //宠物品种
 	const petNickName = ref('') //宠物昵称
 	const petGender = ref('') // 宠物性别
-	const sterilized = ref(false) //是否绝育
-	const petBirthday = ref('') //宠物生日
+	const sterilized = ref('0') //是否绝育
+	const petBirthday = ref(new Date().getDate()) //宠物生日
 	const arrivalDate = ref('') //到家日期
-
-	const handlePetSelected = (selectedPet) => {
-	  console.log('接收到宠物数据:', selectedPet)
-	  
-	}
 	// 返回方法
 	const handleBack = () => {
 		uni.navigateBack()
@@ -128,7 +124,7 @@
 		uni.chooseImage({
 			count: 1,
 			success(res) {
-				imagePath.value = res.tempFilePaths[0] //将默认图片更改掉
+				avatar.value = res.tempFilePaths[0] //将默认图片更改掉
 			}
 		})
 	}
@@ -148,17 +144,48 @@
 			petGender.value !== '' 
 		)
 	})
-	const complete = () => {
-		handlePetSelected()
-		console.log(petBirthday.value);
-		console.log(arrivalDate.value);
+	// 点击完成
+	const complete = async () => {
+		// 调用注册接口接口
+		const res = await apiaddPet({
+			petAvatarURL: avatar.value, 
+			petBreed: petBreed.value,
+			petClass:'猫',
+			petNickName	: petNickName.value,
+			petGender: petGender.value,
+			sterilized: sterilized.value,
+			petBirthday: petBirthday.value,
+			adoptionDate:arrivalDate.value
+		})
+		console.log(res);
+		if (res.code === 200) {
+			uni.showToast({
+				title: '添加成功',
+				icon: 'success'
+			})
+			uni.navigateTo({
+				url: '/pages/home/home'
+			})
+		} else {
+			uni.showToast({
+				title: res.msg,
+				icon: 'none'
+			})
+		}
 	}
 	onLoad((options) => {
 		petBreed.value = decodeURIComponent(options.petBreed) // 必须解码
 			if(petBreed.value === 'undefined'){
 				petBreed.value = ''
 			}
-		console.log(petBreed.value);
+		function formatDate(date) {
+		  const year = date.getFullYear();
+		  const month = String(date.getMonth() + 1).padStart(2, '0'); // 补零
+		  const day = String(date.getDate()).padStart(2, '0');       // 补零
+		  return `${year}-${month}-${day}`; // 格式：YYYY-MM-DD
+		}
+		petBirthday.value = formatDate(new Date());
+		arrivalDate.value = formatDate(new Date());
 	})
 </script>
 

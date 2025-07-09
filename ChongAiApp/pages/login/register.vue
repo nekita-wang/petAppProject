@@ -53,8 +53,8 @@
 			<!-- 密码 -->
 			<view class="form-item">
 				<text class="label">密码:</text>
-				<view class="form-item-pwd"> <input v-model="password"   style="ime-mode:disabled;"  :password="!showPassword" placeholder="请输入" @input="checkPasswordStrength"
-						maxlength="10" />
+				<view class="form-item-pwd"> <input v-model="password" style="ime-mode:disabled;"
+						:password="!showPassword" placeholder="请输入" @input="checkPasswordStrength" maxlength="10" />
 					<view class="eye-btn" @click="togglePassword">
 						<image :src="showPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
 					</view>
@@ -90,17 +90,22 @@
 						<image :src="showCmPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
 					</view>
 				</view>
-				
+
 			</view>
 		</view>
 
 		<!-- 下一步按钮 -->
-		<button class="next-btn"  @click="handelNext" :disabled="!isFormValid">下一步</button>
+		<button class="next-btn" @click="handelNext" :disabled="!isFormValid">下一步</button>
 	</view>
 </template>
 
 <script setup>
-	import { debounce } from 'lodash-es'	
+	import {
+		onLoad
+	} from '@dcloudio/uni-app'
+	import {
+		debounce
+	} from 'lodash-es'
 	import DatePicker from '@/components/DatePicker.vue'
 	import {
 		onMounted,
@@ -126,7 +131,7 @@
 	const password = ref('') //密码
 	const confirmPassword = ref('') //确认密码
 	const gender = ref('') //性别
-	const birthday = ref('') //生日
+	const birthday = ref('2024-6-6') //生日
 	const showPassword = ref(false) //密码显示按钮
 	const showCmPassword = ref(false) //确认密码显示按钮
 	// 切换密码可见状态
@@ -139,13 +144,12 @@
 	}
 	// 按钮状态
 	const isFormValid = computed(() => {
-	  return (
-	    nickname.value.trim() !== '' &&
-	    gender.value !== '' &&
-		birthday.value !== '' &&
-	    password.value.length !== 0 &&          // 密码长度要求 、
-		confirmPassword.value.length !== 0
-	  )
+		return (
+			nickname.value.trim() !== '' &&
+			gender.value !== '' &&
+			password.value.length !== 0 && // 密码长度要求 、
+			confirmPassword.value.length !== 0
+		)
 	})
 	//日期选择器
 	const handleBirthdayChange = (date) => {
@@ -153,6 +157,7 @@
 	}
 	// 点击下一步
 	const handelNext = async () => {
+		console.log(birthday);
 		if (password.value !== confirmPassword.value) {
 			uni.showToast({
 				title: '两次密码不一致',
@@ -160,7 +165,7 @@
 			})
 			return
 		}
-		if(strengthLevel.value <=1){
+		if (strengthLevel.value <= 1) {
 			uni.showToast({
 				title: '密码较弱请重新设置',
 				icon: 'none'
@@ -199,7 +204,6 @@
 			birthday: birthday.value
 		})
 		if (res.code === 200) {
-			console.log(avatar.value);
 			uni.showToast({
 				title: '注册成功',
 				icon: 'success'
@@ -207,10 +211,10 @@
 			uni.navigateTo({
 				url: '/pages/petSelection/petSelection'
 			})
-		}else{
+		} else {
 			uni.showToast({
-				title:res.msg,
-				icon:'none'
+				title: res.msg,
+				icon: 'none'
 			})
 		}
 	}
@@ -222,33 +226,33 @@
 		return '强'
 	})
 	//输入框判断密码强度（防抖判断输入中文）
-	const checkPasswordStrength = debounce((e)=>{
-			const replaceValue = e.detail.value
-			password.value = replaceValue.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
-			const pass = password.value
-			if (pass.length > 0) {
-				ShowStrenth.value = true
-			} else {
-				ShowStrenth.value = false
-			}
-			if (!pass || pass.length < 8) {
-				strengthLevel.value = 0
-				return
-			}
-			//密码登记判定
-			let score = 0
-			if (pass.length >= 2) score += 1
-			if (pass.length >= 5) score += 1
-			if (/[a-z]/.test(pass)) score += 1
-			if (/[A-Z]/.test(pass)) score += 1
-			if (/\d/.test(pass)) score += 1
-			if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) score += 2
-			
-			if (score <= 1) strengthLevel.value = 1
-			if (score <= 3) strengthLevel.value = 1
-			else if (score <= 6) strengthLevel.value = 2
-			else strengthLevel.value = 3
-	},300)
+	const checkPasswordStrength = debounce((e) => {
+		const replaceValue = e.detail.value
+		password.value = replaceValue.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
+		const pass = password.value
+		if (pass.length > 0) {
+			ShowStrenth.value = true
+		} else {
+			ShowStrenth.value = false
+		}
+		if (!pass || pass.length < 8) {
+			strengthLevel.value = 0
+			return
+		}
+		//密码登记判定
+		let score = 0
+		if (pass.length >= 2) score += 1
+		if (pass.length >= 5) score += 1
+		if (/[a-z]/.test(pass)) score += 1
+		if (/[A-Z]/.test(pass)) score += 1
+		if (/\d/.test(pass)) score += 1
+		if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) score += 2
+
+		if (score <= 1) strengthLevel.value = 1
+		if (score <= 3) strengthLevel.value = 1
+		else if (score <= 6) strengthLevel.value = 2
+		else strengthLevel.value = 3
+	}, 300)
 	// 上传图片
 	const UploadImage = () => {
 		uni.chooseImage({
@@ -258,6 +262,12 @@
 			}
 		})
 	}
+	onLoad(() => {
+		function formatDate(date) {
+			return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+		}
+		birthday.value = formatDate(new Date())
+	})
 </script>
 
 <style scoped lang="scss">
@@ -291,7 +301,7 @@
 
 	/* 表单样式 */
 	.form-item {
-		padding: 20rpx 0;	
+		padding: 20rpx 0;
 		display: flex;
 		align-items: center;
 	}
