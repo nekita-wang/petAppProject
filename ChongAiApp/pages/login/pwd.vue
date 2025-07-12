@@ -1,41 +1,31 @@
 <template>
 	<view class="login-container">
-		<view class="status_bar">
-			<!-- 状态栏 -->
-		</view>
-		<view class="custom-navbar">
-			<view class="nav-left">
-				<uni-icons @click="handleBack" type="arrow-left" size="24"></uni-icons>
-			</view>
-			<view class="nav-right" @click="ToSMSLogin">
-				手机号验证码登录
-			</view>
-		</view>
+		<!-- 自定义导航栏 -->
+		<u-navbar rightText="手机号验证码登录" :autoBack="true" @rightClick="ToSMSLogin" fixed></u-navbar>
 		<!-- 手机号输入 -->
 		<view class="phone-box">
 			<view class="input-group">
 				<view class="prefix">+86</view>
-				<input v-model="phone" type="number" placeholder="请输入手机号" placeholder-class="placeholder" maxlength="11"
-					:class="{ error: showPhoneError }" @input="handlePhoneInput" @focus="showKeyboard = true" />
+				<up-input placeholder="请输入手机号" type='number' shape="circle" clearable v-model="phone"
+					maxlength="11"></up-input>
 			</view>
-
 			<!-- 密码输入组 -->
 			<view class="input-group-pwd">
-				<input v-model="password" :password="!showPassword" placeholder="请输入密码" placeholder-class="placeholder"
-					:disable-default-paste="true" maxlength="10" />
-				<!-- 眼睛图标按钮 -->
-				<view class="eye-btn" @click="togglePassword">
-					<image :src="showPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
-				</view>
-			</view>
-			<view class="pwdErr-text" v-if="pwdErr">
-				该账号无法使用密码登录，建议切换其他方式登录。
+				<u-input v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="请输入密码"
+					:passwordIcon="false" maxlength="10">
+					<template #suffix>
+						<u-icon :name="showPassword ? 'eye-fill' : 'eye-fill'"
+							:color="showPassword ? '#2979ff' : '#c0c4cc'" size="20"
+							@click="showPassword = !showPassword" />
+					</template>
+				</u-input>
 			</view>
 			<!-- 登录按钮 -->
-			<button class="login-btn" :disabled="!isFormValid" @click="handleLogin">登录</button>
+			<u-button class="login-btn" :disabled="!isFormValid" @click="handleLogin">
+				登录
+			</u-button>
 		</view>
 	</view>
-
 </template>
 
 <script setup>
@@ -52,124 +42,88 @@
 	const grantType = ref('password') //后端指定类型
 	const phone = ref('') //手机号
 	const password = ref('') //密码
-	const showPhoneError = ref(false) //验证手机号
 	const showPassword = ref(false) //密码显示按钮
-	const msg = ref('')
-	const pwdErr = ref(false) //手机号未注册情况
-	//点击跳转手机密码登录
+	//点击跳转手机验证码登录
 	const ToSMSLogin = () => {
 		uni.navigateTo({
 			url: '/pages/login/sms',
 		})
 	}
-	// 返回按钮
-	const handleBack = () => {
-		uni.navigateBack()
-	}
-	// 手机号输入处理（自动清理无效字符）
-	const handlePhoneInput = (e) => {
-		// 移除所有非数字字符
-		phone.value = e.detail.value.replace(/[^\d]/g, '')
-		let value = e.detail.value
-		if (value.length === 1 && value !== '1') {
-			phone.value = ''
-			return uni.showToast({
-				title: '请输入正确的手机号',
-				icon: 'none'
-			})
-		}
-		// 实时校验格式
-		showPhoneError.value = phone.value.length > 0 && !isPhoneValid.value
-	}
-	// 手机号验证（11位且1开头）
-	const isPhoneValid = computed(() => {
-		return /^1[3-9]\d{9}$/.test(phone.value)
-	})
 	// 切换密码可见状态
 	const togglePassword = () => {
 		showPassword.value = !showPassword.value
 	}
-	// 禁止复制粘贴
-	const handlePaste = (e) => {
-		e.preventDefault()
-	}
 	// 按钮状态
 	const isFormValid = computed(() => {
-	  return (
-	    phone.value.length !== 0 &&       
-		password.value.length !== 0
-	  )
+		return (
+			phone.value.length !== 0 &&
+			password.value.length !== 0
+		)
 	})
 	// 点击登录
 	const handleLogin = async () => {
-		
-		let res = await apiGetPwd(grantType.value, phone.value, password.value)
-		console.log(res);
-		//登录成功跳转
-		if (res.code == 200) {
-			uni.navigateTo({
-				url: '/pages/petSelection/petSelection'
-			})
-			// 保存token
-			const authStore = useAuthStore()
-			authStore.setUserInfo({
-				token: res.data.token,
-				userId: res.data.userId, // 确保后端返回userId
-				phone: phone.value // 使用前端输入或后端返回的phone
-			})
-		} else if (res.code == 1000) {
-			// 手机号未注册
-			pwdErr.value = true
-			// 显示其他情况
-			// uni.showToast({
-			// 	title: res.msg,
-			// 	icon: 'none'
-			// })
-		} else {
-			// 显示其他情况
+		const authStore = useAuthStore()
+		authStore.setUserInfo({
+			phone: phone.value
+		})
+		try {
+			let res = await apiGetPwd(grantType.value, phone.value, password.value)
+			if (res.code == 200) {
+				// 保存token
+				const authStore = useAuthStore()
+				authStore.setUserInfo({
+					token: res.data.token,
+					userId: res.data.userId,
+					phone: phone.value
+				})
+				// 登录成功跳转
+				uni.navigateTo({
+					url: '/pages/petSelection/petSelection'
+				})
+			} else if (res.code == 1000) {
+				uni.showToast({
+					title: res.msg,
+					icon: 'none'
+				})
+				uni.navigateTo({
+					url: '/pages/login/register'
+				})
+			} else {
+				// 其他错误情况
+				uni.showToast({
+					title: res.msg || '登录失败',
+					icon: 'none'
+				})
+			}
+		} catch (error) {
+			console.error('登录请求失败:', error)
 			uni.showToast({
-				title: res.msg,
+				title: '网络错误，请重试',
 				icon: 'none'
 			})
+		} finally {
+			isLoading.value = false
 		}
 	}
 </script>
 
 <style lang="scss" scoped>
 	.login-container {
-		.status_bar {
-			height: var(--status-bar-height);
-			width: 100%;
-		}
-
-		background-color: #fff;
+		position: relative;
 		height: 100vh;
-		box-sizing: border-box;
+		padding-top: var(--status-bar-height);
 
-		.custom-navbar {
-			padding: 20rpx;
-			height: 44rpx;
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			position: relative;
-			z-index: 100;
-		}
-
-		.back-icon {
-			width: 48rpx;
-			height: 48rpx;
-		}
-
-		.nav-right {
+		::v-deep .u-navbar__content__right__text span {
 			color: #007aff;
 			font-size: 30rpx;
 			font-weight: bold;
 		}
 
-		// 手机号输入
 		.phone-box {
-			padding: 40rpx;
+			padding-top: 100rpx;
+			/* 导航栏高度 */
+			padding-left: 40rpx;
+			padding-right: 40rpx;
 		}
 
 		.input-group {
@@ -187,24 +141,11 @@
 				text-align: center;
 				line-height: 65rpx;
 				font-weight: bold;
-
 			}
 
-			input {
-				width: 82%;
-				height: 65rpx;
-				font-size: 32rpx;
-				padding-left: 25rpx;
-				border-radius: 30rpx;
+			::v-deep .u-input {
 				background-color: #e8e8e8;
-
-				&.error {
-					border: 1px solid #ff4d4f !important;
-				}
-
 			}
-
-
 		}
 
 		.input-group-pwd {
@@ -216,18 +157,17 @@
 			background-color: #e8e8e8;
 
 			input {
-				width: 100%;
+				flex: 1;
+				padding-left: 25rpx;
 				/* 禁用文本复制 */
 				user-select: none;
 				-webkit-user-select: none;
-				padding-left: 25rpx;
 			}
 
 			/* 眼睛图标按钮 */
 			.eye-btn {
 				width: 40rpx;
 				height: 40rpx;
-				// background-color: white;
 				padding: 10rpx;
 				margin-right: 20rpx;
 			}
@@ -240,11 +180,11 @@
 
 		.pwdErr-text {
 			margin-top: 10rpx;
-			color: red;
+			color: #ff4d4f;
 			font-size: 28rpx;
+			text-align: center;
 		}
 
-		}
 		.login-btn {
 			background-color: #007aff;
 			color: #fff;
@@ -252,10 +192,7 @@
 			height: 90rpx;
 			line-height: 90rpx;
 			font-size: 32rpx;
-			margin-top: 40rpx;
-			&.active {
-				background-color: #007aff;
-			}
+			margin-top: 60rpx;
+		}
 	}
-	
 </style>

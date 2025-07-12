@@ -4,25 +4,32 @@ import App from './App'
 import Vue from 'vue'
 import './uni.promisify.adaptor'
 
+
+
 Vue.config.productionTip = false
 App.mpType = 'app'
 const app = new Vue({
-  ...App
+	...App
 })
 app.$mount()
 // #endif
 
 // #ifdef VUE3
-import { createSSRApp } from 'vue'
-import { createPinia } from 'pinia'
-
+import {
+	createSSRApp
+} from 'vue'
+import {
+	createPinia
+} from 'pinia'	
+import uviewPlus from 'uview-plus'
 export function createApp() {
-  const app = createSSRApp(App)
-  const pinia = createPinia()
-   app.use(pinia)
-  return {
-    app,
-	pinia 
-  }
+	const app = createSSRApp(App)
+	const pinia = createPinia()
+	app.use(pinia)
+	app.use(uviewPlus)
+	return {
+		app,
+		pinia
+	}
 }
 // #endif

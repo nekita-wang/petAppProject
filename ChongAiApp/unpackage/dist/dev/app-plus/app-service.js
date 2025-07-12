@@ -39,7 +39,7 @@ if (uni.restoreGlobal) {
     }
     return target;
   };
-  const _sfc_main$b = {
+  const _sfc_main$c = {
     __name: "login",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -63,7 +63,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createCommentVNode(" 顶部logo "),
       vue.createElementVNode("view", { class: "logo" }, [
@@ -97,7 +97,7 @@ if (uni.restoreGlobal) {
             [
               vue.createElementVNode("checkbox", {
                 style: { "transform": "scale(0.7)" },
-                color: "#50C2C1"
+                color: "#007aff"
               })
             ],
             32
@@ -120,7 +120,7 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const PagesLoginLogin = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-e4e4508d"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/login.vue"]]);
+  const PagesLoginLogin = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-e4e4508d"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/login.vue"]]);
   const ON_LOAD = "onLoad";
   function requireNativePlugin(name) {
     return weex.requireModule(name);
@@ -789,7 +789,7 @@ if (uni.restoreGlobal) {
     const reg = /^[0-9]*$/g;
     return typeof val === "number" || reg.test(val) ? val + "px" : val;
   };
-  const _sfc_main$a = {
+  const _sfc_main$b = {
     name: "UniIcons",
     emits: ["click"],
     props: {
@@ -843,7 +843,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "text",
       {
@@ -858,7 +858,7 @@ if (uni.restoreGlobal) {
       /* CLASS, STYLE */
     );
   }
-  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-d31e1c47"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
+  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-d31e1c47"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
   var isVue2 = false;
   function set(target, key, val) {
     if (Array.isArray(target)) {
@@ -903,7 +903,7 @@ if (uni.restoreGlobal) {
     }
     return supported;
   }
-  function now() {
+  function now$1() {
     return isPerformanceSupported() ? perf.now() : Date.now();
   }
   class ApiProxy {
@@ -940,7 +940,7 @@ if (uni.restoreGlobal) {
           currentSettings = value;
         },
         now() {
-          return now();
+          return now$1();
         }
       };
       if (hook) {
@@ -2330,58 +2330,58 @@ This will fail in production.`);
     };
   });
   const BASE_URL = "http://115.120.195.253";
-  const requestInterceptor = (config) => {
-    const authStore = useAuthStore();
-    const token = authStore.token;
-    if (token) {
-      config.header = {
-        ...config.header,
-        "Authorization": `Bearer ${token}`
-      };
-    }
-    return config;
-  };
-  function request(config = {}) {
-    let {
+  const request = (config = {}) => {
+    const {
       url,
       method = "GET",
       data = {},
       header = {}
     } = config;
-    url = BASE_URL + url;
-    header = {
+    const authStore = useAuthStore();
+    const token = authStore.token;
+    let fullUrl = BASE_URL + url;
+    if (method === "GET" && Object.keys(data).length > 0) {
+      const params = new URLSearchParams(data).toString();
+      fullUrl += `?${params}`;
+    }
+    const headers = {
       "Content-Type": "application/json",
+      ...token ? {
+        "Authorization": `Bearer ${token}`
+      } : {},
+      "ngrok-skip-browser-warning": "true",
+      // 添加绕过 ngrok 的头部 ---测试
       ...header
-      // 允许外部覆盖
     };
-    const interceptedConfig = requestInterceptor({
-      url,
-      method,
-      data,
-      header
-    });
     return new Promise((resolve, reject) => {
       uni.request({
-        url: interceptedConfig.url,
-        method: interceptedConfig.method,
-        data: JSON.stringify(interceptedConfig.data),
-        header: interceptedConfig.header,
+        url: fullUrl,
+        method,
+        data: method === "GET" ? void 0 : data,
+        header: headers,
         success: (res) => {
+          var _a2;
           if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve(res.data);
           } else {
-            reject(res.data);
+            reject({
+              statusCode: res.statusCode,
+              message: ((_a2 = res.data) == null ? void 0 : _a2.message) || `请求失败: ${res.statusCode}`,
+              data: res.data
+            });
           }
         },
         fail: (err) => {
+          formatAppLog("error", "at utils/request.js:55", `[Request Failed] ${method} ${fullUrl}`, err);
           reject({
-            errMsg: err.errMsg,
-            statusCode: -1
+            statusCode: -1,
+            message: "网络连接失败",
+            error: err
           });
         }
       });
     });
-  }
+  };
   function apiGetPwd(grantType, phone, password, code) {
     return request({
       url: "/app/auth/login",
@@ -2410,7 +2410,7 @@ This will fail in production.`);
       data
     });
   }
-  const _sfc_main$9 = {
+  const _sfc_main$a = {
     __name: "sms",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -2438,59 +2438,74 @@ This will fail in production.`);
         inputClass.value = !isPhoneValid.value;
       };
       const isFormValid = vue.computed(() => {
-        return phone.value.length === 11 && code.value.length >= 4;
+        return phone.value.length !== 0 && code.value.length !== 0;
       });
       const getSMSCode = async () => {
         if (countdown.value > 0)
           return;
-        let res = await apiGetCode(phone.value);
-        if (res.success == true) {
+        try {
+          let res = await apiGetCode(phone.value);
+          if (res.success == true) {
+            uni.showToast({
+              title: "验证码已发送!",
+              icon: "success"
+            }), // 开启验证码倒计时
+            countdown.value = 60;
+            const timer = setInterval(() => {
+              if (countdown.value <= 0) {
+                clearInterval(timer);
+                return;
+              }
+              countdown.value--;
+            }, 1e3);
+            code.value = res.data;
+          } else {
+            uni.showToast({
+              title: res.msg,
+              icon: "none"
+            });
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/login/sms.vue:128", "获取验证码接口调用失败", error);
           uni.showToast({
-            title: "验证码已发送,注意短信通知",
-            icon: "success"
-          }), // 开启验证码倒计时
-          countdown.value = 60;
-          const timer = setInterval(() => {
-            if (countdown.value <= 0) {
-              clearInterval(timer);
-              return;
-            }
-            countdown.value--;
-          }, 1e3);
-          formatAppLog("log", "at pages/login/sms.vue:115", "验证码：", res.data);
-          code.value = res.data;
-        } else {
-          uni.showToast({
-            title: res.msg,
-            icon: "error"
+            title: "获取验证码失败，请重试",
+            icon: "none"
           });
         }
       };
       const handleLogin = async () => {
-        let res = await apiGetPwd(grantType.value, phone.value, null, code.value);
-        if (res.success == true) {
-          const authStore = useAuthStore();
-          authStore.setUserInfo({
-            token: res.data.token,
-            userId: res.data.userId,
-            // 确保后端返回userId
-            phone: phone.value
-            // 使用前端输入或后端返回的phone
-          });
-          if (res.data.newUser = true) {
-            uni.navigateTo({
-              url: "/pages/login/register"
+        try {
+          let res = await apiGetPwd(grantType.value, phone.value, null, code.value);
+          if (res.success == true) {
+            const authStore = useAuthStore();
+            authStore.setUserInfo({
+              token: res.data.token,
+              userId: res.data.userId,
+              // 确保后端返回userId
+              phone: phone.value
+              // 使用前端输入或后端返回的phone
             });
+            if (res.data.newUser === true) {
+              uni.navigateTo({
+                url: "/pages/login/register"
+              });
+            } else {
+              uni.navigateTo({
+                url: "/pages/petSelection/petSelection"
+              });
+            }
           } else {
-            uni.navigateTo({
-              url: "/pages/petSelection/petSelection"
+            formatAppLog("log", "at pages/login/sms.vue:161", res);
+            uni.showToast({
+              title: res.msg,
+              icon: "none"
             });
           }
-        } else {
-          formatAppLog("log", "at pages/login/sms.vue:150", res);
+        } catch (error) {
+          formatAppLog("error", "at pages/login/sms.vue:168", "登录接口调用失败", error);
           uni.showToast({
-            title: res.msg,
-            icon: "error"
+            title: "登录失败，请重试",
+            icon: "none"
           });
         }
       };
@@ -2505,7 +2520,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0);
     return vue.openBlock(), vue.createElementBlock("view", { class: "login-container" }, [
       vue.createElementVNode("view", { class: "status_bar" }, [
@@ -2585,33 +2600,28 @@ This will fail in production.`);
           )) : vue.createCommentVNode("v-if", true)
         ]),
         vue.createCommentVNode(" 登录按钮 "),
-        vue.createElementVNode(
-          "button",
-          {
-            class: vue.normalizeClass(["login-btn", { active: $setup.isFormValid }]),
-            onClick: $setup.handleLogin
-          },
-          " 登录 ",
-          2
-          /* CLASS */
-        ),
+        vue.createElementVNode("button", {
+          class: "login-btn",
+          disabled: !$setup.isFormValid,
+          onClick: $setup.handleLogin
+        }, " 登录 ", 8, ["disabled"]),
         vue.createCommentVNode(" 底部提示 "),
         vue.createElementVNode("view", { class: "tip" }, "未注册时，登录将自动注册")
       ])
     ]);
   }
-  const PagesLoginSms = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-4e4cd1cc"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/sms.vue"]]);
-  const _sfc_main$8 = {
+  const PagesLoginSms = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-4e4cd1cc"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/sms.vue"]]);
+  const _sfc_main$9 = {
     __name: "pwd",
     setup(__props, { expose: __expose }) {
       __expose();
       const grantType = vue.ref("password");
-      const phone = vue.ref("13812345678");
+      const phone = vue.ref("");
       const password = vue.ref("");
       const showPhoneError = vue.ref(false);
       const showPassword = vue.ref(false);
-      const msg = vue.ref("");
       const pwdErr = vue.ref(false);
+      const isLoading = vue.ref(false);
       const ToSMSLogin = () => {
         uni.navigateTo({
           url: "/pages/login/sms"
@@ -2631,6 +2641,8 @@ This will fail in production.`);
           });
         }
         showPhoneError.value = phone.value.length > 0 && !isPhoneValid.value;
+        if (pwdErr.value)
+          pwdErr.value = false;
       };
       const isPhoneValid = vue.computed(() => {
         return /^1[3-9]\d{9}$/.test(phone.value);
@@ -2638,36 +2650,50 @@ This will fail in production.`);
       const togglePassword = () => {
         showPassword.value = !showPassword.value;
       };
-      const handlePaste = (e) => {
-        e.preventDefault();
-      };
       const isFormValid = vue.computed(() => {
-        return phone.value.length === 11 && password.value.length >= 6;
+        return phone.value.length !== 0 && password.value.length !== 0;
       });
       const handleLogin = async () => {
-        let res = await apiGetPwd(grantType.value, phone.value, password.value);
-        if (res.code == 200) {
-          uni.navigateTo({
-            url: "/pages/petSelection/petSelection"
-          });
-          const authStore = useAuthStore();
-          authStore.setUserInfo({
-            token: res.data.token,
-            userId: res.data.userId,
-            // 确保后端返回userId
-            phone: phone.value
-            // 使用前端输入或后端返回的phone
-          });
-        } else if (res.code == 1e3) {
-          pwdErr.value = true;
-        } else {
+        if (isLoading.value)
+          return;
+        isLoading.value = true;
+        pwdErr.value = false;
+        try {
+          let res = await apiGetPwd(grantType.value, phone.value, password.value);
+          formatAppLog("log", "at pages/login/pwd.vue:109", res);
+          if (res.code == 200) {
+            const authStore = useAuthStore();
+            authStore.setUserInfo({
+              token: res.data.token,
+              userId: res.data.userId,
+              phone: phone.value
+            });
+            uni.navigateTo({
+              url: "/pages/petSelection/petSelection"
+            });
+          } else if (res.code == 1e3) {
+            pwdErr.value = true;
+            uni.showToast({
+              title: "该账号未注册",
+              icon: "none"
+            });
+          } else {
+            uni.showToast({
+              title: res.msg || "登录失败",
+              icon: "none"
+            });
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/login/pwd.vue:138", "登录请求失败:", error);
           uni.showToast({
-            title: res.msg,
+            title: "网络错误，请重试",
             icon: "none"
           });
+        } finally {
+          isLoading.value = false;
         }
       };
-      const __returned__ = { grantType, phone, password, showPhoneError, showPassword, msg, pwdErr, ToSMSLogin, handleBack, handlePhoneInput, isPhoneValid, togglePassword, handlePaste, isFormValid, handleLogin, ref: vue.ref, computed: vue.computed, get apiGetPwd() {
+      const __returned__ = { grantType, phone, password, showPhoneError, showPassword, pwdErr, isLoading, ToSMSLogin, handleBack, handlePhoneInput, isPhoneValid, togglePassword, isFormValid, handleLogin, ref: vue.ref, computed: vue.computed, get apiGetPwd() {
         return apiGetPwd;
       }, get useAuthStore() {
         return useAuthStore;
@@ -2676,7 +2702,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0);
     return vue.openBlock(), vue.createElementBlock("view", { class: "login-container" }, [
       vue.createElementVNode("view", { class: "status_bar" }, [
@@ -2746,33 +2772,190 @@ This will fail in production.`);
           class: "pwdErr-text"
         }, " 该账号无法使用密码登录，建议切换其他方式登录。 ")) : vue.createCommentVNode("v-if", true),
         vue.createCommentVNode(" 登录按钮 "),
-        vue.createElementVNode(
-          "button",
-          {
-            class: vue.normalizeClass(["login-btn", { active: $setup.isFormValid }]),
-            onClick: $setup.handleLogin
-          },
-          " 登录 ",
-          2
-          /* CLASS */
-        ),
-        vue.createElementVNode(
-          "view",
-          { class: "" },
-          vue.toDisplayString($setup.msg),
-          1
-          /* TEXT */
-        )
+        vue.createElementVNode("button", {
+          class: "login-btn",
+          disabled: !$setup.isFormValid,
+          onClick: $setup.handleLogin
+        }, "登录", 8, ["disabled"])
       ])
     ]);
   }
-  const PagesLoginPwd = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__scopeId", "data-v-8032d478"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/pwd.vue"]]);
-  const _sfc_main$7 = {
+  const PagesLoginPwd = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-8032d478"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/pwd.vue"]]);
+  var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
+  var freeSelf = typeof self == "object" && self && self.Object === Object && self;
+  var root = freeGlobal || freeSelf || Function("return this")();
+  var Symbol$1 = root.Symbol;
+  var objectProto$1 = Object.prototype;
+  var hasOwnProperty$1 = objectProto$1.hasOwnProperty;
+  var nativeObjectToString$1 = objectProto$1.toString;
+  var symToStringTag$1 = Symbol$1 ? Symbol$1.toStringTag : void 0;
+  function getRawTag(value) {
+    var isOwn = hasOwnProperty$1.call(value, symToStringTag$1), tag = value[symToStringTag$1];
+    try {
+      value[symToStringTag$1] = void 0;
+      var unmasked = true;
+    } catch (e) {
+    }
+    var result = nativeObjectToString$1.call(value);
+    if (unmasked) {
+      if (isOwn) {
+        value[symToStringTag$1] = tag;
+      } else {
+        delete value[symToStringTag$1];
+      }
+    }
+    return result;
+  }
+  var objectProto = Object.prototype;
+  var nativeObjectToString = objectProto.toString;
+  function objectToString(value) {
+    return nativeObjectToString.call(value);
+  }
+  var nullTag = "[object Null]", undefinedTag = "[object Undefined]";
+  var symToStringTag = Symbol$1 ? Symbol$1.toStringTag : void 0;
+  function baseGetTag(value) {
+    if (value == null) {
+      return value === void 0 ? undefinedTag : nullTag;
+    }
+    return symToStringTag && symToStringTag in Object(value) ? getRawTag(value) : objectToString(value);
+  }
+  function isObjectLike(value) {
+    return value != null && typeof value == "object";
+  }
+  var symbolTag = "[object Symbol]";
+  function isSymbol(value) {
+    return typeof value == "symbol" || isObjectLike(value) && baseGetTag(value) == symbolTag;
+  }
+  var reWhitespace = /\s/;
+  function trimmedEndIndex(string) {
+    var index = string.length;
+    while (index-- && reWhitespace.test(string.charAt(index))) {
+    }
+    return index;
+  }
+  var reTrimStart = /^\s+/;
+  function baseTrim(string) {
+    return string ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, "") : string;
+  }
+  function isObject$1(value) {
+    var type = typeof value;
+    return value != null && (type == "object" || type == "function");
+  }
+  var NAN = 0 / 0;
+  var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
+  var reIsBinary = /^0b[01]+$/i;
+  var reIsOctal = /^0o[0-7]+$/i;
+  var freeParseInt = parseInt;
+  function toNumber(value) {
+    if (typeof value == "number") {
+      return value;
+    }
+    if (isSymbol(value)) {
+      return NAN;
+    }
+    if (isObject$1(value)) {
+      var other = typeof value.valueOf == "function" ? value.valueOf() : value;
+      value = isObject$1(other) ? other + "" : other;
+    }
+    if (typeof value != "string") {
+      return value === 0 ? value : +value;
+    }
+    value = baseTrim(value);
+    var isBinary = reIsBinary.test(value);
+    return isBinary || reIsOctal.test(value) ? freeParseInt(value.slice(2), isBinary ? 2 : 8) : reIsBadHex.test(value) ? NAN : +value;
+  }
+  var now = function() {
+    return root.Date.now();
+  };
+  var FUNC_ERROR_TEXT = "Expected a function";
+  var nativeMax = Math.max, nativeMin = Math.min;
+  function debounce(func, wait, options) {
+    var lastArgs, lastThis, maxWait, result, timerId, lastCallTime, lastInvokeTime = 0, leading = false, maxing = false, trailing = true;
+    if (typeof func != "function") {
+      throw new TypeError(FUNC_ERROR_TEXT);
+    }
+    wait = toNumber(wait) || 0;
+    if (isObject$1(options)) {
+      leading = !!options.leading;
+      maxing = "maxWait" in options;
+      maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
+      trailing = "trailing" in options ? !!options.trailing : trailing;
+    }
+    function invokeFunc(time) {
+      var args = lastArgs, thisArg = lastThis;
+      lastArgs = lastThis = void 0;
+      lastInvokeTime = time;
+      result = func.apply(thisArg, args);
+      return result;
+    }
+    function leadingEdge(time) {
+      lastInvokeTime = time;
+      timerId = setTimeout(timerExpired, wait);
+      return leading ? invokeFunc(time) : result;
+    }
+    function remainingWait(time) {
+      var timeSinceLastCall = time - lastCallTime, timeSinceLastInvoke = time - lastInvokeTime, timeWaiting = wait - timeSinceLastCall;
+      return maxing ? nativeMin(timeWaiting, maxWait - timeSinceLastInvoke) : timeWaiting;
+    }
+    function shouldInvoke(time) {
+      var timeSinceLastCall = time - lastCallTime, timeSinceLastInvoke = time - lastInvokeTime;
+      return lastCallTime === void 0 || timeSinceLastCall >= wait || timeSinceLastCall < 0 || maxing && timeSinceLastInvoke >= maxWait;
+    }
+    function timerExpired() {
+      var time = now();
+      if (shouldInvoke(time)) {
+        return trailingEdge(time);
+      }
+      timerId = setTimeout(timerExpired, remainingWait(time));
+    }
+    function trailingEdge(time) {
+      timerId = void 0;
+      if (trailing && lastArgs) {
+        return invokeFunc(time);
+      }
+      lastArgs = lastThis = void 0;
+      return result;
+    }
+    function cancel() {
+      if (timerId !== void 0) {
+        clearTimeout(timerId);
+      }
+      lastInvokeTime = 0;
+      lastArgs = lastCallTime = lastThis = timerId = void 0;
+    }
+    function flush() {
+      return timerId === void 0 ? result : trailingEdge(now());
+    }
+    function debounced() {
+      var time = now(), isInvoking = shouldInvoke(time);
+      lastArgs = arguments;
+      lastThis = this;
+      lastCallTime = time;
+      if (isInvoking) {
+        if (timerId === void 0) {
+          return leadingEdge(lastCallTime);
+        }
+        if (maxing) {
+          clearTimeout(timerId);
+          timerId = setTimeout(timerExpired, wait);
+          return invokeFunc(lastCallTime);
+        }
+      }
+      if (timerId === void 0) {
+        timerId = setTimeout(timerExpired, wait);
+      }
+      return result;
+    }
+    debounced.cancel = cancel;
+    debounced.flush = flush;
+    return debounced;
+  }
+  const _sfc_main$8 = {
     __name: "DatePicker",
     props: {
       modelValue: String,
       defaultDate: {
-        type: Date,
+        type: [Date, String],
         default: () => /* @__PURE__ */ new Date()
       }
     },
@@ -2781,7 +2964,6 @@ This will fail in production.`);
       __expose();
       const props = __props;
       const emit = __emit;
-      const indicatorStyle = vue.ref("");
       const currentDate = /* @__PURE__ */ new Date();
       const years = vue.ref([]);
       const year = vue.ref(currentDate.getFullYear());
@@ -2789,16 +2971,15 @@ This will fail in production.`);
       const month = vue.ref(currentDate.getMonth() + 1);
       const days = vue.ref([]);
       const day = vue.ref(currentDate.getDate());
-      const pickerValue = vue.ref([]);
+      const pickerValue = vue.ref([0, 0, 0]);
+      const indicatorStyle = vue.ref("");
       const updateMonths = () => {
         months.value = [];
         const maxMonth = year.value === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
         for (let i = 1; i <= maxMonth; i++) {
           months.value.push(i);
         }
-        if (month.value > maxMonth) {
-          month.value = maxMonth;
-        }
+        month.value = Math.min(Math.max(month.value, 1), maxMonth);
       };
       const updateDays = () => {
         days.value = [];
@@ -2809,51 +2990,68 @@ This will fail in production.`);
         for (let i = 1; i <= maxDay; i++) {
           days.value.push(i);
         }
-        if (day.value > maxDay) {
-          day.value = maxDay;
-        }
+        day.value = Math.min(Math.max(day.value, 1), maxDay);
       };
-      const initDatePicker = () => {
-        for (let i = 1950; i <= currentDate.getFullYear(); i++) {
-          years.value.push(i);
-        }
-        updateMonths();
-        updateDays();
-        years.value.indexOf(year.value);
-        months.value.indexOf(month.value);
-        days.value.indexOf(day.value);
-        pickerValue.value = [74, 5, 5];
-        indicatorStyle.value = `height: ${uni.upx2px(80)}px;`;
+      const updatePickerValue = () => {
+        pickerValue.value = [
+          Math.max(0, years.value.indexOf(year.value)),
+          Math.max(0, months.value.indexOf(month.value)),
+          Math.max(0, days.value.indexOf(day.value))
+        ];
       };
       const handleDateChange = (event) => {
         const [yearIndex, monthIndex, dayIndex] = event.detail.value;
-        year.value = years.value[yearIndex];
-        if (yearIndex !== pickerValue.value[0]) {
+        const newYear = years.value[yearIndex] || currentDate.getFullYear();
+        const newMonth = months.value[monthIndex] || 1;
+        const newDay = days.value[dayIndex] || 1;
+        const yearChanged = year.value !== newYear;
+        const monthChanged = month.value !== newMonth;
+        year.value = newYear;
+        month.value = newMonth;
+        day.value = newDay;
+        if (yearChanged) {
           updateMonths();
-          month.value = months.value[Math.min(monthIndex, months.value.length - 1)];
+          updateDays();
+        } else if (monthChanged) {
+          updateDays();
         }
-        month.value = months.value[monthIndex];
-        updateDays();
-        day.value = days.value[Math.min(dayIndex, days.value.length - 1)];
-        pickerValue.value = [
-          years.value.indexOf(year.value),
-          months.value.indexOf(month.value),
-          days.value.indexOf(day.value)
-        ];
-        const selectedDate = `${year.value}-${String(month.value).padStart(2, "0")}-${String(day.value).padStart(2, "0")}`;
+        updatePickerValue();
+        const selectedDate = `${newYear}-${String(newMonth).padStart(2, "0")}-${String(newDay).padStart(2, "0")}`;
+        emit("update:modelValue", selectedDate);
         emit("date-change", selectedDate);
       };
+      const initDatePicker = () => {
+        years.value = Array.from({ length: currentDate.getFullYear() - 1949 }, (_, i) => 1950 + i);
+        const initDate = props.defaultDate ? new Date(props.defaultDate) : /* @__PURE__ */ new Date();
+        year.value = initDate.getFullYear();
+        month.value = initDate.getMonth() + 1;
+        day.value = initDate.getDate();
+        updateMonths();
+        updateDays();
+        updatePickerValue();
+        indicatorStyle.value = `height: ${uni.upx2px(80)}px;`;
+      };
+      vue.watch(() => props.defaultDate, (newVal) => {
+        if (newVal) {
+          const date = new Date(newVal);
+          year.value = date.getFullYear();
+          month.value = date.getMonth() + 1;
+          day.value = date.getDate();
+          updateMonths();
+          updateDays();
+          updatePickerValue();
+        }
+      });
       vue.onMounted(() => {
         initDatePicker();
       });
-      const __returned__ = { props, emit, indicatorStyle, currentDate, years, year, months, month, days, day, pickerValue, updateMonths, updateDays, initDatePicker, handleDateChange, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted };
+      const __returned__ = { props, emit, currentDate, years, year, months, month, days, day, pickerValue, indicatorStyle, updateMonths, updateDays, updatePickerValue, handleDateChange, initDatePicker, ref: vue.ref, onMounted: vue.onMounted, watch: vue.watch };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "date-picker-wrapper" }, [
-      vue.createCommentVNode(" 日期选择器 "),
       vue.createElementVNode("picker-view", {
         class: "picker",
         value: $setup.pickerValue,
@@ -2923,7 +3121,7 @@ This will fail in production.`);
       ], 40, ["value", "indicator-style"])
     ]);
   }
-  const DatePicker = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-9f4f5132"], ["__file", "E:/ChongAi/ChongAiApp/components/DatePicker.vue"]]);
+  const DatePicker = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__scopeId", "data-v-9f4f5132"], ["__file", "E:/ChongAi/ChongAiApp/components/DatePicker.vue"]]);
   var BI_RM = "0123456789abcdefghijklmnopqrstuvwxyz";
   function int2char(n) {
     return BI_RM.charAt(n);
@@ -6865,7 +7063,7 @@ This will fail in production.`);
   }
   const _imports_0$1 = "/static/nan.svg";
   const _imports_1 = "/static/nv.svg";
-  const _sfc_main$6 = {
+  const _sfc_main$7 = {
     __name: "register",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -6878,19 +7076,37 @@ This will fail in production.`);
       const password = vue.ref("");
       const confirmPassword = vue.ref("");
       const gender = vue.ref("");
-      const birthday = vue.ref("");
+      const birthday = vue.ref("2024-6-6");
+      const showPassword = vue.ref(false);
+      const showCmPassword = vue.ref(false);
+      const togglePassword = () => {
+        showPassword.value = !showPassword.value;
+      };
+      const toggleCmPassword = () => {
+        showCmPassword.value = !showCmPassword.value;
+      };
       const isFormValid = vue.computed(() => {
-        return nickname.value.trim() !== "" && gender.value !== "" && password.value.length !== 0 && confirmPassword.value.length !== 0;
+        return nickname.value.trim() !== "" && gender.value !== "" && password.value.length !== 0 && // 密码长度要求 、
+        confirmPassword.value.length !== 0;
       });
       const handleBirthdayChange = (date) => {
         birthday.value = date;
       };
       const handelNext = async () => {
+        formatAppLog("log", "at pages/login/register.vue:160", birthday);
         if (password.value !== confirmPassword.value) {
           uni.showToast({
             title: "两次密码不一致",
             icon: "none"
           });
+          return;
+        }
+        if (strengthLevel.value <= 1) {
+          uni.showToast({
+            title: "密码较弱请重新设置",
+            icon: "none"
+          });
+          return;
         }
         let publicKey;
         try {
@@ -6929,6 +7145,11 @@ This will fail in production.`);
           uni.navigateTo({
             url: "/pages/petSelection/petSelection"
           });
+        } else {
+          uni.showToast({
+            title: res.msg,
+            icon: "none"
+          });
         }
       };
       const strengthText = vue.computed(() => {
@@ -6940,10 +7161,11 @@ This will fail in production.`);
           return "中";
         return "强";
       });
-      const checkPasswordStrength = () => {
-        password.value = password.value.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, "");
+      const checkPasswordStrength = debounce((e) => {
+        const replaceValue = e.detail.value;
+        password.value = replaceValue.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, "");
         const pass = password.value;
-        if (pass.length > 7) {
+        if (pass.length > 0) {
           ShowStrenth.value = true;
         } else {
           ShowStrenth.value = false;
@@ -6953,9 +7175,9 @@ This will fail in production.`);
           return;
         }
         let score = 0;
-        if (pass.length >= 5)
+        if (pass.length >= 2)
           score += 1;
-        if (pass.length >= 7)
+        if (pass.length >= 5)
           score += 1;
         if (/[a-z]/.test(pass))
           score += 1;
@@ -6965,13 +7187,15 @@ This will fail in production.`);
           score += 1;
         if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass))
           score += 2;
+        if (score <= 1)
+          strengthLevel.value = 1;
         if (score <= 3)
           strengthLevel.value = 1;
         else if (score <= 6)
           strengthLevel.value = 2;
         else
           strengthLevel.value = 3;
-      };
+      }, 300);
       const UploadImage = () => {
         uni.chooseImage({
           count: 1,
@@ -6980,7 +7204,17 @@ This will fail in production.`);
           }
         });
       };
-      const __returned__ = { strengthLevel, ShowStrenth, authStore, avatar, phone, nickname, password, confirmPassword, gender, birthday, isFormValid, handleBirthdayChange, handelNext, strengthText, checkPasswordStrength, UploadImage, DatePicker, onMounted: vue.onMounted, computed: vue.computed, ref: vue.ref, get useAuthStore() {
+      onLoad(() => {
+        function formatDate(date) {
+          return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        }
+        birthday.value = formatDate(/* @__PURE__ */ new Date());
+      });
+      const __returned__ = { strengthLevel, ShowStrenth, authStore, avatar, phone, nickname, password, confirmPassword, gender, birthday, showPassword, showCmPassword, togglePassword, toggleCmPassword, isFormValid, handleBirthdayChange, handelNext, strengthText, checkPasswordStrength, UploadImage, get onLoad() {
+        return onLoad;
+      }, get debounce() {
+        return debounce;
+      }, DatePicker, onMounted: vue.onMounted, computed: vue.computed, ref: vue.ref, get useAuthStore() {
         return useAuthStore;
       }, get apiCompleteProfile() {
         return apiCompleteProfile;
@@ -6993,7 +7227,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "profile-container" }, [
       vue.createCommentVNode(" 头像上传 "),
       vue.createElementVNode("view", {
@@ -7112,19 +7346,26 @@ This will fail in production.`);
         vue.createCommentVNode(" 密码 "),
         vue.createElementVNode("view", { class: "form-item" }, [
           vue.createElementVNode("text", { class: "label" }, "密码:"),
-          vue.withDirectives(vue.createElementVNode(
-            "input",
-            {
+          vue.createElementVNode("view", { class: "form-item-pwd" }, [
+            vue.withDirectives(vue.createElementVNode("input", {
               "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.password = $event),
+              style: { "ime-mode": "disabled" },
+              password: !$setup.showPassword,
               placeholder: "请输入",
-              onInput: $setup.checkPasswordStrength,
+              onInput: _cache[5] || (_cache[5] = (...args) => $setup.checkPasswordStrength && $setup.checkPasswordStrength(...args)),
               maxlength: "10"
-            },
-            null,
-            544
-            /* NEED_HYDRATION, NEED_PATCH */
-          ), [
-            [vue.vModelText, $setup.password]
+            }, null, 40, ["password"]), [
+              [vue.vModelText, $setup.password]
+            ]),
+            vue.createElementVNode("view", {
+              class: "eye-btn",
+              onClick: $setup.togglePassword
+            }, [
+              vue.createElementVNode("image", {
+                src: $setup.showPassword ? "/static/eye.svg" : "/static/eye_close.svg",
+                class: "eye-icon"
+              }, null, 8, ["src"])
+            ])
           ])
         ]),
         vue.createCommentVNode(" 密码强度 "),
@@ -7139,7 +7380,7 @@ This will fail in production.`);
                 "weak": $setup.strengthLevel === 1,
                 "medium": $setup.strengthLevel === 2,
                 "strong": $setup.strengthLevel === 3,
-                "active": $setup.strengthLevel >= 1
+                "active": $setup.strengthLevel >= 0
               }])
             },
             null,
@@ -7182,36 +7423,37 @@ This will fail in production.`);
         vue.createCommentVNode(" 密码确认 "),
         vue.createElementVNode("view", { class: "form-item" }, [
           vue.createElementVNode("text", { class: "label" }, "密码确认:"),
-          vue.withDirectives(vue.createElementVNode(
-            "input",
-            {
-              "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.confirmPassword = $event),
+          vue.createElementVNode("view", { class: "form-item-pwd" }, [
+            vue.withDirectives(vue.createElementVNode("input", {
+              "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.confirmPassword = $event),
+              password: !$setup.showCmPassword,
               placeholder: "请输入",
               maxlength: "10"
-            },
-            null,
-            512
-            /* NEED_PATCH */
-          ), [
-            [vue.vModelText, $setup.confirmPassword]
+            }, null, 8, ["password"]), [
+              [vue.vModelText, $setup.confirmPassword]
+            ]),
+            vue.createElementVNode("view", {
+              class: "eye-btn",
+              onClick: $setup.toggleCmPassword
+            }, [
+              vue.createElementVNode("image", {
+                src: $setup.showCmPassword ? "/static/eye.svg" : "/static/eye_close.svg",
+                class: "eye-icon"
+              }, null, 8, ["src"])
+            ])
           ])
         ])
       ]),
       vue.createCommentVNode(" 下一步按钮 "),
-      vue.createElementVNode(
-        "button",
-        {
-          class: vue.normalizeClass(["next-btn", { active: $setup.isFormValid }]),
-          onClick: $setup.handelNext
-        },
-        "下一步",
-        2
-        /* CLASS */
-      )
+      vue.createElementVNode("button", {
+        class: "next-btn",
+        onClick: $setup.handelNext,
+        disabled: !$setup.isFormValid
+      }, "下一步", 8, ["disabled"])
     ]);
   }
-  const PagesLoginRegister = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-838b72c9"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/register.vue"]]);
-  const _sfc_main$5 = {
+  const PagesLoginRegister = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-838b72c9"], ["__file", "E:/ChongAi/ChongAiApp/pages/login/register.vue"]]);
+  const _sfc_main$6 = {
     name: "UniStatusBar",
     data() {
       return {
@@ -7219,7 +7461,7 @@ This will fail in production.`);
       };
     }
   };
-  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "view",
       {
@@ -7233,9 +7475,9 @@ This will fail in production.`);
       /* STYLE */
     );
   }
-  const statusBar = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-7920e3e0"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-status-bar.vue"]]);
+  const statusBar = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-7920e3e0"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-status-bar.vue"]]);
   const getVal = (val) => typeof val === "number" ? val + "px" : val;
-  const _sfc_main$4 = {
+  const _sfc_main$5 = {
     name: "UniNavBar",
     components: {
       statusBar
@@ -7365,7 +7607,7 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_status_bar = vue.resolveComponent("status-bar");
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0);
     return vue.openBlock(), vue.createElementBlock(
@@ -7520,7 +7762,7 @@ This will fail in production.`);
       /* CLASS */
     );
   }
-  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-26544265"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-nav-bar.vue"]]);
+  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-26544265"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-nav-bar.vue"]]);
   const isObject = (val) => val !== null && typeof val === "object";
   const defaultDelimiters = ["{", "}"];
   class BaseFormatter {
@@ -7827,7 +8069,7 @@ This will fail in production.`);
   const {
     t
   } = initVueI18n(messages);
-  const _sfc_main$3 = {
+  const _sfc_main$4 = {
     name: "UniSearchBar",
     emits: ["input", "update:modelValue", "clear", "cancel", "confirm", "blur", "focus"],
     props: {
@@ -7969,7 +8211,7 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0);
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-searchbar" }, [
       vue.createElementVNode(
@@ -8045,29 +8287,39 @@ This will fail in production.`);
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-f07ef577"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-search-bar/components/uni-search-bar/uni-search-bar.vue"]]);
-  function apiGetBreedList(petClass, petBreed) {
-    return request({
-      url: "/app/pet/breeds",
-      method: "GET",
-      data: {
-        petClass,
-        petBreed
-      }
-    });
-  }
+  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-f07ef577"], ["__file", "E:/ChongAi/ChongAiApp/uni_modules/uni-search-bar/components/uni-search-bar/uni-search-bar.vue"]]);
   function apiGetPetTypeList() {
     return request({
       url: "/app/pet/pet",
       method: "GET",
       header: {
         "ngrok-skip-browser-warning": "true"
-        //测试 添加请求头绕过ngrok拦截
       }
     });
   }
+  function apiGetPetBreeds(petClass, petBreed) {
+    return request({
+      url: "/app/pet/breeds",
+      method: "GET",
+      data: {
+        petClass,
+        petBreed
+      },
+      header: {
+        "ngrok-skip-browser-warning": "true"
+        // 绕过 ngrok 拦截
+      }
+    });
+  }
+  function apiaddPet(data) {
+    return request({
+      url: "/app/pet/addPet",
+      method: "POST",
+      data
+    });
+  }
   const _imports_0 = "/static/home.png";
-  const _sfc_main$2 = {
+  const _sfc_main$3 = {
     __name: "petSelection",
     emits: ["petSelected"],
     setup(__props, { expose: __expose, emit: __emit }) {
@@ -8080,13 +8332,16 @@ This will fail in production.`);
       const petData = vue.ref("");
       const petBreed = vue.ref("");
       const hotPets = vue.ref([]);
+      const scrollTop = vue.ref(0);
+      const letterPositions = vue.ref({});
+      const isScrolling = vue.ref(false);
       const emit = __emit;
       const handleBack = () => {
         uni.navigateBack();
       };
       const handleSkip = () => {
         uni.navigateTo({
-          url: "./petInfo"
+          url: "/pages/petSelection/petInfo"
         });
       };
       const handleTabChange = async (tab) => {
@@ -8100,7 +8355,11 @@ This will fail in production.`);
         GetBreedList();
       };
       const scrollToLetter = (letter) => {
+        isScrolling.value = true;
         currentLetter.value = `letter-${letter}`;
+        setTimeout(() => {
+          isScrolling.value = false;
+        }, 300);
       };
       vue.onMounted(() => {
         GetPetTypeList();
@@ -8110,58 +8369,78 @@ This will fail in production.`);
           const res = await apiGetPetTypeList();
           tabs.value = res.data;
         } catch (error) {
-          formatAppLog("error", "at pages/petSelection/petSelection.vue:150", "获取宠物类型失败:", error);
+          formatAppLog("error", "at pages/petSelection/petSelection.vue:166", "获取宠物类型失败:", error);
         }
       };
       const GetBreedList = async () => {
-        const authStore = useAuthStore();
-        const token = authStore.token;
-        uni.request({
-          // url:'https://637c-112-48-4-41.ngrok-free.app/app/pet/breeds',
-          url: "http://115.120.195.253/app/pet/breeds",
-          method: "GET",
-          data: {
-            petClass: petClass.value,
-            // 必填参数
-            petBreed: petBreed.value
-            // 选填参数
-          },
-          header: {
-            "Authorization": `Bearer ${token}`,
-            // 携带 token
-            "Content-Type": "application/json",
-            // 推荐添加
-            "ngrok-skip-browser-warning": "true"
-            //测试 添加请求头绕过ngrok拦截
-          },
-          success: (res) => {
-            var _a2;
-            formatAppLog("log", "at pages/petSelection/petSelection.vue:171", res);
-            if (res.statusCode === 200) {
-              formatAppLog("log", "at pages/petSelection/petSelection.vue:173", "宠物列表数据:", res.data);
-              hotPets.value = res.data.data.hot;
-              petData.value = res.data.data.breeds;
-            } else {
-              formatAppLog("error", "at pages/petSelection/petSelection.vue:177", "请求失败:", res);
-              uni.showToast({ title: `请求失败: ${((_a2 = res.data) == null ? void 0 : _a2.message) || "未知错误"}`, icon: "none" });
-            }
-          },
-          fail: (err) => {
-            formatAppLog("error", "at pages/petSelection/petSelection.vue:182", "网络错误:", err);
-            uni.showToast({ title: "网络连接失败", icon: "none" });
+        try {
+          const res = await apiGetPetBreeds(petClass.value, petBreed.value);
+          formatAppLog("log", "at pages/petSelection/petSelection.vue:173", res);
+          if (res.code === 200) {
+            hotPets.value = res.data.hot;
+            petData.value = res.data.breeds;
+            vue.nextTick(() => {
+              calculateLetterPositions();
+            });
+          } else {
+            throw new Error(res.message || "获取数据失败");
           }
-        });
+        } catch (error) {
+          formatAppLog("error", "at pages/petSelection/petSelection.vue:186", "获取宠物列表失败:", error);
+          uni.showToast({
+            title: error.message || "获取宠物列表失败",
+            icon: "none"
+          });
+        }
+      };
+      const calculateLetterPositions = () => {
+        const query = uni.createSelectorQuery().in(vue.getCurrentInstance());
+        const letters = Object.keys(petData.value);
+        query.select(".alphabet-list").boundingClientRect((scrollRect) => {
+          if (!scrollRect)
+            return;
+          letters.forEach((letter) => {
+            query.select(`#letter-${letter}`).boundingClientRect((rect) => {
+              if (rect) {
+                const position = rect.top - scrollRect.top + scrollTop.value;
+                letterPositions.value[letter] = position;
+              }
+            });
+          });
+          query.exec();
+        }).exec();
+      };
+      const handleScroll = (e) => {
+        if (isScrolling.value)
+          return;
+        scrollTop.value = e.detail.scrollTop;
+        updateActiveLetter();
+      };
+      const updateActiveLetter = () => {
+        const letters = Object.keys(petData.value);
+        let activeLetter = "";
+        for (const letter of letters) {
+          const position = letterPositions.value[letter];
+          if (position !== void 0 && position <= scrollTop.value + 50) {
+            activeLetter = letter;
+          } else {
+            break;
+          }
+        }
+        if (activeLetter && currentLetter.value !== `letter-${activeLetter}`) {
+          currentLetter.value = `letter-${activeLetter}`;
+        }
       };
       const petSearch = () => {
         GetBreedList();
       };
-      const checkPet = (petBreed2) => {
+      const checkPet = (petBreed2, petClass2) => {
         uni.navigateTo({
-          url: `/pages/petSelection/petInfo?petBreed=${encodeURIComponent(petBreed2)}`
+          url: `/pages/petSelection/petInfo?petBreed=${encodeURIComponent(petBreed2)}&petClass=${encodeURIComponent(petClass2)}`
         });
       };
-      const __returned__ = { tabs, buttonText, activeTab, currentLetter, petClass, petData, petBreed, hotPets, emit, handleBack, handleSkip, handleTabChange, scrollToLetter, GetPetTypeList, GetBreedList, petSearch, checkPet, ref: vue.ref, onMounted: vue.onMounted, nextTick: vue.nextTick, getCurrentInstance: vue.getCurrentInstance, get apiGetBreedList() {
-        return apiGetBreedList;
+      const __returned__ = { tabs, buttonText, activeTab, currentLetter, petClass, petData, petBreed, hotPets, scrollTop, letterPositions, isScrolling, emit, handleBack, handleSkip, handleTabChange, scrollToLetter, GetPetTypeList, GetBreedList, calculateLetterPositions, handleScroll, updateActiveLetter, petSearch, checkPet, ref: vue.ref, onMounted: vue.onMounted, nextTick: vue.nextTick, getCurrentInstance: vue.getCurrentInstance, get apiGetPetBreeds() {
+        return apiGetPetBreeds;
       }, get apiGetPetTypeList() {
         return apiGetPetTypeList;
       }, get useAuthStore() {
@@ -8171,7 +8450,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0);
     const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_1);
     const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_2);
@@ -8271,7 +8550,7 @@ This will fail in production.`);
                     return vue.openBlock(), vue.createElementBlock("text", {
                       key: index,
                       class: "hot-tag",
-                      onClick: ($event) => $setup.checkPet(pet)
+                      onClick: ($event) => $setup.checkPet(pet, $setup.petClass)
                     }, vue.toDisplayString(pet), 9, ["onClick"]);
                   }),
                   128
@@ -8285,7 +8564,10 @@ This will fail in production.`);
                 class: "alphabet-list",
                 "show-scrollbar": false,
                 "scroll-y": "",
-                "scroll-into-view": $setup.currentLetter
+                "scroll-into-view": $setup.currentLetter,
+                "scroll-with-animation": true,
+                onScroll: $setup.handleScroll,
+                "scroll-top": $setup.scrollTop
               }, [
                 (vue.openBlock(true), vue.createElementBlock(
                   vue.Fragment,
@@ -8293,7 +8575,8 @@ This will fail in production.`);
                   vue.renderList($setup.petData, (pets, letter) => {
                     return vue.openBlock(), vue.createElementBlock("view", {
                       key: letter,
-                      id: `letter-${letter}`
+                      id: `letter-${letter}`,
+                      class: "letter-section"
                     }, [
                       vue.createElementVNode(
                         "text",
@@ -8309,7 +8592,7 @@ This will fail in production.`);
                           return vue.openBlock(), vue.createElementBlock("view", {
                             key: index,
                             class: "pet-item",
-                            onClick: ($event) => $setup.checkPet(pet.petBreed)
+                            onClick: ($event) => $setup.checkPet(pet.petBreed, $setup.petClass)
                           }, vue.toDisplayString(pet.petBreed), 9, ["onClick"]);
                         }),
                         128
@@ -8320,7 +8603,7 @@ This will fail in production.`);
                   128
                   /* KEYED_FRAGMENT */
                 ))
-              ], 8, ["scroll-into-view"]),
+              ], 40, ["scroll-into-view", "scroll-top"]),
               vue.createCommentVNode(" 字母导航（右侧固定定位） "),
               vue.createElementVNode("view", { class: "alphabet-nav-wrapper" }, [
                 vue.createElementVNode("view", { class: "alphabet-nav" }, [
@@ -8357,31 +8640,32 @@ This will fail in production.`);
       ])
     ]);
   }
-  const PagesPetSelectionPetSelection = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-4cc5dec4"], ["__file", "E:/ChongAi/ChongAiApp/pages/petSelection/petSelection.vue"]]);
-  const _sfc_main$1 = {
+  const PagesPetSelectionPetSelection = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-4cc5dec4"], ["__file", "E:/ChongAi/ChongAiApp/pages/petSelection/petSelection.vue"]]);
+  const _sfc_main$2 = {
     __name: "petInfo",
     setup(__props, { expose: __expose }) {
       __expose();
       const avatar = vue.ref("/static/touxiang.svg");
       const petBreed = vue.ref("");
+      const petClass = vue.ref("");
       const petNickName = vue.ref("");
       const petGender = vue.ref("");
-      const sterilized = vue.ref(false);
-      const petBirthday = vue.ref("");
+      const sterilized = vue.ref("0");
+      const petBirthday = vue.ref((/* @__PURE__ */ new Date()).getDate());
       const arrivalDate = vue.ref("");
-      const handlePetSelected = (selectedPet) => {
-        formatAppLog("log", "at pages/petSelection/petInfo.vue:113", "接收到宠物数据:", selectedPet);
-      };
       const handleBack = () => {
         uni.navigateBack();
       };
       const handleSkip = () => {
+        uni.navigateTo({
+          url: "/pages/home/home"
+        });
       };
       const UploadImage = () => {
         uni.chooseImage({
           count: 1,
           success(res) {
-            imagePath.value = res.tempFilePaths[0];
+            avatar.value = res.tempFilePaths[0];
           }
         });
       };
@@ -8392,25 +8676,60 @@ This will fail in production.`);
         arrivalDate.value = date;
       };
       const isFormValid = vue.computed(() => {
-        return petNickName.value !== "" && petGender.value !== "" && petBirthday.value !== "" && arrivalDate.value !== "";
+        return petNickName.value !== "" && petGender.value !== "";
       });
-      const complete = () => {
-        handlePetSelected();
-        formatAppLog("log", "at pages/petSelection/petInfo.vue:155", petBirthday.value);
-        formatAppLog("log", "at pages/petSelection/petInfo.vue:156", arrivalDate.value);
+      const complete = async () => {
+        const res = await apiaddPet({
+          petAvatarURL: avatar.value,
+          petBreed: petBreed.value,
+          petClass: petClass.value,
+          petNickName: petNickName.value,
+          petGender: petGender.value,
+          sterilized: sterilized.value,
+          petBirthday: petBirthday.value,
+          adoptionDate: arrivalDate.value
+        });
+        formatAppLog("log", "at pages/petSelection/petInfo.vue:165", res);
+        if (res.code === 200) {
+          uni.showToast({
+            title: "添加成功",
+            icon: "success"
+          });
+          uni.navigateTo({
+            url: "/pages/home/home"
+          });
+        } else {
+          uni.showToast({
+            title: res.msg,
+            icon: "none"
+          });
+        }
       };
       onLoad((options) => {
         petBreed.value = decodeURIComponent(options.petBreed);
-        formatAppLog("log", "at pages/petSelection/petInfo.vue:160", petBreed.value);
+        petClass.value = decodeURIComponent(options.petClass);
+        if (petBreed.value === "undefined") {
+          petBreed.value = "";
+        }
+        function formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        }
+        petBirthday.value = formatDate(/* @__PURE__ */ new Date());
+        arrivalDate.value = formatDate(/* @__PURE__ */ new Date());
       });
-      const __returned__ = { avatar, petBreed, petNickName, petGender, sterilized, petBirthday, arrivalDate, handlePetSelected, handleBack, handleSkip, UploadImage, handleBirthdayChange, handleArrivalDateChange, isFormValid, complete, DatePicker, onMounted: vue.onMounted, computed: vue.computed, ref: vue.ref, get onLoad() {
+      const __returned__ = { avatar, petBreed, petClass, petNickName, petGender, sterilized, petBirthday, arrivalDate, handleBack, handleSkip, UploadImage, handleBirthdayChange, handleArrivalDateChange, isFormValid, complete, get apiaddPet() {
+        return apiaddPet;
+      }, DatePicker, onMounted: vue.onMounted, computed: vue.computed, ref: vue.ref, get onLoad() {
         return onLoad;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0);
     const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_1);
     return vue.openBlock(), vue.createElementBlock("view", { class: "pet-info-container" }, [
@@ -8461,31 +8780,22 @@ This will fail in production.`);
       vue.createCommentVNode(" 表单区域 "),
       vue.createElementVNode("view", { class: "form-group" }, [
         vue.createCommentVNode(" 手机号"),
-        vue.createElementVNode(
-          "view",
-          {
-            class: "form-item",
-            "on:petSelected": $setup.handlePetSelected
-          },
-          [
-            vue.createElementVNode("text", { class: "label" }, "宠物品种:"),
-            vue.withDirectives(vue.createElementVNode(
-              "input",
-              {
-                "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.petBreed = $event),
-                disabled: "",
-                placeholder: "请输入"
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            ), [
-              [vue.vModelText, $setup.petBreed]
-            ])
-          ],
-          32
-          /* NEED_HYDRATION */
-        ),
+        vue.createElementVNode("view", { class: "form-item" }, [
+          vue.createElementVNode("text", { class: "label" }, "宠物品种:"),
+          vue.withDirectives(vue.createElementVNode(
+            "input",
+            {
+              "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.petBreed = $event),
+              disabled: "",
+              placeholder: "请输入"
+            },
+            null,
+            512
+            /* NEED_PATCH */
+          ), [
+            [vue.vModelText, $setup.petBreed]
+          ])
+        ]),
         vue.createCommentVNode(" 昵称 "),
         vue.createElementVNode("view", { class: "form-item" }, [
           vue.createElementVNode("text", { class: "label" }, "宠物昵称:"),
@@ -8493,7 +8803,8 @@ This will fail in production.`);
             "input",
             {
               "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.petNickName = $event),
-              placeholder: "请输入宠物昵称"
+              placeholder: "请输入宠物昵称",
+              maxlength: "10"
             },
             null,
             512
@@ -8569,8 +8880,8 @@ This will fail in production.`);
             vue.createElementVNode(
               "view",
               {
-                class: vue.normalizeClass(["neuter-option", { active: $setup.sterilized === true }]),
-                onClick: _cache[4] || (_cache[4] = ($event) => $setup.sterilized = true)
+                class: vue.normalizeClass(["neuter-option", { active: $setup.sterilized === "1" }]),
+                onClick: _cache[4] || (_cache[4] = ($event) => $setup.sterilized = "1")
               },
               " 是 ",
               2
@@ -8579,8 +8890,8 @@ This will fail in production.`);
             vue.createElementVNode(
               "view",
               {
-                class: vue.normalizeClass(["neuter-option", { active: $setup.sterilized === false }]),
-                onClick: _cache[5] || (_cache[5] = ($event) => $setup.sterilized = false)
+                class: vue.normalizeClass(["neuter-option", { active: $setup.sterilized === "0" }]),
+                onClick: _cache[5] || (_cache[5] = ($event) => $setup.sterilized = "0")
               },
               " 否 ",
               2
@@ -8600,25 +8911,31 @@ This will fail in production.`);
         ])
       ]),
       vue.createCommentVNode(" 完成按钮 "),
-      vue.createElementVNode(
-        "button",
-        {
-          class: vue.normalizeClass(["next-btn", { active: $setup.isFormValid }]),
-          onClick: $setup.complete
-        },
-        "完成",
-        2
-        /* CLASS */
-      )
+      vue.createElementVNode("button", {
+        class: "next-btn",
+        disabled: !$setup.isFormValid,
+        onClick: $setup.complete
+      }, "完成", 8, ["disabled"])
     ]);
   }
-  const PagesPetSelectionPetInfo = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__scopeId", "data-v-d243e359"], ["__file", "E:/ChongAi/ChongAiApp/pages/petSelection/petInfo.vue"]]);
+  const PagesPetSelectionPetInfo = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-d243e359"], ["__file", "E:/ChongAi/ChongAiApp/pages/petSelection/petInfo.vue"]]);
+  const _sfc_main$1 = {
+    data() {
+      return {};
+    },
+    methods: {}
+  };
+  function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view");
+  }
+  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__file", "E:/ChongAi/ChongAiApp/pages/home/home.vue"]]);
   __definePage("pages/login/login", PagesLoginLogin);
   __definePage("pages/login/sms", PagesLoginSms);
   __definePage("pages/login/pwd", PagesLoginPwd);
   __definePage("pages/login/register", PagesLoginRegister);
   __definePage("pages/petSelection/petSelection", PagesPetSelectionPetSelection);
   __definePage("pages/petSelection/petInfo", PagesPetSelectionPetInfo);
+  __definePage("pages/home/home", PagesHomeHome);
   const _sfc_main = {
     onLaunch: function() {
       formatAppLog("log", "at App.vue:4", "App Launch");

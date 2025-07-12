@@ -6,15 +6,15 @@ export function apiGetPwd(grantType,phone, password,code) {
     url: "/app/auth/login",
     method: 'POST',
     data: {
-      grantType: grantType, 
-      phone: phone,
-      password: password,
-	  code:code
+      grantType, 
+      phone,
+      password,
+	  code
     }
   })
 }
 // 获取手机验证码接口
-export function apiGetCode(phone, password) {
+export function apiGetCode(phone) {
   return request({
     url: "/app/auth/sendCode",
     method: 'POST',

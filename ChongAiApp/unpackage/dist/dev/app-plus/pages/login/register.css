@@ -1,38 +1,33 @@
 
 .date-picker-wrapper[data-v-9f4f5132] {
-		display: flex;
-		align-items: center;
-		width: 75%;
-}
-.date-display[data-v-9f4f5132] {
-		min-width: 6.25rem;
-		font-size: 1rem;
+  display: flex;
+  align-items: center;
+  width: 75%;
 }
 .picker[data-v-9f4f5132] {
-		flex: 1;
-		height: 6.25rem;
+  flex: 1;
+  height: 6.25rem;
 }
 
-
-	/* 选择器样式 */
+/* 选择器样式 */
 uni-picker-view[data-v-9f4f5132] {
-		width: 100%;
-		height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
-	/* 选择项样式 */
+/* 选择项样式 */
 .item[data-v-9f4f5132] {
-		line-height: 2.5rem;
-		text-align: center;
-		font-size: 1rem;
-		color: #666;
+  line-height: 2.5rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #666;
 }
 
-	/* 选中项样式 */
+/* 选中项样式 */
 uni-picker-view-column uni-view.item[data-v-9f4f5132] {
-		font-weight: bold;
-		color: black;
-		background-color: #f4f4f4;
+  font-weight: bold;
+  color: black;
+  background-color: #f4f4f4;
 }
 
 /**
@@ -62,7 +57,7 @@ uni-picker-view-column uni-view.item[data-v-9f4f5132] {
 /* 透明度 */
 /* 文章场景相关 */
 .profile-container[data-v-838b72c9] {
-  padding: 0 1.25rem;
+  padding: 0 1.25rem 0 0.625rem;
   background-color: #fff;
 }
 
@@ -94,7 +89,7 @@ uni-picker-view-column uni-view.item[data-v-9f4f5132] {
 }
 .label[data-v-838b72c9] {
   text-align: center;
-  width: 5rem;
+  width: 5.625rem;
   font-size: 1rem;
   color: #333;
 }
@@ -189,7 +184,7 @@ uni-input[data-v-838b72c9] {
   height: 1rem;
 }
 .label[data-v-838b72c9] {
-  width: 5rem;
+  width: 5.625rem;
   font-size: 1rem;
   color: #333;
 }
@@ -222,6 +217,25 @@ uni-picker-view[data-v-838b72c9] {
 uni-picker-view-column uni-view.item[data-v-838b72c9] {
   font-weight: bold;
   color: black;
+}
+.form-item-pwd[data-v-838b72c9] {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 0.9375rem;
+  background-color: #e8e8e8;
+}
+
+/* 眼睛图标按钮 */
+.eye-btn[data-v-838b72c9] {
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0.3125rem;
+  margin-right: 0.625rem;
+}
+.eye-icon[data-v-838b72c9] {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 .error-mimatext[data-v-838b72c9] {
   color: black;
@@ -262,7 +276,7 @@ uni-picker-view-column uni-view.item[data-v-838b72c9] {
 /* 下一步按钮 */
 .next-btn[data-v-838b72c9] {
   width: 9.375rem;
-  background-color: #f5f5f5;
+  background-color: #007aff;
   color: white;
   border-radius: 1.5625rem;
   height: 2.1875rem;

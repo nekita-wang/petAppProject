@@ -1,4 +1,4 @@
-	<template>
+<template>
 		<view class="pet-selection-container">
 			<!-- 顶部导航栏 -->
 			<uni-nav-bar :border="false" background-color="#ffffff" fixed status-bar>
@@ -49,7 +49,7 @@
 				<view class="hot-section">
 					<view class="section-title">热门:</view>
 					<view class="hot-tags">
-						<text v-for="(pet, index) in hotPets" :key="index" class="hot-tag" @click="checkPet(pet)">
+						<text v-for="(pet, index) in hotPets" :key="index" class="hot-tag" @click="checkPet(pet,petClass)">
 							{{ pet }}
 						</text>
 					</view>
@@ -60,7 +60,8 @@
 					<scroll-view class="alphabet-list" :show-scrollbar='false' scroll-y :scroll-into-view="currentLetter">
 						<view v-for="(pets, letter) in petData" :key="letter" :id="`letter-${letter}`">
 							<text class="letter-title">{{ letter }}</text>
-							<view v-for="(pet, index) in pets" :key="index" class="pet-item" @click="checkPet(pet.petBreed)" >
+							<view v-for="(pet, index) in pets" :key="index" class="pet-item"
+								@click="checkPet(pet.petBreed,petClass)">
 								{{ pet.petBreed }}
 							</view>
 						</view>
@@ -70,7 +71,7 @@
 						<view class="alphabet-nav">
 							<text v-for="letter in Object.keys(petData)" :key="letter"
 								:class="['alphabet-char', { active: currentLetter === `letter-${letter}` }]"
-								@click="scrollToLetter(letter)">
+								@click.="scrollToLetter(letter)">
 								{{ letter }}
 							</text>
 						</view>
@@ -94,21 +95,23 @@
 			getCurrentInstance
 		} from 'vue'
 		import {
-			apiGetBreedList,
+			apiGetPetBreeds,
 			apiGetPetTypeList
 		} from '../../api/petSelection'
-		import { useAuthStore } from '@/stores/auth' // 导入Pinia store
+		import {
+			useAuthStore
+		} from '@/stores/auth' // 导入Pinia store
 		// 宠物分类
 		const tabs = ref('')
 
 		const buttonText = ref('完成') //默认按钮内容
 		const activeTab = ref('0') //默认按钮
 		const currentLetter = ref('letter-A') // 默认选中A字母
-		const petClass = ref('') 
+		const petClass = ref('')
 		const petData = ref('')
 		const petBreed = ref('')
 		const hotPets = ref([]) //热门
-		
+
 		// 定义触发事件
 		const emit = defineEmits(['petSelected'])
 		// 导航方法
@@ -117,7 +120,7 @@
 		}
 		const handleSkip = () => {
 			uni.navigateTo({
-				url: './petInfo'
+				url: '/pages/petSelection/petInfo'
 			})
 		}
 		// 切换tab栏
@@ -137,8 +140,8 @@
 		const scrollToLetter = (letter) => {
 			currentLetter.value = `letter-${letter}`
 		}
+		// 初始化
 		onMounted(() => {
-			// 宠物类别
 			GetPetTypeList()
 		})
 		//获取宠物类别列表 
@@ -150,55 +153,35 @@
 				console.error('获取宠物类型失败:', error)
 			}
 		}
-		//获取宠物列表
+		// 获取宠物列表
 		const GetBreedList = async () => {
-			const authStore = useAuthStore()
-			 const token = authStore.token
-			   uni.request({
-				   // url:'https://637c-112-48-4-41.ngrok-free.app/app/pet/breeds',
-			     url: 'http://115.120.195.253/app/pet/breeds',
-			     method: 'GET',
-			     data: {
-			       petClass: petClass.value,   // 必填参数
-			       petBreed: petBreed.value  // 选填参数
-			     },
-			     header: {
-			       'Authorization': `Bearer ${token}`, // 携带 token
-			       'Content-Type': 'application/json',  // 推荐添加
-				   'ngrok-skip-browser-warning': 'true' //测试 添加请求头绕过ngrok拦截
-			     },
-			     success: (res) => {
-					 console.log(res);
-			       if (res.statusCode === 200) {
-			         console.log('宠物列表数据:', res.data);
-					hotPets.value = res.data.data.hot
-					petData.value = res.data.data.breeds
-			       } else {
-			         console.error('请求失败:', res);
-			         uni.showToast({ title: `请求失败: ${res.data?.message || '未知错误'}`, icon: 'none' });
-			       }
-			     },
-			     fail: (err) => {
-			       console.error('网络错误:', err);
-			       uni.showToast({ title: '网络连接失败', icon: 'none' });
-			     }
-			   });
-			// try {			    
-			// 	    const res = await apiGetBreedList(petClass.value,petBreed.value)
-			// 	console.log('宠物列表：', res);
-			// } catch (error) {
-			// 	console.error('获取宠物列表失败:', error)
-			// }
+			try {
+				const res = await apiGetPetBreeds(petClass.value, petBreed.value)
+				console.log(res);
+				if (res.code === 200) {
+					hotPets.value = res.data.hot
+					petData.value = res.data.breeds
+				} else {
+					throw new Error(res.message || '获取数据失败')
+				}
+			} catch (error) {
+				console.error('获取宠物列表失败:', error)
+				uni.showToast({
+					title: error.message || '获取宠物列表失败',
+					icon: 'none'
+				})
+			}
 		}
+
 		// 搜索框
-		const petSearch = ()=>{
+		const petSearch = () => {
 			GetBreedList()
 		}
 		// 点击宠物标签
-		const checkPet =(petBreed) =>{
-			 uni.navigateTo({
-			    url: `/pages/petSelection/petInfo?petBreed=${encodeURIComponent(petBreed)}`
-			  })
+		const checkPet = (petBreed, petClass) => {
+			uni.navigateTo({
+				url: `/pages/petSelection/petInfo?petBreed=${encodeURIComponent(petBreed)}&petClass=${encodeURIComponent(petClass)}`
+			})
 		}
 	</script>
 
@@ -212,6 +195,7 @@
 
 		/* 导航栏整体样式 */
 		:deep(.uni-nav-bar) {
+			position: relative;
 			height: 44px;
 			line-height: 44px;
 		}
@@ -233,17 +217,32 @@
 			flex: 1;
 		}
 
-		/* 右侧跳过按钮样式 */
+		/* 右侧跳过按钮 */
 		.nav-right {
-			padding-right: 13rpx;
+			position: absolute;
+			right: 20rpx;
+			top: 50%;
+			transform: translateY(-50%);
+			z-index: 10;
 		}
 
 		.skip-text {
+			display: inline-block;
+			min-width: 120rpx;
+			padding: 12rpx 24rpx;
 			background-color: #aaaaaa;
-			padding: 12rpx 21rpx;
 			border-radius: 50rpx;
 			color: white;
 			font-size: 26rpx;
+			text-align: center;
+			white-space: nowrap;
+			box-sizing: border-box;
+
+			/* 响应式处理 */
+			@media (max-width: 375px) {
+				padding: 8rpx 16rpx;
+				font-size: 24rpx;
+			}
 		}
 
 		/* 页签样式 */

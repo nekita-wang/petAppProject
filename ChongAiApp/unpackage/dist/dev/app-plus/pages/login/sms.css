@@ -648,8 +648,14 @@
   font-weight: bold;
   white-space: nowrap;
 }
-.login-container .login-btn[data-v-4e4cd1cc] {
-  background-color: #f5f5f5;
+.login-container .tip[data-v-4e4cd1cc] {
+  color: #999;
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 0.9375rem;
+}
+.login-btn[data-v-4e4cd1cc] {
+  background-color: #007aff;
   color: #fff;
   border-radius: 1.5625rem;
   height: 2.8125rem;
@@ -657,12 +663,6 @@
   font-size: 1rem;
   margin-top: 1.875rem;
 }
-.login-container .login-btn.active[data-v-4e4cd1cc] {
+.login-btn.active[data-v-4e4cd1cc] {
   background-color: #007aff;
-}
-.login-container .tip[data-v-4e4cd1cc] {
-  color: #999;
-  font-size: 0.75rem;
-  text-align: center;
-  margin-top: 0.9375rem;
 }

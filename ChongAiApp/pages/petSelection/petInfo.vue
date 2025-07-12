@@ -94,30 +94,35 @@
 </template>
 
 <script setup>
-	import { apiaddPet } from '../../api/petSelection'
+	import {
+		apiaddPet
+	} from '../../api/petSelection'
 	import DatePicker from '@/components/DatePicker.vue'
 	import {
 		onMounted,
 		computed,
 		ref
 	} from 'vue'
-	import { onLoad } from '@dcloudio/uni-app'
+	import {
+		onLoad
+	} from '@dcloudio/uni-app'
 	const avatar = ref('/static/touxiang.svg') //默认图片
 	const petBreed = ref('') //宠物品种
+	const petClass = ref('') //宠物类别
 	const petNickName = ref('') //宠物昵称
 	const petGender = ref('') // 宠物性别
 	const sterilized = ref('0') //是否绝育
 	const petBirthday = ref(new Date().getDate()) //宠物生日
 	const arrivalDate = ref('') //到家日期
-	// 返回方法
+	// 返回上一级
 	const handleBack = () => {
 		uni.navigateBack()
 	}
 	// 跳过方法
 	const handleSkip = () => {
-		// uni.navigateTo({
-		// 	url: './petInfo'
-		// })
+		uni.navigateTo({
+			url: '/pages/home/home'
+		})
 	}
 	//点击上传图片
 	const UploadImage = () => {
@@ -141,21 +146,21 @@
 	const isFormValid = computed(() => {
 		return (
 			petNickName.value !== '' &&
-			petGender.value !== '' 
+			petGender.value !== ''
 		)
 	})
 	// 点击完成
 	const complete = async () => {
 		// 调用注册接口接口
 		const res = await apiaddPet({
-			petAvatarURL: avatar.value, 
+			petAvatarURL: avatar.value,
 			petBreed: petBreed.value,
-			petClass:'猫',
-			petNickName	: petNickName.value,
+			petClass: petClass.value,
+			petNickName: petNickName.value,
 			petGender: petGender.value,
 			sterilized: sterilized.value,
 			petBirthday: petBirthday.value,
-			adoptionDate:arrivalDate.value
+			adoptionDate: arrivalDate.value
 		})
 		console.log(res);
 		if (res.code === 200) {
@@ -175,14 +180,15 @@
 	}
 	onLoad((options) => {
 		petBreed.value = decodeURIComponent(options.petBreed) // 必须解码
-			if(petBreed.value === 'undefined'){
-				petBreed.value = ''
-			}
+		petClass.value = decodeURIComponent(options.petClass)
+		if (petBreed.value === 'undefined') {
+			petBreed.value = ''
+		}
 		function formatDate(date) {
-		  const year = date.getFullYear();
-		  const month = String(date.getMonth() + 1).padStart(2, '0'); // 补零
-		  const day = String(date.getDate()).padStart(2, '0');       // 补零
-		  return `${year}-${month}-${day}`; // 格式：YYYY-MM-DD
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0'); // 补零
+			const day = String(date.getDate()).padStart(2, '0'); // 补零
+			return `${year}-${month}-${day}`; // 格式：YYYY-MM-DD
 		}
 		petBirthday.value = formatDate(new Date());
 		arrivalDate.value = formatDate(new Date());
@@ -379,13 +385,13 @@
 	/* 下一步按钮 */
 	.next-btn {
 		width: 300rpx;
-			background-color: #007aff;
+		background-color: #007aff;
 		color: white;
 		border-radius: 50rpx;
 		height: 70rpx;
 		margin-top: 60rpx;
 		line-height: 70rpx;
-		
+
 		&.active {
 			background-color: #007aff;
 		}

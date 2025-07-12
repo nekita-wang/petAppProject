@@ -624,11 +624,11 @@
   /* 眼睛图标按钮 */
 }
 .login-container .input-group-pwd uni-input[data-v-8032d478] {
-  width: 100%;
+  flex: 1;
+  padding-left: 0.78125rem;
   /* 禁用文本复制 */
   user-select: none;
   -webkit-user-select: none;
-  padding-left: 0.78125rem;
 }
 .login-container .input-group-pwd .eye-btn[data-v-8032d478] {
   width: 1.25rem;
@@ -642,11 +642,12 @@
 }
 .login-container .pwdErr-text[data-v-8032d478] {
   margin-top: 0.3125rem;
-  color: red;
+  color: #ff4d4f;
   font-size: 0.875rem;
+  text-align: center;
 }
 .login-container .login-btn[data-v-8032d478] {
-  background-color: #f5f5f5;
+  background-color: #007aff;
   color: #fff;
   border-radius: 1.5625rem;
   height: 2.8125rem;
@@ -654,6 +655,7 @@
   font-size: 1rem;
   margin-top: 1.25rem;
 }
-.login-container .login-btn.active[data-v-8032d478] {
-  background-color: #007aff;
+.login-container .login-btn[disabled][data-v-8032d478] {
+  background-color: #c0c0c0;
+  opacity: 0.7;
 }

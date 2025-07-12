@@ -780,6 +780,7 @@
 
 /* 导航栏整体样式 */
 [data-v-4cc5dec4] .uni-nav-bar {
+  position: relative;
   height: 44px;
   line-height: 44px;
 }
@@ -801,16 +802,32 @@
   flex: 1;
 }
 
-/* 右侧跳过按钮样式 */
+/* 右侧跳过按钮 */
 .nav-right[data-v-4cc5dec4] {
-  padding-right: 0.40625rem;
+  position: absolute;
+  right: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 .skip-text[data-v-4cc5dec4] {
+  display: inline-block;
+  min-width: 3.75rem;
+  padding: 0.375rem 0.75rem;
   background-color: #aaaaaa;
-  padding: 0.375rem 0.65625rem;
   border-radius: 1.5625rem;
   color: white;
   font-size: 0.8125rem;
+  text-align: center;
+  white-space: nowrap;
+  box-sizing: border-box;
+  /* 响应式处理 */
+}
+@media (max-width: 375px) {
+.skip-text[data-v-4cc5dec4] {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
 }
 
 /* 页签样式 */
@@ -912,6 +929,9 @@
 .alphabet-list[data-v-4cc5dec4] {
   height: 100%;
 }
+.letter-section[data-v-4cc5dec4] {
+  position: relative;
+}
 .letter-title[data-v-4cc5dec4] {
   display: block;
   padding: 10px 0;
@@ -920,6 +940,10 @@
   color: black;
   background-color: #f5f5f5;
   font-weight: bold;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 .pet-item[data-v-4cc5dec4] {
   padding: 12px 0;
@@ -931,12 +955,14 @@
 /* 字母导航容器（ */
 .alphabet-nav-wrapper[data-v-4cc5dec4] {
   position: fixed;
-  top: 55%;
+  top: 57%;
   right: 0.375rem;
   transform: translateY(-50%);
   z-index: 100;
   padding: 0.3125rem 0 0.3125rem 0;
   background: rgba(233, 233, 233, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* 字母导航项 */
@@ -947,19 +973,17 @@
 }
 .alphabet-char[data-v-4cc5dec4] {
   font-size: 12px;
-  color: #acacac;
+  color: #7a7a7a;
   padding: 2px 6px;
   text-align: center;
-}
-.alphabet-char.active[data-v-4cc5dec4] {
-  color: #1989FA;
-  font-weight: bold;
-}
-.alphabet-char.active[data-v-4cc5dec4] {
-  color: #1989FA;
-  font-weight: bold;
-  transform: scale(1.2);
   transition: all 0.2s;
+  border-radius: 50%;
+}
+.alphabet-char.active[data-v-4cc5dec4] {
+  color: #1989FA;
+  font-weight: bold;
+  background-color: #e6f3ff;
+  transform: scale(1.2);
 }
 
 /* 固定底部按钮 */
@@ -970,6 +994,7 @@
   right: 0;
   padding: 10px;
   z-index: 10;
+  background: linear-gradient(to top, white, transparent);
 }
 .next-btn[data-v-4cc5dec4] {
   width: 50%;
@@ -979,4 +1004,5 @@
   height: 40px;
   line-height: 40px;
   font-size: 16px;
+  box-shadow: 0 2px 8px rgba(25, 137, 250, 0.4);
 }
