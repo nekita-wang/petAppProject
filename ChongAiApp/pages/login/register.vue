@@ -3,24 +3,21 @@
 
 		<!-- 头像上传 -->
 		<view class="avatar-upload" @click="UploadImage">
-			<image :src=avatar class="avatar" />
-			<!-- <image src="/static/camera-icon.svg" class="camera-icon" /> -->
+			<up-image :src=avatar width="80px" height="80px" shape="circle"> </up-image>
 		</view>
-
 		<!-- 表单区域 -->
 		<view class="form-group">
 			<!-- 手机号-->
 			<view class="form-item">
 				<text class="label">手机号:</text>
-				<input v-model="authStore.phone" placeholder="请输入" maxlength="11" disabled />
+				<up-input v-model="authStore.phone" disabled placeholder="请输入手机号" shape="circle"></up-input>
 			</view>
 
 			<!-- 昵称 -->
 			<view class="form-item">
 				<text class="label">昵称:</text>
-				<input v-model="nickname" placeholder="请输入" maxlength="10" />
+				<up-input v-model="nickname" placeholder="请输入" shape="circle" maxlength="10"></up-input>
 			</view>
-			<!-- 性别 -->
 			<!-- 性别选择区域 -->
 			<view class="form-item">
 				<text class="label">性别:</text>
@@ -53,11 +50,15 @@
 			<!-- 密码 -->
 			<view class="form-item">
 				<text class="label">密码:</text>
-				<view class="form-item-pwd"> <input v-model="password" style="ime-mode:disabled;"
-						:password="!showPassword" placeholder="请输入" @input="checkPasswordStrength" maxlength="10" />
-					<view class="eye-btn" @click="togglePassword">
-						<image :src="showPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
-					</view>
+				<view class="form-item-pwd">
+					<u-input shape="circle" v-model="password" :type="showPassword ? 'text' : 'password'"
+						placeholder="请输入" :passwordIcon="false" maxlength="10" @change="checkPasswordStrength">
+						<template #suffix>
+							<u-icon :name="showPassword ? 'eye-fill' : 'eye-off'"
+								:color="showPassword ? '#2979ff' : '#c0c4cc'" size="25"
+								@click="showPassword = !showPassword" />
+						</template>
+					</u-input>
 				</view>
 
 
@@ -85,17 +86,23 @@
 			<view class="form-item">
 				<text class="label">密码确认:</text>
 				<view class="form-item-pwd">
-					<input v-model="confirmPassword" :password="!showCmPassword" placeholder="请输入" maxlength="10" />
-					<view class="eye-btn" @click="toggleCmPassword">
-						<image :src="showCmPassword ? '/static/eye.svg' : '/static/eye_close.svg'" class="eye-icon" />
-					</view>
+					<u-input shape="circle" v-model="confirmPassword" :type="showCmPassword ? 'text' : 'password'"
+						placeholder="请输入" :passwordIcon="false" maxlength="10">
+						<template #suffix>
+							<u-icon :name="showCmPassword ? 'eye-fill' : 'eye-off'"
+								:color="showCmPassword ? '#2979ff' : '#c0c4cc'" size="25"
+								@click="showCmPassword = !showCmPassword" />
+						</template>
+					</u-input>
 				</view>
 
 			</view>
 		</view>
 
 		<!-- 下一步按钮 -->
-		<button class="next-btn" @click="handelNext" :disabled="!isFormValid">下一步</button>
+		<u-button class="next-btn" :disabled="!isFormValid" @click="handelNext">
+			下一步
+		</u-button>
 	</view>
 </template>
 
@@ -130,24 +137,17 @@
 	const nickname = ref('') //昵称
 	const password = ref('') //密码
 	const confirmPassword = ref('') //确认密码
-	const gender = ref('') //性别
+	const gender = ref('0') //性别
 	const birthday = ref('2024-6-6') //生日
 	const showPassword = ref(false) //密码显示按钮
 	const showCmPassword = ref(false) //确认密码显示按钮
-	// 切换密码可见状态
-	const togglePassword = () => {
-		showPassword.value = !showPassword.value
-	}
-	// 切换确认密码可见状态
-	const toggleCmPassword = () => {
-		showCmPassword.value = !showCmPassword.value
-	}
+
 	// 按钮状态
 	const isFormValid = computed(() => {
 		return (
 			nickname.value.trim() !== '' &&
 			gender.value !== '' &&
-			password.value.length !== 0 && // 密码长度要求 、
+			password.value.length !== 0 && // 密码长度要求 
 			confirmPassword.value.length !== 0
 		)
 	})
@@ -155,68 +155,60 @@
 	const handleBirthdayChange = (date) => {
 		birthday.value = date
 	}
-	// 点击下一步
-	const handelNext = async () => {
-		console.log(birthday);
-		if (password.value !== confirmPassword.value) {
+	// 完善个人资料接口
+	const completeProfile = async () => {
+		try {
+			// 获取密钥
+			const publicKey = await getPublicKey()
+			const encryptedPwd = encryptWithRSA(publicKey, password.value)
+			const res = await apiCompleteProfile({
+				userId: authStore.userId,
+				nickname: nickname.value,
+				password: encryptedPwd,
+				avatar: avatar.value,
+				gender: gender.value,
+				birthday: birthday.value
+			})
+
+			res.code === 200 ?
+				(uni.showToast({
+						title: '注册成功',
+						icon: 'success'
+					}),
+					uni.navigateTo({
+						url: '/pages/petSelection/petSelection'
+					})) :
+				uni.showToast({
+					title: res.msg,
+					icon: 'none'
+				})
+
+		} catch (error) {
+			const errorMsg = {
+				'getPublicKey': '获取加密密钥失败',
+				'encryptWithRSA': '密码加密失败'
+			} [error.type] || '操作失败'
+
 			uni.showToast({
+				title: errorMsg,
+				icon: 'none'
+			})
+		}
+	}
+	const handelNext = () => {
+		if (password.value !== confirmPassword.value) {
+			return uni.showToast({
 				title: '两次密码不一致',
 				icon: 'none'
 			})
-			return
 		}
 		if (strengthLevel.value <= 1) {
-			uni.showToast({
+			return uni.showToast({
 				title: '密码较弱请重新设置',
 				icon: 'none'
 			})
-			return
 		}
-		// 1. 获取RSA公钥
-		let publicKey
-		try {
-			publicKey = await getPublicKey()
-		} catch (error) {
-			uni.showToast({
-				title: '获取加密密钥失败',
-				icon: 'none'
-			})
-			return
-		}
-		// 2. 加密密码
-		let encryptedPwd
-		try {
-			encryptedPwd = encryptWithRSA(publicKey, password.value)
-		} catch (error) {
-			uni.showToast({
-				title: '密码加密失败',
-				icon: 'none'
-			})
-			return
-		}
-		// 调用注册接口接口
-		const res = await apiCompleteProfile({
-			userId: authStore.userId, // 从store获取用户ID
-			nickname: nickname.value,
-			password: encryptedPwd,
-			avatar: avatar.value,
-			gender: gender.value,
-			birthday: birthday.value
-		})
-		if (res.code === 200) {
-			uni.showToast({
-				title: '注册成功',
-				icon: 'success'
-			})
-			uni.navigateTo({
-				url: '/pages/petSelection/petSelection'
-			})
-		} else {
-			uni.showToast({
-				title: res.msg,
-				icon: 'none'
-			})
-		}
+		completeProfile()
 	}
 	// 密码强度文本
 	const strengthText = computed(() => {
@@ -225,33 +217,29 @@
 		if (strengthLevel.value === 2) return '中'
 		return '强'
 	})
-	//输入框判断密码强度（防抖判断输入中文）
+	//输入框判断密码强度
 	const checkPasswordStrength = debounce((e) => {
-		const replaceValue = e.detail.value
-		password.value = replaceValue.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
+		password.value = e.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
 		const pass = password.value
-		if (pass.length > 0) {
-			ShowStrenth.value = true
-		} else {
-			ShowStrenth.value = false
-		}
+
+		ShowStrenth.value = pass.length > 0
+
 		if (!pass || pass.length < 8) {
 			strengthLevel.value = 0
 			return
 		}
-		//密码登记判定
-		let score = 0
-		if (pass.length >= 2) score += 1
-		if (pass.length >= 5) score += 1
-		if (/[a-z]/.test(pass)) score += 1
-		if (/[A-Z]/.test(pass)) score += 1
-		if (/\d/.test(pass)) score += 1
-		if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) score += 2
 
-		if (score <= 1) strengthLevel.value = 1
-		if (score <= 3) strengthLevel.value = 1
-		else if (score <= 6) strengthLevel.value = 2
-		else strengthLevel.value = 3
+		const score = [
+			pass.length >= 2,
+			pass.length >= 5,
+			/[a-z]/.test(pass),
+			/[A-Z]/.test(pass),
+			/\d/.test(pass),
+			/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass),
+			/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)
+		].filter(Boolean).length
+
+		strengthLevel.value = score <= 3 ? 1 : score <= 6 ? 2 : 3
 	}, 300)
 	// 上传图片
 	const UploadImage = () => {
@@ -279,24 +267,13 @@
 
 	/* 头像上传 */
 	.avatar-upload {
-		position: relative;
 		width: 160rpx;
 		height: 160rpx;
 		margin: 0 auto;
 	}
 
-	.avatar {
-		width: 100%;
-		height: 100%;
-		border-radius: 10%;
-	}
-
-	.camera-icon {
-		position: absolute;
-		right: 0;
-		bottom: 0;
-		width: 48rpx;
-		height: 48rpx;
+	::v-deep .u-input {
+		background-color: #e8e8e8;
 	}
 
 	/* 表单样式 */
@@ -520,16 +497,13 @@
 
 	/* 下一步按钮 */
 	.next-btn {
-		width: 300rpx;
 		background-color: #007aff;
-		color: white;
+		color: #fff;
 		border-radius: 50rpx;
-		height: 70rpx;
+		height: 90rpx;
+		line-height: 90rpx;
+		font-size: 32rpx;
 		margin-top: 60rpx;
-		line-height: 70rpx;
-
-		&.active {
-			background-color: #007aff;
-		}
+		width: 300rpx;
 	}
 </style>
