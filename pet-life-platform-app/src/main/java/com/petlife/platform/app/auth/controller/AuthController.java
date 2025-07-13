@@ -80,8 +80,9 @@ public class AuthController {
 
         // 60 秒内不能重复发送
         String limitKey = AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + "limit:" + phone;
-        Boolean exists = redisTemplate.hasKey(limitKey);
-        if (Boolean.TRUE.equals(exists)) {
+        Boolean success = redisTemplate.opsForValue().setIfAbsent(limitKey, "1", Duration.ofSeconds(60));
+        if (Boolean.FALSE.equals(success)) {
+            // 频繁发送验证码
             log.warn("发送验证码过于频繁: {}", phone);
             return ResponseData.error(AuthExceptionCode.CODE_SEND_TOO_FREQUENT);
         }
@@ -94,13 +95,6 @@ public class AuthController {
                 AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + phone,
                 code,
                 Duration.ofMinutes(5)
-        );
-
-        // 保存发送频率标识，有效期 60 秒
-        redisTemplate.opsForValue().set(
-                limitKey,
-                "1",
-                Duration.ofSeconds(60)
         );
 
         // TODO: 调用第三方短信服务发送验证码（暂时只打印）

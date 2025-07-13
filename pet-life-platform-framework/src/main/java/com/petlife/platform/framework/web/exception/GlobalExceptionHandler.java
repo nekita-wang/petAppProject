@@ -21,6 +21,8 @@ import com.petlife.platform.common.exception.DemoModeException;
 import com.petlife.platform.common.exception.ServiceException;
 import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.html.EscapeUtil;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 
 /**
  * 全局异常处理器
@@ -158,5 +160,20 @@ public class GlobalExceptionHandler
     public AjaxResult handleDemoModeException(DemoModeException e)
     {
         return AjaxResult.error("演示模式，不允许操作");
+    }
+
+    /** 文件上传大小超限异常 */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public AjaxResult handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e, HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        log.error("请求地址'{}',文件上传超出最大限制.", requestURI, e);
+        return AjaxResult.error("文件过大，大小需≤10MB");
+    }
+
+    @ExceptionHandler(FileSizeLimitExceededException.class)
+    public AjaxResult handleFileSizeLimitExceededException(FileSizeLimitExceededException e, HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        log.error("请求地址'{}',单文件超出最大限制.", requestURI, e);
+        return AjaxResult.error("文件过大，大小需≤10MB");
     }
 }

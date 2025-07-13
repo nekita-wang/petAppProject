@@ -1,21 +1,9 @@
 <template>
   <div class="upload-file">
-    <el-upload
-      multiple
-      :action="uploadFileUrl"
-      :before-upload="handleBeforeUpload"
-      :file-list="fileList"
-      :data="data"
-      :limit="limit"
-      :on-error="handleUploadError"
-      :on-exceed="handleExceed"
-      :on-success="handleUploadSuccess"
-      :show-file-list="false"
-      :headers="headers"
-      class="upload-file-uploader"
-      ref="fileUpload"
-      v-if="!disabled"
-    >
+    <el-upload multiple :action="uploadFileUrl" :before-upload="handleBeforeUpload" :file-list="fileList" :data="data"
+      :limit="limit" :on-error="handleUploadError" :on-exceed="handleExceed" :on-success="handleUploadSuccess"
+      :show-file-list="false" :headers="headers" class="upload-file-uploader" ref="fileUpload" v-if="!disabled"
+      name="avatarfile">
       <!-- 上传按钮 -->
       <el-button size="mini" type="primary">选取文件</el-button>
       <!-- 上传提示 -->
@@ -28,7 +16,8 @@
     </el-upload>
 
     <!-- 文件列表 -->
-    <transition-group ref="uploadFileList" class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
+    <transition-group ref="uploadFileList" class="upload-file-list el-upload-list el-upload-list--text"
+      name="el-fade-in-linear" tag="ul">
       <li :key="file.url" class="el-upload-list__item ele-upload-list__item-content" v-for="(file, index) in fileList">
         <el-link :href="`${baseUrl}${file.url}`" :underline="false" target="_blank">
           <span class="el-icon-document"> {{ getFileName(file.name) }} </span>
@@ -53,7 +42,7 @@ export default {
     // 上传接口地址
     action: {
       type: String,
-      default: "/common/upload"
+      default: "/public/admin/upload/avatar"
     },
     // 上传携带的参数
     data: {
@@ -241,21 +230,25 @@ export default {
   opacity: 0.5;
   background: #c8ebfb;
 }
+
 .upload-file-uploader {
   margin-bottom: 5px;
 }
+
 .upload-file-list .el-upload-list__item {
   border: 1px solid #e4e7ed;
   line-height: 2;
   margin-bottom: 10px;
   position: relative;
 }
+
 .upload-file-list .ele-upload-list__item-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: inherit;
 }
+
 .ele-upload-list__item-content-action .el-link {
   margin-right: 10px;
 }

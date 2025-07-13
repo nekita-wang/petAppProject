@@ -18,6 +18,7 @@
       :file-list="fileList"
       :on-preview="handlePictureCardPreview"
       :class="{hide: this.fileList.length >= this.limit}"
+      name="avatarfile"
     >
       <i class="el-icon-plus"></i>
     </el-upload>
@@ -55,7 +56,7 @@ export default {
     // 上传接口地址
     action: {
       type: String,
-      default: "/common/upload"
+      default: "/public/admin/upload/avatar"
     },
     // 上传携带的参数
     data: {
@@ -256,7 +257,7 @@ export default {
 
 ::v-deep .el-upload-list--picture-card.is-disabled + .el-upload--picture-card {
   display: none !important;
-} 
+}
 
 // 去掉动画效果
 ::v-deep .el-list-enter-active,

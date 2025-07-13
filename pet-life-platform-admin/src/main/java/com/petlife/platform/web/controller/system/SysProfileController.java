@@ -112,32 +112,4 @@ public class SysProfileController extends BaseController
         return AjaxResult.error("修改密码异常，请联系管理员");
     }
 
-    /**
-     * 头像上传
-     */
-    @Log(title = "用户头像", businessType = BusinessType.UPDATE)
-    @PostMapping("/avatar")
-    public AjaxResult avatar(@RequestParam("avatarfile") MultipartFile file) throws Exception
-    {
-        if (!file.isEmpty())
-        {
-            LoginUser loginUser = getLoginUser();
-            String avatar = FileUploadUtils.upload(RuoYiConfig.getAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION, true);
-            if (userService.updateUserAvatar(loginUser.getUserId(), avatar))
-            {
-                String oldAvatar = loginUser.getUser().getAvatar();
-                if (StringUtils.isNotEmpty(oldAvatar))
-                {
-                    FileUtils.deleteFile(RuoYiConfig.getProfile() + FileUtils.stripPrefix(oldAvatar));
-                }
-                AjaxResult ajax = AjaxResult.success();
-                ajax.put("imgUrl", avatar);
-                // 更新缓存用户头像
-                loginUser.getUser().setAvatar(avatar);
-                tokenService.setLoginUser(loginUser);
-                return ajax;
-            }
-        }
-        return error("上传图片异常，请联系管理员");
-    }
 }

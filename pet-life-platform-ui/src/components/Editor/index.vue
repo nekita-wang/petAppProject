@@ -5,7 +5,7 @@
       :before-upload="handleBeforeUpload"
       :on-success="handleUploadSuccess"
       :on-error="handleUploadError"
-      name="file"
+      name="avatarfile"
       :show-file-list="false"
       :headers="headers"
       style="display: none"
@@ -61,7 +61,7 @@ export default {
   },
   data() {
     return {
-      uploadUrl: process.env.VUE_APP_BASE_API + "/common/upload", // 上传的图片服务器地址
+      uploadUrl: process.env.VUE_APP_BASE_API + "/public/admin/upload/avatar", // 上传的图片服务器地址
       headers: {
         Authorization: "Bearer " + getToken()
       },

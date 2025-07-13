@@ -26,7 +26,7 @@ public class UserTypeInterceptor implements HandlerInterceptor {
         if (uri.startsWith("/app/auth/login")
                 || uri.startsWith("/app/auth/sendCode")
                 || uri.startsWith("/app/auth/logout")
-                || uri.startsWith("/publicKey")) {
+                || uri.startsWith("/public/publicKey")) {
             return true;
         }
 
