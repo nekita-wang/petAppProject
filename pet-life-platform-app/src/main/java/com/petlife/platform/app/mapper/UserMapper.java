@@ -34,12 +34,19 @@ public interface UserMapper {
 
 
     /**
-     * 查询同一用户 ID 下是否有相同昵称
-     * @param userId
+     * 查询昵称是否已存在
      * @param nickname
      * @return
      */
-    int countByNickname( @Param("userId") Long userId,@Param("nickname") String nickname);
+    int countByNickname(@Param("nickname") String nickname);
+
+    /**
+     * 查询昵称是否已存在（排除指定用户）
+     * @param userId 要排除的用户ID
+     * @param nickname
+     * @return
+     */
+    int countByNicknameExcludeUser(@Param("userId") Long userId, @Param("nickname") String nickname);
 
     /**
      * 更新用户基本资料

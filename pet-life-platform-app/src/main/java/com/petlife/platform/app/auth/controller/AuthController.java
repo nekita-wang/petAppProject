@@ -21,6 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import com.petlife.platform.framework.web.service.TokenService;
+import com.petlife.platform.common.pojo.dto.RegisterDTO;
+import com.petlife.platform.common.utils.sign.RsaUtils;
+import com.petlife.platform.common.utils.SecurityUtils;
+import com.petlife.platform.common.utils.PasswordStrengthUtils;
+import java.time.LocalDate;
+import org.springframework.validation.annotation.Validated;
+import com.petlife.platform.common.enums.UserType;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -124,6 +131,153 @@ public class AuthController {
         return ResponseData.ok(authUserInfo);
     }
 
+    /**
+     * 用户注册接口
+     */
+    @PostMapping("/register")
+    @ApiOperation(value = "用户注册", notes = "手机号验证码注册新用户")
+    public ResponseData<AuthUserInfo> register(@Validated @RequestBody RegisterDTO registerDTO) {
+        String phone = registerDTO.getPhone();
+        
+        // 1️⃣ 校验手机号格式
+        if (!AbstractTokenGranter.PHONE_PATTERN.matcher(phone).matches()) {
+            log.warn("手机号格式不合法: {}", phone);
+            return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
+        }
+
+        // 2️⃣ 检查手机号是否已注册
+        User existingUser = userMapper.selectByPhone(phone);
+        if (existingUser != null) {
+            log.warn("手机号已注册: {}", phone);
+            return ResponseData.error(AuthExceptionCode.ACCOUNT_ALREADY_EXISTS);
+        }
+
+        // 3️⃣ 校验验证码
+        String code = registerDTO.getCode();
+        String redisKey = AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + phone;
+        String cachedCode = redisTemplate.opsForValue().get(redisKey);
+        if (cachedCode == null) {
+            log.warn("验证码已过期或未发送: phone={}", phone);
+            return ResponseData.error(AuthExceptionCode.CODE_EXPIRED);
+        }
+        if (!code.equals(cachedCode)) {
+            log.warn("验证码不正确: 输入={}, 实际={}", code, cachedCode);
+            return ResponseData.error(AuthExceptionCode.CODE_INCORRECT);
+        }
+
+        // 删除验证码
+        redisTemplate.delete(redisKey);
+
+        // 4️⃣ 检查昵称是否已存在
+        int nickNameCount = userMapper.countByNickname(registerDTO.getNickName());
+        if (nickNameCount > 0) {
+            log.warn("昵称已存在: {}", registerDTO.getNickName());
+            return ResponseData.error(AuthExceptionCode.USER_NICKNAME_EXIST);
+        }
+
+        // 5️⃣ 解密密码
+        String rawPassword;
+        try {
+            // 检查RSA密钥对是否已初始化
+            String privateKey = RsaUtils.getPrivateKey();
+            if (privateKey == null || privateKey.isEmpty()) {
+                log.error("RSA私钥为空，无法解密密码");
+                return ResponseData.error(500, "RSA密钥对未初始化，请重启应用");
+            }
+            
+            log.info("开始解密密码，加密密码长度: {}", registerDTO.getPassword().length());
+            rawPassword = RsaUtils.decryptByPrivateKey(registerDTO.getPassword());
+            log.info("密码解密成功，明文密码长度: {}", rawPassword.length());
+        } catch (Exception e) {
+            log.error("密码解密失败: {}", e.getMessage(), e);
+            return ResponseData.error(AuthExceptionCode.PASSWORD_DECRYPT_ERROR);
+        }
+
+        // 6️⃣ 校验密码强度
+        PasswordStrengthUtils.PasswordStrengthResult strengthResult = PasswordStrengthUtils.validatePassword(rawPassword);
+        if (!strengthResult.isValid()) {
+            log.warn("密码强度不足: {}", String.join(", ", strengthResult.getErrors()));
+            return ResponseData.error(AuthExceptionCode.PASSWORD_TOO_WEAK.getCode(), 
+                "密码强度不足：" + String.join("，", strengthResult.getErrors()));
+        }
+
+        // 7️⃣ 创建新用户
+        User newUser = new User();
+        newUser.setPhone(phone);
+        newUser.setNickName(registerDTO.getNickName());
+        newUser.setPassword(SecurityUtils.encryptPassword(rawPassword));
+        newUser.setBirthday(LocalDate.parse(registerDTO.getBirthday()));
+        newUser.setGender(registerDTO.getGender());
+        newUser.setMinor(registerDTO.getMinor());
+        newUser.setStatus((byte) 0); // 正常状态
+        newUser.setAvatarUrl("/profile/avatar/2025/07/13/45c18bdf1af54a9aae36ac74f963e07d.jpeg"); // 默认头像
+
+        try {
+            userMapper.insert(newUser);
+            log.info("新用户注册成功: phone={}, nickName={}", phone, registerDTO.getNickName());
+        } catch (Exception e) {
+            log.error("用户注册失败", e);
+            return ResponseData.error(AuthExceptionCode.REGISTER_FAILED);
+        }
+
+        // 8️⃣ 生成登录token
+        AuthUserInfo authUserInfo = generateAuthUserInfo(newUser);
+        authUserInfo.setNewUser(true);
+        authUserInfo.setNeedPetInfo(true); // 新用户需要填写宠物信息
+
+        return ResponseData.ok(authUserInfo);
+    }
+
+    /**
+     * 密码强度校验接口
+     */
+    @PostMapping("/checkPasswordStrength")
+    @ApiOperation(value = "密码强度校验", notes = "实时校验密码强度")
+    public ResponseData<PasswordStrengthUtils.PasswordStrengthResult> checkPasswordStrength(@RequestBody String password) {
+        if (password == null || password.trim().isEmpty()) {
+            return ResponseData.error(AuthExceptionCode.PARAMS_MISSING.getCode(), "密码不能为空");
+        }
+        
+        PasswordStrengthUtils.PasswordStrengthResult result = PasswordStrengthUtils.validatePassword(password);
+        return ResponseData.ok(result);
+    }
+
+    /**
+     * 获取RSA公钥接口
+     */
+    @GetMapping("/getPublicKey")
+    @ApiOperation(value = "获取RSA公钥", notes = "用于前端加密密码")
+    public ResponseData<String> getPublicKey() {
+        try {
+            String publicKey = RsaUtils.getPublicKey();
+            if (publicKey == null || publicKey.isEmpty()) {
+                log.warn("RSA公钥为空，请检查RSA密钥对是否正确初始化");
+                return ResponseData.error(500, "RSA公钥未初始化，请重启应用");
+            }
+            log.info("获取RSA公钥成功，长度: {}", publicKey.length());
+            return ResponseData.ok(publicKey);
+        } catch (Exception e) {
+            log.error("获取RSA公钥失败", e);
+            return ResponseData.error(500, "获取公钥失败");
+        }
+    }
+
+    /**
+     * 生成JWT Token并缓存到Redis
+     */
+    private AuthUserInfo generateAuthUserInfo(User user) {
+        LoginUser loginUser = new LoginUser();
+        loginUser.setAppUser(user);
+        loginUser.setUserId(user.getUserId());
+        loginUser.setUserType(UserType.APP_USER);
+        String token = tokenService.createToken(loginUser);
+        AuthUserInfo authUserInfo = new AuthUserInfo();
+        authUserInfo.setUserId(user.getUserId());
+        authUserInfo.setToken(token);
+        authUserInfo.setExpire((long) tokenService.getAppExpireTime() * 60); // expireTime 是分钟，要转秒
+        log.info("生成token成功，userId={}, expire={}秒", user.getUserId(), authUserInfo.getExpire());
+        return authUserInfo;
+    }
 
     @PostMapping("/logout")
     @ApiOperation(value = "退出登录", notes = "清理登录状态")

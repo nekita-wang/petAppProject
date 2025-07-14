@@ -2,7 +2,7 @@ package com.petlife.platform.app.service.impl;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.mapper.UserMapper;
-import com.petlife.platform.common.enums.UserProfileExceptionCode;
+import com.petlife.platform.app.enums.UserProfileExceptionCode;
 import com.petlife.platform.common.pojo.dto.UserProfileDTO;
 import com.petlife.platform.app.service.UserService;
 import com.petlife.platform.common.core.exception.PetException;
@@ -70,6 +70,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean isNicknameExist(Long userId, String nickname) {
         // 修改为排除自己
-        return userMapper.countByNickname(userId, nickname) > 0;
+        return userMapper.countByNicknameExcludeUser(userId, nickname) > 0;
     }
 }

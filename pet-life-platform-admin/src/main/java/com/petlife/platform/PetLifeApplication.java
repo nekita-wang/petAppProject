@@ -10,8 +10,9 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  *
  * @author pet-life
  */
-@MapperScan("com.petlife.platform.app.mapping")
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
+@MapperScan({"com.petlife.platform.app.mapper", "com.petlife.platform.admin.mapper", "com.petlife.platform.system.mapper"})
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class }, 
+                      scanBasePackages = {"com.petlife.platform"})
 public class PetLifeApplication
 {
     public static void main(String[] args)

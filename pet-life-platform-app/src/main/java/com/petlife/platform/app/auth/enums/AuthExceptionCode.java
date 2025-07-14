@@ -37,6 +37,9 @@ public enum AuthExceptionCode implements ServiceCode {
     PASSWORD_DECRYPT_ERROR(1014,"密码解密失败"),
     PASSWORD_TOO_WEAK(1019, "密码强度不足"),
 
+    // 注册相关错误
+    ACCOUNT_ALREADY_EXISTS(1020, "该手机号已注册"),
+    REGISTER_FAILED(1021, "注册失败，请稍后重试"),
 
     // 通用/系统错误
     INTERNAL_ERROR(1999, "系统内部错误，请联系管理员");

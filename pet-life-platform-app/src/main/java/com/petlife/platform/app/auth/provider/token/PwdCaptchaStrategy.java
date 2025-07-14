@@ -41,7 +41,8 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
         User user = userMapper.selectByPhone(phone);
         if (user == null) {
             log.warn("手机号未注册: {}", phone);
-            throw new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST);
+            // 密码登录未注册时，提示去注册，不生成token，不返回needPetInfo
+            throw new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST.getCode(), "该手机号未注册，请先通过手机号注册");
         }
         // 检查状态
         checkUser(user);
@@ -60,7 +61,7 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
         }
 
         // 5. 校验密码
-        boolean isPasswordCorrect = BCrypt.checkpw(password, user.getPassword());
+        boolean isPasswordCorrect = org.springframework.security.crypto.bcrypt.BCrypt.checkpw(password, user.getPassword());
         if (!isPasswordCorrect) {
             errorCount++;
             redisTemplate.opsForValue().set(errorCountKey, String.valueOf(errorCount), 30, TimeUnit.MINUTES);
@@ -79,6 +80,8 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
 
         // 7. 登录成功生成 token
         AuthUserInfo authUserInfo = createToken(user);
+        // 密码登录流程，needPetInfo始终为false
+        authUserInfo.setNeedPetInfo(false);
 
         log.info("用户ID={} 登录成功", userId);
         return authUserInfo;

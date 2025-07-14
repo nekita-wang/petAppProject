@@ -58,12 +58,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         VALUES (#{phone}, #{status},#{nickName},#{password},#{birthday},#{avatarUrl},#{minor})
     </insert>
 
-    <!-- 查询同一用户 ID 下是否有相同昵称 -->
+    <!-- 查询昵称是否已存在 -->
     <select id="countByNickname" resultType="int">
         SELECT COUNT(*)
         FROM user
-        WHERE user_id = #{userId}
-          AND nick_name = #{nickname}
+        WHERE nick_name = #{nickname}
+    </select>
+
+    <!-- 查询昵称是否已存在（排除指定用户） -->
+    <select id="countByNicknameExcludeUser" resultType="int">
+        SELECT COUNT(*)
+        FROM user
+        WHERE nick_name = #{nickname}
+          AND user_id != #{userId}
     </select>
 
     <!-- 更新用户基本资料 -->

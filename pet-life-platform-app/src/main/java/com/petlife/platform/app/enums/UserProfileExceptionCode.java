@@ -1,4 +1,4 @@
-package com.petlife.platform.common.enums;
+package com.petlife.platform.app.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

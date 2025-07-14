@@ -3,6 +3,7 @@ package com.petlife.platform.app.auth.provider.token;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.auth.provider.TokenGranterStrategy;
+import com.petlife.platform.app.mapper.PetMapper;
 import com.petlife.platform.common.core.domain.model.LoginUser;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.app.mapper.UserMapper;
@@ -32,6 +33,8 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     protected StringRedisTemplate redisTemplate;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    protected PetMapper petMapper;
 
     /**
      * 手机号正则，支持中国大陆手机号

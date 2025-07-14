@@ -1,5 +1,0 @@
-# MyBatis配置
-mybatis:
-  typeAliasesPackage: com.petlife.platform.app.pojo.entity
-  mapperLocations: classpath*:mapper/app/**/*Mapper.xml
-  configLocation: classpath:mybatis/mybatis-config.xml

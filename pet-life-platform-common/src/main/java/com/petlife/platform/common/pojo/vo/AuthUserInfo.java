@@ -24,4 +24,9 @@ public class AuthUserInfo implements Serializable {
 
     // 是否是新用户
     private Boolean newUser;
+
+    //是否填写宠物信息
+    private Boolean needPetInfo;
+    public Boolean getNeedPetInfo() { return needPetInfo; }
+    public void setNeedPetInfo(Boolean needPetInfo) { this.needPetInfo = needPetInfo; }
 }

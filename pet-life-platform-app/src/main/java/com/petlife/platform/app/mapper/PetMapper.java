@@ -41,4 +41,6 @@ public interface PetMapper {
      * @return
      */
     List<PetClassVo> selectPetClass();
+
+    int countByUserId(Long userId);
 }

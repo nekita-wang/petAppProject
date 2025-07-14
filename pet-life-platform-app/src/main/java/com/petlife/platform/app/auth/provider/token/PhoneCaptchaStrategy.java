@@ -48,39 +48,28 @@ public class PhoneCaptchaStrategy extends AbstractTokenGranter {
 
         // 3️⃣ 查询用户是否存在
         Optional<User> optionalUser = userMapper.selectByPhoneAndStatusIn(phone, new int[]{0, 2});
-        User user;
-        boolean isNewUser = false;
 
         if (optionalUser.isPresent()) {
-            user = optionalUser.get();
+            // 用户存在：直接登录
+            User user = optionalUser.get();
             // 校验账号状态
             checkUser(user);
-        } else {
-            // 新用户：注册
-            user = new User();
-            user.setPhone(phone);
-            user.setStatus((byte) 0); // 正常状态
-            user.setNickName("用户" + phone.substring(phone.length() - 4));
-
-            // 设置默认密码：用 BCrypt 加密固定值或随机值
-            String defaultPassword = passwordEncoder.encode("123456");
-            user.setPassword(defaultPassword);
-
-            // 设置必填字段的默认值
-            user.setBirthday(LocalDate.parse("2000-01-01")); // 默认生日
-            user.setAvatarUrl("http://example.com/avatar.jpg"); // 默认头像
-            user.setMinor((byte) 0); // 默认成年
-
-            userMapper.insert(user);
-            log.info("新用户注册成功: phone={}", phone);
-            isNewUser = true;
-        }
-
-        // 4️⃣ 生成 token 返回
+            
+            // 生成 token 返回
         AuthUserInfo authUserInfo = createToken(user);
-        authUserInfo.setNewUser(isNewUser);
+            authUserInfo.setNewUser(false);
+            // 设置 needPetInfo 字段
+        boolean hasPet = petMapper.countByUserId(user.getUserId()) > 0;
+        authUserInfo.setNeedPetInfo(!hasPet);
 
-        log.info("手机号验证码登录成功: userId={}, isNewUser={}", user.getUserId(), isNewUser);
+            log.info("手机号验证码登录成功: userId={}, isNewUser=false", user.getUserId());
         return authUserInfo;
+        } else {
+            // 用户不存在：抛出特定异常，引导用户注册
+            log.info("手机号未注册，需要引导用户完成注册: phone={}", phone);
+            throw new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST.getCode(), "该手机号未注册，请先完成注册");
+        }
     }
+
+
 }

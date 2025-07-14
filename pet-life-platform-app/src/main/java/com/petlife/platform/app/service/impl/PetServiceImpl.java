@@ -1,11 +1,9 @@
 package com.petlife.platform.app.service.impl;
 
-import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.mapper.PetMapper;
-
+import com.petlife.platform.app.enums.PetProfileExceptionCode;
 import com.petlife.platform.common.mapping.PetInfoMapping;
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
-import com.petlife.platform.common.pojo.dto.PetDTO;
 import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.common.pojo.dto.PetInfoQuery;
@@ -16,7 +14,6 @@ import com.petlife.platform.common.pojo.vo.PetClassVo;
 import com.petlife.platform.common.utils.DateValidationUtils;
 import com.petlife.platform.common.utils.StringUtils;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +42,11 @@ public class PetServiceImpl implements PetService {
 
     @Override
     public void addPetInfo(PetInfoQuery petInfoQuery) {
+        // 新增：防止重复填写宠物信息
+        if (petMapper.countByUserId(getUserId()) > 0) {
+            throw new PetException(PetProfileExceptionCode.PET_INFO_ALREADY_EXISTS.getCode(), 
+                                 PetProfileExceptionCode.PET_INFO_ALREADY_EXISTS.getMessage());
+        }
 
         DateValidationUtils.validatePetDateLogic(petInfoQuery.getPetBirthday(),
                 petInfoQuery.getAdoptionDate(),"到家日期早于生日");
@@ -64,17 +66,20 @@ public class PetServiceImpl implements PetService {
         info.setStatus(0L);
         //判断是否唯一，不唯一抛异常
         if (isPetNicknameExist(info.getUserId(), info.getPetNickName())) {
-            throw new RuntimeException("宠物昵称已存在，请更换");
+            throw new PetException(PetProfileExceptionCode.PET_NICKNAME_EXIST.getCode(), 
+                                 PetProfileExceptionCode.PET_NICKNAME_EXIST.getMessage());
         }
 
         //插入数据
         try {
             int insertPetInfo= petMapper.insertPetInfo(info);
             if (insertPetInfo <= 0) {
-                throw new RuntimeException("插入宠物信息失败，未影响任何行");
+                throw new PetException(PetProfileExceptionCode.PET_INFO_INSERT_FAILED.getCode(), 
+                                     PetProfileExceptionCode.PET_INFO_INSERT_FAILED.getMessage());
             }
         }catch (Exception e){
-            throw new RuntimeException("填写数据异常");
+            throw new PetException(PetProfileExceptionCode.PET_INFO_FILL_EXCEPTION.getCode(), 
+                                 PetProfileExceptionCode.PET_INFO_FILL_EXCEPTION.getMessage());
         }
 
 
