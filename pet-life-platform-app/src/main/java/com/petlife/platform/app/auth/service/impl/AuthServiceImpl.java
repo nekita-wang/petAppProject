@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Objects;
 
 @Slf4j
@@ -166,13 +167,28 @@ public class AuthServiceImpl implements AuthService {
             return ResponseData.error(AuthExceptionCode.PASSWORD_TOO_WEAK.getCode(),
                     "密码强度不足：" + String.join("，", strengthResult.getErrors()));
         }
+        // 1. 计算年龄
+        LocalDate birthday;
+        try {
+            birthday = LocalDate.parse(dto.getBirthday());
+        } catch (Exception e) {
+            log.warn("生日格式不正确: {}", dto.getBirthday());
+            return ResponseData.error(400, "生日格式不正确，应为yyyy-MM-dd");
+        }
+        int age = Period.between(birthday, LocalDate.now()).getYears();
+        if (age < 18) {
+            log.warn("未满18周岁禁止注册: birthday={}, age={}", dto.getBirthday(), age);
+            return ResponseData.error(400, "未满18周岁禁止注册");
+        }
+        byte minor = (byte) (age < 18 ? 1 : 0); // 实际上此时一定为0
+        // ====== 新增结束 ======
         User newUser = new User();
         newUser.setPhone(phone);
         newUser.setNickName(dto.getNickName());
         newUser.setPassword(SecurityUtils.encryptPassword(rawPassword));
-        newUser.setBirthday(LocalDate.parse(dto.getBirthday()));
+        newUser.setBirthday(birthday);
         newUser.setGender(dto.getGender());
-        newUser.setMinor(dto.getMinor());
+        newUser.setMinor(minor); // 由后端赋值
         newUser.setStatus((byte) 0);
         newUser.setAvatarUrl(dto.getAvatarUrl());
         try {

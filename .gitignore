@@ -56,5 +56,5 @@ dist/
 # 忽略配置文件
 **/application-prod.yml
 **/application-test.yml
-
+uploadPath/
 

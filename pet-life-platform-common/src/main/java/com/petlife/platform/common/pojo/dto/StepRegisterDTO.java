@@ -1,5 +1,6 @@
 package com.petlife.platform.common.pojo.dto;
 
+import com.petlife.platform.common.validation.PasswordMatches;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -11,11 +12,12 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.List;
 
-@Data
-@ApiModel(description = "分步注册请求")
 /**
  * 分步注册
  */
+@Data
+@ApiModel(description = "分步注册请求")
+@PasswordMatches
 public class StepRegisterDTO {
 
     @ApiModelProperty(value = "手机号", required = true, example = "13812345678")
@@ -32,6 +34,10 @@ public class StepRegisterDTO {
     @NotBlank(message = "密码不能为空")
     private String password;
 
+    @ApiModelProperty(value = "确认密码", required = true, example = "encryptedPassword")
+    @NotBlank(message = "确认密码不能为空")
+    private String passwordConfirm;
+
     @ApiModelProperty(value = "生日", required = true, example = "2000-01-01")
     @NotBlank(message = "生日不能为空")
     @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "生日格式不正确，应为yyyy-MM-dd")
@@ -40,10 +46,6 @@ public class StepRegisterDTO {
     @ApiModelProperty(value = "性别", required = true, example = "1", notes = "0=未设置，1=男，2=女")
     @NotNull(message = "性别不能为空")
     private Byte gender;
-
-    @ApiModelProperty(value = "是否未成年", required = true, example = "0", notes = "0=成年，1=未成年")
-    @NotNull(message = "是否未成年不能为空")
-    private Byte minor;
 
     @ApiModelProperty(value = "头像URL", required = true, example = "/profile/avatar/default.jpg")
     @NotBlank(message = "头像不能为空")
