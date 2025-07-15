@@ -187,7 +187,15 @@ public class AuthServiceImpl implements AuthService {
             return ResponseData.error(400, "未满18周岁禁止注册");
         }
         byte minor = (byte) (age < 18 ? 1 : 0); // 实际上此时一定为0
-        // ====== 新增结束 ======
+
+        // 处理用户头像，确保只存相对路径
+        String avatarUrl = dto.getAvatarUrl();
+        if (avatarUrl != null && (avatarUrl.startsWith("http://") || avatarUrl.startsWith("https://"))) {
+            int idx = avatarUrl.indexOf("/profile");
+            if (idx != -1) {
+                avatarUrl = avatarUrl.substring(idx);
+            }
+        }
         User newUser = new User();
         newUser.setPhone(phone);
         newUser.setNickName(dto.getNickName());
@@ -196,7 +204,7 @@ public class AuthServiceImpl implements AuthService {
         newUser.setGender(dto.getGender());
         newUser.setMinor(minor); // 由后端赋值
         newUser.setStatus((byte) 0);
-        newUser.setAvatarUrl(dto.getAvatarUrl());
+        newUser.setAvatarUrl(avatarUrl); // 只存相对路径
         try {
             userMapper.insert(newUser);
             log.info("新用户注册成功: phone={}, nickName={}", phone, dto.getNickName());
@@ -206,6 +214,15 @@ public class AuthServiceImpl implements AuthService {
         }
         if (dto.getPets() != null && !dto.getPets().isEmpty()) {
             for (PetInfoDTO petInfo : dto.getPets()) {
+                // 处理宠物头像，确保只存相对路径
+                String petAvatarUrl = petInfo.getPetAvatarURL();
+                if (petAvatarUrl != null && (petAvatarUrl.startsWith("http://") || petAvatarUrl.startsWith("https://"))) {
+                    int idx = petAvatarUrl.indexOf("/profile");
+                    if (idx != -1) {
+                        petAvatarUrl = petAvatarUrl.substring(idx);
+                    }
+                    petInfo.setPetAvatarURL(petAvatarUrl);
+                }
                 petInfo.setUserId(newUser.getUserId());
                 petService.addPetInfo(petInfo);
             }
