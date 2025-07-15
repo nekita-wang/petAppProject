@@ -56,7 +56,7 @@ export default {
     // 上传接口地址
     action: {
       type: String,
-      default: "/public/admin/upload/avatar"
+      default: "/public/upload/avatar"
     },
     // 上传携带的参数
     data: {
