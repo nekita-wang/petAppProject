@@ -137,6 +137,12 @@ public class AuthServiceImpl implements AuthService {
             log.warn("手机号格式不合法: {}", phone);
             return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
         }
+        //校验性别
+        if (dto.getGender() == null || dto.getGender() < 0 || dto.getGender() > 2) {
+            log.warn("性别字段非法: {}", dto.getGender());
+            return ResponseData.error(400, "性别字段非法");
+        }
+
         User existingUser = userMapper.selectByPhone(phone);
         if (existingUser != null) {
             log.warn("手机号已注册: {}", phone);
@@ -277,4 +283,4 @@ public class AuthServiceImpl implements AuthService {
         log.info("生成token成功，userId={}, expire={}秒", user.getUserId(), authUserInfo.getExpire());
         return authUserInfo;
     }
-} 
+}
