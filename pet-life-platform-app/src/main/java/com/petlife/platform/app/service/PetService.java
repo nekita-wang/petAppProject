@@ -1,9 +1,7 @@
 package com.petlife.platform.app.service;
 
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
-import com.petlife.platform.common.pojo.dto.PetDTO;
-import com.petlife.platform.common.pojo.dto.PetInfoQuery;
-import com.petlife.platform.common.pojo.entity.PetInfo;
+import com.petlife.platform.common.pojo.dto.PetInfoDTO;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
 
 import java.util.List;
@@ -12,7 +10,7 @@ import java.util.Map;
 public interface PetService {
     boolean isPetNicknameExist(Long userId, String nickname);
 
-    void addPetInfo(PetInfoQuery petInfoQuery);
+    void addPetInfo(PetInfoDTO petInfoDTO);
 
     Map<String, Object> selectPetBreedAppList(PetBreedQuery petBreedQuery);
 

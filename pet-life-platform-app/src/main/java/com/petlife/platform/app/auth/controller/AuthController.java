@@ -22,6 +22,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import com.petlife.platform.framework.web.service.TokenService;
 import com.petlife.platform.common.pojo.dto.RegisterDTO;
+import com.petlife.platform.common.pojo.dto.VerifyCodeDTO;
+import com.petlife.platform.common.pojo.dto.StepRegisterDTO;
+import com.petlife.platform.common.pojo.dto.PetInfoDTO;
+import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.utils.sign.RsaUtils;
 import com.petlife.platform.common.utils.SecurityUtils;
 import com.petlife.platform.common.utils.PasswordStrengthUtils;
@@ -31,6 +35,7 @@ import com.petlife.platform.common.enums.UserType;
 
 import java.time.Duration;
 import java.util.Objects;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RestController
@@ -49,6 +54,9 @@ public class AuthController {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private PetService petService;
 
     /**
      * 发送登录验证码
@@ -132,7 +140,135 @@ public class AuthController {
     }
 
     /**
-     * 用户注册接口
+     * 验证码校验接口（分步注册第一步）
+     */
+    @PostMapping("/verifyCode")
+    @ApiOperation(value = "验证码校验", notes = "分步注册第一步：校验验证码，不创建用户")
+    public ResponseData<String> verifyCode(@Validated @RequestBody VerifyCodeDTO dto) {
+        String phone = dto.getPhone();
+        String code = dto.getCode();
+        
+        // 1️⃣ 检查手机号是否已注册
+        User existingUser = userMapper.selectByPhone(phone);
+        if (existingUser != null) {
+            log.warn("手机号已注册: {}", phone);
+            return ResponseData.error(AuthExceptionCode.ACCOUNT_ALREADY_EXISTS);
+        }
+
+        // 2️⃣ 校验验证码
+        String redisKey = AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + phone;
+        String cachedCode = redisTemplate.opsForValue().get(redisKey);
+        if (cachedCode == null) {
+            log.warn("验证码已过期或未发送: phone={}", phone);
+            return ResponseData.error(AuthExceptionCode.CODE_EXPIRED);
+        }
+        if (!code.equals(cachedCode)) {
+            log.warn("验证码不正确: 输入={}, 实际={}", code, cachedCode);
+            return ResponseData.error(AuthExceptionCode.CODE_INCORRECT);
+        }
+
+        // 3️⃣ 生成临时token，用于后续注册步骤
+        String tempToken = generateTempToken(phone);
+        
+        // 4️⃣ 删除验证码，防止重复使用
+        redisTemplate.delete(redisKey);
+        
+        log.info("验证码校验成功: phone={}", phone);
+        return ResponseData.ok(tempToken);
+    }
+
+    /**
+     * 分步注册接口（分步注册第二步）
+     */
+    @PostMapping("/stepRegister")
+    @ApiOperation(value = "分步注册", notes = "分步注册第二步：提交个人资料和可选的宠物信息")
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseData<AuthUserInfo> stepRegister(@Validated @RequestBody StepRegisterDTO dto) {
+        String phone = dto.getPhone();
+        
+        // 1️⃣ 校验手机号格式
+        if (!AbstractTokenGranter.PHONE_PATTERN.matcher(phone).matches()) {
+            log.warn("手机号格式不合法: {}", phone);
+            return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
+        }
+
+        // 2️⃣ 检查手机号是否已注册
+        User existingUser = userMapper.selectByPhone(phone);
+        if (existingUser != null) {
+            log.warn("手机号已注册: {}", phone);
+            return ResponseData.error(AuthExceptionCode.ACCOUNT_ALREADY_EXISTS);
+        }
+
+        // 3️⃣ 检查昵称是否已存在
+        int nickNameCount = userMapper.countByNickname(dto.getNickName());
+        if (nickNameCount > 0) {
+            log.warn("昵称已存在: {}", dto.getNickName());
+            return ResponseData.error(AuthExceptionCode.USER_NICKNAME_EXIST);
+        }
+
+        // 4️⃣ 解密密码
+        String rawPassword;
+        try {
+            String privateKey = RsaUtils.getPrivateKey();
+            if (privateKey == null || privateKey.isEmpty()) {
+                log.error("RSA私钥为空，无法解密密码");
+                return ResponseData.error(500, "RSA密钥对未初始化，请重启应用");
+            }
+            
+            log.info("开始解密密码，加密密码长度: {}", dto.getPassword().length());
+            rawPassword = RsaUtils.decryptByPrivateKey(dto.getPassword());
+            log.info("密码解密成功，明文密码长度: {}", rawPassword.length());
+        } catch (Exception e) {
+            log.error("密码解密失败: {}", e.getMessage(), e);
+            return ResponseData.error(AuthExceptionCode.PASSWORD_DECRYPT_ERROR);
+        }
+
+        // 5️⃣ 校验密码强度
+        PasswordStrengthUtils.PasswordStrengthResult strengthResult = PasswordStrengthUtils.validatePassword(rawPassword);
+        if (!strengthResult.isValid()) {
+            log.warn("密码强度不足: {}", String.join(", ", strengthResult.getErrors()));
+            return ResponseData.error(AuthExceptionCode.PASSWORD_TOO_WEAK.getCode(), 
+                "密码强度不足：" + String.join("，", strengthResult.getErrors()));
+        }
+
+        // 6️⃣ 创建新用户
+        User newUser = new User();
+        newUser.setPhone(phone);
+        newUser.setNickName(dto.getNickName());
+        newUser.setPassword(SecurityUtils.encryptPassword(rawPassword));
+        newUser.setBirthday(LocalDate.parse(dto.getBirthday()));
+        newUser.setGender(dto.getGender());
+        newUser.setMinor(dto.getMinor());
+        newUser.setStatus((byte) 0); // 正常状态
+        newUser.setAvatarUrl(dto.getAvatarUrl());
+
+        try {
+            userMapper.insert(newUser);
+            log.info("新用户注册成功: phone={}, nickName={}", phone, dto.getNickName());
+        } catch (Exception e) {
+            log.error("用户注册失败", e);
+            return ResponseData.error(AuthExceptionCode.REGISTER_FAILED);
+        }
+
+        // 7️⃣ 处理宠物信息（可选）
+        if (dto.getPets() != null && !dto.getPets().isEmpty()) {
+            for (PetInfoDTO petInfo : dto.getPets()) {
+                petInfo.setUserId(newUser.getUserId()); // 设置用户ID
+                petService.addPetInfo(petInfo);
+            }
+            log.info("用户宠物信息添加成功: userId={}, petCount={}", newUser.getUserId(), dto.getPets().size());
+        }
+
+        // 8️⃣ 生成登录token
+        AuthUserInfo authUserInfo = generateAuthUserInfo(newUser);
+        authUserInfo.setNewUser(true);
+        authUserInfo.setNeedPetInfo(dto.getPets() == null || dto.getPets().isEmpty()); // 如果没有宠物信息，则需要填写
+
+        return ResponseData.ok(authUserInfo);
+    }
+
+    /**
+     * 用户注册接口（保留原有接口，用于兼容）
      */
     @PostMapping("/register")
     @ApiOperation(value = "用户注册", notes = "手机号验证码注册新用户")
@@ -260,6 +396,17 @@ public class AuthController {
             log.error("获取RSA公钥失败", e);
             return ResponseData.error(500, "获取公钥失败");
         }
+    }
+
+    /**
+     * 生成临时token，用于分步注册
+     */
+    private String generateTempToken(String phone) {
+        // 生成一个简单的临时token，用于标识验证码校验通过
+        String tempToken = "temp_" + phone + "_" + System.currentTimeMillis();
+        // 将临时token存储到Redis，有效期10分钟
+        redisTemplate.opsForValue().set("temp_token:" + tempToken, phone, Duration.ofMinutes(10));
+        return tempToken;
     }
 
     /**

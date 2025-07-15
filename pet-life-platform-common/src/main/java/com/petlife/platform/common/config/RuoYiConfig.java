@@ -119,4 +119,12 @@ public class RuoYiConfig
     {
         return getProfile() + "/upload";
     }
+
+    /**
+     * 获取临时上传图片路径
+     * @return
+     */
+    public static String getTempAvatarPath() {
+        return getProfile() + "/temp/avatar";
+    }
 }

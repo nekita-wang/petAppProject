@@ -1,8 +1,6 @@
 package com.petlife.platform.app.mapper;
 
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
-import com.petlife.platform.common.pojo.dto.PetDTO;
-import com.petlife.platform.common.pojo.dto.PetInfoQuery;
 import com.petlife.platform.common.pojo.entity.PetInfo;
 import com.petlife.platform.common.pojo.vo.PetBreedVo;
 import com.petlife.platform.common.pojo.vo.PetClassVo;

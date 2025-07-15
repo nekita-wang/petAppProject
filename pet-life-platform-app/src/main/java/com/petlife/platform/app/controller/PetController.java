@@ -2,16 +2,12 @@ package com.petlife.platform.app.controller;
 
 
 
-import com.petlife.platform.common.config.RuoYiConfig;
-import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.domain.R;
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
 import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.api.ResponseData;
-import com.petlife.platform.common.pojo.dto.PetInfoQuery;
+import com.petlife.platform.common.pojo.dto.PetInfoDTO;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
-import com.petlife.platform.common.utils.file.FileUploadUtils;
-import com.petlife.platform.common.utils.file.FileUtils;
 import com.petlife.platform.framework.config.ServerConfig;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -19,9 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -39,13 +33,25 @@ public class PetController {
 
     /**
      * 您养的宠物
-     * @param petInfoQuery
+     * @param petInfoDTO
      * @return
      */
     @PostMapping("/addPet")
     @ApiOperation(value = "添加宠物信息", notes = "新用户注册后可选择添加宠物")
-    public ResponseData<Void> addPet( @Validated @RequestBody PetInfoQuery petInfoQuery) {
-        petService.addPetInfo(petInfoQuery);
+    public ResponseData<Void> addPet(@Validated @RequestBody PetInfoDTO petInfoDTO) {
+        petService.addPetInfo(petInfoDTO);
+        return ResponseData.ok();
+    }
+
+    /**
+     * 跳过宠物信息
+     * @return
+     */
+    @PostMapping("/skipPet")
+    @ApiOperation(value = "跳过宠物信息", notes = "新用户注册后可以选择跳过宠物信息填写")
+    public ResponseData<Void> skipPet() {
+        // 这里可以记录用户跳过宠物信息的操作，或者直接返回成功
+        // 由于用户已经注册成功，这里只是确认跳过操作
         return ResponseData.ok();
     }
 

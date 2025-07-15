@@ -6,7 +6,7 @@ import com.petlife.platform.common.mapping.PetInfoMapping;
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
 import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.exception.PetException;
-import com.petlife.platform.common.pojo.dto.PetInfoQuery;
+import com.petlife.platform.common.pojo.dto.PetInfoDTO;
 import com.petlife.platform.common.pojo.entity.PetInfo;
 import com.petlife.platform.common.pojo.vo.PetBreedListVo;
 import com.petlife.platform.common.pojo.vo.PetBreedVo;
@@ -41,28 +41,34 @@ public class PetServiceImpl implements PetService {
     }
 
     @Override
-    public void addPetInfo(PetInfoQuery petInfoQuery) {
-        // 新增：防止重复填写宠物信息
-        if (petMapper.countByUserId(getUserId()) > 0) {
+    public void addPetInfo(PetInfoDTO petInfoDTO) {
+        // 如果userId为空，说明是注册时的调用，使用传入的userId
+        Long userId = petInfoDTO.getUserId();
+        if (userId == null) {
+            userId = getUserId();
+        }
+        
+        // 检查是否已有宠物信息（仅在非注册时检查）
+        if (petInfoDTO.getUserId() == null && petMapper.countByUserId(userId) > 0) {
             throw new PetException(PetProfileExceptionCode.PET_INFO_ALREADY_EXISTS.getCode(), 
                                  PetProfileExceptionCode.PET_INFO_ALREADY_EXISTS.getMessage());
         }
 
-        DateValidationUtils.validatePetDateLogic(petInfoQuery.getPetBirthday(),
-                petInfoQuery.getAdoptionDate(),"到家日期早于生日");
+        DateValidationUtils.validatePetDateLogic(petInfoDTO.getPetBirthday(),
+                petInfoDTO.getAdoptionDate(),"到家日期早于生日");
 
         //填写日期不能小于当天日期
         LocalDate now = LocalDate.now();
 
-        DateValidationUtils.validatePetDateLogic(petInfoQuery.getPetBirthday(),
+        DateValidationUtils.validatePetDateLogic(petInfoDTO.getPetBirthday(),
                 now,"宠物生日不能晚于当前时间");
 
-        DateValidationUtils.validatePetDateLogic(petInfoQuery.getAdoptionDate(),
+        DateValidationUtils.validatePetDateLogic(petInfoDTO.getAdoptionDate(),
                 now,"到家日期不能晚于当前时间");
 
         // 使用 MapStruct 进行转换
-        PetInfo info = petInfoMapping.petInfoQueryToPetInfo(petInfoQuery);
-        info.setUserId(getUserId());
+        PetInfo info = petInfoMapping.petInfoQueryToPetInfo(petInfoDTO);
+        info.setUserId(userId);
         info.setStatus(0L);
         //判断是否唯一，不唯一抛异常
         if (isPetNicknameExist(info.getUserId(), info.getPetNickName())) {

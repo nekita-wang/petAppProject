@@ -4,12 +4,14 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 启动程序
  *
  * @author pet-life
  */
+@EnableScheduling
 @MapperScan({"com.petlife.platform.app.mapper", "com.petlife.platform.admin.mapper", "com.petlife.platform.system.mapper"})
 @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class }, 
                       scanBasePackages = {"com.petlife.platform"})

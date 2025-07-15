@@ -14,6 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import java.io.File;
 
 @RestController
 @RequestMapping("/public")
@@ -26,19 +31,14 @@ public class PublicController {
      */
     @PostMapping("/app/upload/avatar")
     public AjaxResult uploadAppAvatar(@RequestParam("avatarfile") MultipartFile file) throws IOException, InvalidExtensionException {
-        LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
-        if (loginUser == null || loginUser.getUserType() == null || !"APP_USER".equals(loginUser.getUserType().name())) {
-            return AjaxResult.error(401, "无权限：仅APP用户可用");
-        }
         if (file.isEmpty()) {
             return AjaxResult.error("上传图片不能为空");
         }
-    
-        String avatar = FileUploadUtils.upload(RuoYiConfig.getAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION, true);
+        // 上传到临时目录
+        String avatar = FileUploadUtils.upload(RuoYiConfig.getTempAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION, true);
         AjaxResult ajax = AjaxResult.success();
         ajax.put("imgUrl", avatar);
         return ajax;
-     
     }
 
     /**
