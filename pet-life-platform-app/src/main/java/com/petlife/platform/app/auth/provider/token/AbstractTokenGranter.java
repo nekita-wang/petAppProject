@@ -17,6 +17,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import com.petlife.platform.framework.web.service.TokenService;
+import com.petlife.platform.app.mapper.LoginLogMapper;
+import com.petlife.platform.common.pojo.entity.LoginLog;
 
 import java.util.regex.Pattern;
 
@@ -35,6 +37,8 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     private TokenService tokenService;
     @Autowired
     protected PetMapper petMapper;
+    @Autowired
+    protected LoginLogMapper loginLogMapper;
 
     /**
      * 手机号正则，支持中国大陆手机号
@@ -115,6 +119,13 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
 
         log.info("生成token成功，userId={}, expire={}秒", user.getUserId(), authUserInfo.getExpire());
         return authUserInfo;
+    }
+
+    /**
+     * 登录日志插入方法，供子类调用
+     */
+    protected void insertLoginLog(LoginLog log) {
+        loginLogMapper.insert(log);
     }
 
     /**

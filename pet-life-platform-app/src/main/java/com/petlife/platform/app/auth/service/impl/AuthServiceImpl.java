@@ -33,6 +33,8 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
+import com.petlife.platform.app.mapper.StatusInfoMapper;
+import com.petlife.platform.common.pojo.entity.StatusInfo;
 
 @Slf4j
 @Service
@@ -47,6 +49,8 @@ public class AuthServiceImpl implements AuthService {
     private TokenService tokenService;
     @Autowired
     private PetService petService;
+    @Autowired
+    private StatusInfoMapper statusInfoMapper;
 
     @Override
     public ResponseData<String> sendLoginCode(SendCodeDTO dto) {
@@ -208,6 +212,17 @@ public class AuthServiceImpl implements AuthService {
         try {
             userMapper.insert(newUser);
             log.info("新用户注册成功: phone={}, nickName={}", phone, dto.getNickName());
+            // 注册成功后插入状态变更记录
+            StatusInfo statusInfo = new StatusInfo();
+            statusInfo.setUserId(newUser.getUserId());
+            statusInfo.setChangeType(0); // 注册激活
+            statusInfo.setOldStatus(1); // 默认已注销/未激活
+            statusInfo.setNewStatus(0); // 生效
+            statusInfo.setChangeTime(new java.util.Date());
+            statusInfo.setOperatorType(0); // 系统自动
+            statusInfo.setReason("注册激活");
+            statusInfo.setProof(null);
+            statusInfoMapper.insert(statusInfo);
         } catch (Exception e) {
             log.error("用户注册失败", e);
             return ResponseData.error(AuthExceptionCode.REGISTER_FAILED);
