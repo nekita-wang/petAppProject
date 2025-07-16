@@ -10,6 +10,9 @@ import com.petlife.platform.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -36,18 +39,7 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
         if (!StringUtils.hasText(loginDTO.getPassword())) {
             log.warn("密码为空");
             // 登录日志-失败
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(0L); // 不能为null
-            logEntry.setLoginMethod(1);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(1);
-            logEntry.setFailCount(1);
-            logEntry.setErrorReason("密码为空");
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(0L, 1, 1, 1, "密码为空", loginDTO));
             throw new PetException(AuthExceptionCode.PASSWORD_IS_EMPTY);
         }
 
@@ -56,18 +48,7 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
         if (user == null) {
             log.warn("手机号未注册: {}", phone);
             // 登录日志-失败
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(0L); // 不能为null
-            logEntry.setLoginMethod(1);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(1);
-            logEntry.setFailCount(1);
-            logEntry.setErrorReason("手机号未注册");
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(0L, 1, 1, 1, "手机号未注册", loginDTO));
             throw new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST.getCode(), "该手机号未注册，请先通过手机号注册");
         }
         // 检查状态
@@ -84,18 +65,7 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
         if (errorCount >= 5) {
             log.warn("用户ID={} 密码错误次数过多，账号已锁定30分钟", userId);
             // 登录日志-失败
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(userId);
-            logEntry.setLoginMethod(1);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(1);
-            logEntry.setFailCount(errorCount);
-            logEntry.setErrorReason("账号锁定");
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(userId, 1, 1, errorCount, "账号锁定", loginDTO));
             throw new PetException(AuthExceptionCode.ACCOUNT_LOCKED);
         }
 
@@ -108,34 +78,12 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
             if (errorCount >= 5) {
                 log.warn("用户ID={} 连续密码错误{}次，账号锁定30分钟", userId, errorCount);
                 // 登录日志-失败
-                LoginLog logEntry = new LoginLog();
-                logEntry.setUserId(userId);
-                logEntry.setLoginMethod(1);
-                logEntry.setLoginTime(new java.util.Date());
-                logEntry.setLoginIP("unknown");
-                logEntry.setLocation("unknown");
-                logEntry.setDeviceModel("unknown");
-                logEntry.setDefaultLocation(null);
-                logEntry.setLoginResult(1);
-                logEntry.setFailCount(errorCount);
-                logEntry.setErrorReason("账号锁定");
-                insertLoginLog(logEntry);
+                insertLoginLog(buildLoginLog(userId, 1, 1, errorCount, "账号锁定", loginDTO));
                 throw new PetException(AuthExceptionCode.ACCOUNT_LOCKED);
             } else {
                 log.warn("用户ID={} 密码错误，当前错误次数={}", userId, errorCount);
                 // 登录日志-失败
-                LoginLog logEntry = new LoginLog();
-                logEntry.setUserId(userId);
-                logEntry.setLoginMethod(1);
-                logEntry.setLoginTime(new java.util.Date());
-                logEntry.setLoginIP("unknown");
-                logEntry.setLocation("unknown");
-                logEntry.setDeviceModel("unknown");
-                logEntry.setDefaultLocation(null);
-                logEntry.setLoginResult(1);
-                logEntry.setFailCount(errorCount);
-                logEntry.setErrorReason("密码错误");
-                insertLoginLog(logEntry);
+                insertLoginLog(buildLoginLog(userId, 1, 1, errorCount, "密码错误", loginDTO));
                 throw new PetException(AuthExceptionCode.PASSWORD_INCORRECT);
             }
         }
@@ -149,18 +97,7 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
         authUserInfo.setNeedPetInfo(false);
 
         // 登录日志-成功
-        LoginLog logEntry = new LoginLog();
-        logEntry.setUserId(user.getUserId());
-        logEntry.setLoginMethod(1);
-        logEntry.setLoginTime(new java.util.Date());
-        logEntry.setLoginIP("unknown");
-        logEntry.setLocation("unknown");
-        logEntry.setDeviceModel("unknown");
-        logEntry.setDefaultLocation(null);
-        logEntry.setLoginResult(0);
-        logEntry.setFailCount(0);
-        logEntry.setErrorReason(null);
-        insertLoginLog(logEntry);
+        insertLoginLog(buildLoginLog(user.getUserId(), 1, 0, 0, null, loginDTO));
         log.info("用户ID={} 登录成功", userId);
         return authUserInfo;
     }

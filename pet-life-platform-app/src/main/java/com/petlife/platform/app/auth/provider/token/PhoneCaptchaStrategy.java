@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import javax.servlet.http.HttpServletRequest;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -31,18 +34,7 @@ public class PhoneCaptchaStrategy extends AbstractTokenGranter {
         if (!org.springframework.util.StringUtils.hasText(code)) {
             log.warn("验证码为空");
             // 登录日志-失败
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(0L); // 不能为null
-            logEntry.setLoginMethod(0);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(1);
-            logEntry.setFailCount(1);
-            logEntry.setErrorReason("验证码为空");
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(0L, 0, 1, 1, "验证码为空", loginDTO));
             throw new PetException(AuthExceptionCode.CODE_IS_EMPTY);
         }
 
@@ -51,35 +43,13 @@ public class PhoneCaptchaStrategy extends AbstractTokenGranter {
         if (cachedCode == null) {
             log.warn("验证码已过期或未发送: phone={}", phone);
             // 登录日志-失败
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(0L); // 不能为null
-            logEntry.setLoginMethod(0);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(1);
-            logEntry.setFailCount(1);
-            logEntry.setErrorReason("验证码过期");
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(0L, 0, 1, 1, "验证码过期", loginDTO));
             throw new PetException(AuthExceptionCode.CODE_EXPIRED);
         }
         if (!code.equals(cachedCode)) {
             log.warn("验证码不正确: 输入={}, 实际={}", code, cachedCode);
             // 登录日志-失败
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(0L); // 不能为null
-            logEntry.setLoginMethod(0);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(1);
-            logEntry.setFailCount(1);
-            logEntry.setErrorReason("验证码错误");
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(0L, 0, 1, 1, "验证码错误", loginDTO));
             throw new PetException(AuthExceptionCode.CODE_INCORRECT);
         }
 
@@ -101,36 +71,14 @@ public class PhoneCaptchaStrategy extends AbstractTokenGranter {
             boolean hasPet = petMapper.countByUserId(user.getUserId()) > 0;
             authUserInfo.setNeedPetInfo(!hasPet);
             // 登录日志-成功
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(user.getUserId());
-            logEntry.setLoginMethod(0);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(0);
-            logEntry.setFailCount(0);
-            logEntry.setErrorReason(null);
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(user.getUserId(), 0, 0, 0, null, loginDTO));
             log.info("手机号验证码登录成功: userId={}, isNewUser=false", user.getUserId());
             return authUserInfo;
         } else {
             // 用户不存在：抛出特定异常，引导用户注册
             log.info("手机号未注册，需要引导用户完成注册: phone={}", phone);
             // 登录日志-失败
-            LoginLog logEntry = new LoginLog();
-            logEntry.setUserId(0L); // 不能为null
-            logEntry.setLoginMethod(0);
-            logEntry.setLoginTime(new java.util.Date());
-            logEntry.setLoginIP("unknown");
-            logEntry.setLocation("unknown");
-            logEntry.setDeviceModel("unknown");
-            logEntry.setDefaultLocation(null);
-            logEntry.setLoginResult(1);
-            logEntry.setFailCount(1);
-            logEntry.setErrorReason("手机号未注册");
-            insertLoginLog(logEntry);
+            insertLoginLog(buildLoginLog(0L, 0, 1, 1, "手机号未注册", loginDTO));
             throw new PetException(AuthExceptionCode.ACCOUNT_NOT_EXIST.getCode(), "该手机号未注册，请先完成注册");
         }
     }

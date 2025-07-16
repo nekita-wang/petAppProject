@@ -19,6 +19,9 @@ import org.springframework.util.StringUtils;
 import com.petlife.platform.framework.web.service.TokenService;
 import com.petlife.platform.app.mapper.LoginLogMapper;
 import com.petlife.platform.common.pojo.entity.LoginLog;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.regex.Pattern;
 
@@ -124,8 +127,44 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
     /**
      * 登录日志插入方法，供子类调用
      */
-    protected void insertLoginLog(LoginLog log) {
+    public void insertLoginLog(LoginLog log) {
         loginLogMapper.insert(log);
+    }
+
+    /**
+     * 构建登录日志对象，统一封装赋值逻辑
+     */
+    public LoginLog buildLoginLog(Long userId, int loginMethod, int loginResult, int failCount, String errorReason, LoginDTO loginDTO) {
+        HttpServletRequest request = null;
+        try {
+            request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        } catch (Exception e) {
+            // ignore, fallback to unknown
+        }
+        String loginIP = null;
+        if (request != null) {
+            loginIP = request.getHeader("X-Forwarded-For");
+            if (loginIP == null || loginIP.isEmpty() || "unknown".equalsIgnoreCase(loginIP)) {
+                loginIP = request.getRemoteAddr();
+            }
+        }
+        if (loginIP == null || loginIP.isEmpty() || "unknown".equalsIgnoreCase(loginIP)) {
+            loginIP = "unknown";
+        }
+        String deviceModel = (loginDTO != null && loginDTO.getDeviceModel() != null && !loginDTO.getDeviceModel().isEmpty()) ? loginDTO.getDeviceModel() : "unknown";
+        String location = (loginDTO != null && loginDTO.getLocation() != null && !loginDTO.getLocation().isEmpty()) ? loginDTO.getLocation() : "unknown";
+        LoginLog log = new LoginLog();
+        log.setUserId(userId == null ? 0L : userId);
+        log.setLoginMethod(loginMethod);
+        log.setLoginTime(new java.util.Date());
+        log.setLoginIP(loginIP);
+        log.setLocation(location);
+        log.setDeviceModel(deviceModel);
+        log.setDefaultLocation(null);
+        log.setLoginResult(loginResult);
+        log.setFailCount(failCount);
+        log.setErrorReason(errorReason);
+        return log;
     }
 
     /**

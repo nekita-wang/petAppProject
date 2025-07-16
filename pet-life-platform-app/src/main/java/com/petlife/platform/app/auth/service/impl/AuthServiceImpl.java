@@ -223,6 +223,9 @@ public class AuthServiceImpl implements AuthService {
             statusInfo.setReason("注册激活");
             statusInfo.setProof(null);
             statusInfoMapper.insert(statusInfo);
+            // 注册成功后插入登录日志（等同于自动登录）
+            AbstractTokenGranter tokenGranter = (AbstractTokenGranter) granterContext.getGranter(GrantTypeEnum.PHONE); // 取任一实现
+            tokenGranter.insertLoginLog(tokenGranter.buildLoginLog(newUser.getUserId(), 0, 0, 0, null, null));
         } catch (Exception e) {
             log.error("用户注册失败", e);
             return ResponseData.error(AuthExceptionCode.REGISTER_FAILED);

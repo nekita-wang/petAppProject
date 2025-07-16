@@ -19,4 +19,10 @@ public class LoginDTO {
 
     @ApiModelProperty(value = "登录类型：phone=验证码登录，password=密码登录")
     private String grantType;
+
+    @ApiModelProperty(value = "设备型号")
+    private String deviceModel;
+
+    @ApiModelProperty(value = "位置")
+    private String location;
 }
