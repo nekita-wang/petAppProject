@@ -299,6 +299,28 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    /**
+     * 校验手机号是否已注册
+     */
+    public boolean checkPhoneExists(String phone) {
+        if (!StringUtils.hasText(phone)) {
+            return false;
+        }
+        User user = userMapper.selectByPhone(phone);
+        return user != null;
+    }
+
+    /**
+     * 校验昵称是否已存在
+     */
+    public boolean checkNicknameExists(String nickName) {
+        if (!StringUtils.hasText(nickName)) {
+            return false;
+        }
+        int count = userMapper.countByNickname(nickName);
+        return count > 0;
+    }
+
     private String generateTempToken(String phone) {
         String tempToken = "temp_" + phone + "_" + System.currentTimeMillis();
         redisTemplate.opsForValue().set("temp_token:" + tempToken, phone, Duration.ofMinutes(10));

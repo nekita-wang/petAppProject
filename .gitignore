@@ -57,4 +57,4 @@ dist/
 **/application-prod.yml
 **/application-test.yml
 uploadPath/
-
+.DS_Store/

@@ -1,6 +1,5 @@
 package com.petlife.platform.app.auth.provider.token;
 
-
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.auth.provider.TokenGranterStrategy;
 import com.petlife.platform.app.mapper.PetMapper;

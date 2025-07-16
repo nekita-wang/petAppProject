@@ -27,6 +27,15 @@ public class ResponseData<T>{
         this.data = data;
     }
 
+
+    public static <T> ResponseData<T> ok(String msg, T data) {
+        ResponseData<T> rd = new ResponseData<>();
+        rd.setCode(200);
+        rd.setMsg(msg);
+        rd.setData(data);
+        return rd;
+    }
+
     /**
      * 失败响应
      * @param serviceCode
@@ -72,4 +81,14 @@ public class ResponseData<T>{
         return new ResponseData<>(data);
     }
 
+    /**
+     * 成功响应：带msg和data
+     */
+    public static <T> ResponseData<T> okWithMsg(String msg, T data) {
+        ResponseData<T> rd = new ResponseData<>();
+        rd.setCode(200);
+        rd.setMsg(msg);
+        rd.setData(data);
+        return rd;
+    }
 }

@@ -16,4 +16,6 @@ public interface AuthService {
     ResponseData<PasswordStrengthUtils.PasswordStrengthResult> checkPasswordStrength(String password);
     ResponseData<String> getPublicKey();
     ResponseData<String> logout(String jwtToken);
+    boolean checkPhoneExists(String phone);
+    boolean checkNicknameExists(String nickName);
 } 

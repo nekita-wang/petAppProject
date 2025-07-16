@@ -9,6 +9,7 @@ import com.petlife.platform.common.pojo.dto.VerifyCodeDTO;
 import com.petlife.platform.common.pojo.vo.AuthUserInfo;
 import com.petlife.platform.common.utils.PasswordStrengthUtils;
 import com.petlife.platform.common.utils.ServletUtils;
+import com.petlife.platform.common.utils.StringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +78,40 @@ public class AuthController {
     @ApiOperation(value = "获取RSA公钥", notes = "用于前端加密密码")
     public ResponseData<String> getPublicKey() {
         return authService.getPublicKey();
+    }
+
+    @GetMapping("/checkPhone")
+    @ApiOperation(value = "手机号查重", notes = "校验手机号是否已注册")
+    public ResponseData<Boolean> checkPhone(@RequestParam String phone) {
+        if (!StringUtils.hasText(phone)) {
+            return ResponseData.error(400, "手机号不能为空");
+        }
+        if (!com.petlife.platform.app.auth.provider.token.AbstractTokenGranter.PHONE_PATTERN.matcher(phone).matches()) {
+            return ResponseData.error(400, "手机号格式不正确");
+        }
+        boolean exists = authService.checkPhoneExists(phone);
+        if (exists) {
+            return ResponseData.error(400, "手机号已注册");
+        }
+        // 可用时只返回200和data=false
+        return ResponseData.ok(false);
+    }
+
+    @GetMapping("/checkNickname")
+    @ApiOperation(value = "昵称查重", notes = "校验昵称是否已存在")
+    public ResponseData<Boolean> checkNickname(@RequestParam String nickName) {
+        if (!StringUtils.hasText(nickName)) {
+            return ResponseData.error(400, "昵称不能为空");
+        }
+        if (nickName.length() < 2 || nickName.length() > 10) {
+            return ResponseData.error(400, "昵称长度<10字");
+        }
+        boolean exists = authService.checkNicknameExists(nickName);
+        if (exists) {
+            return ResponseData.error(400, "昵称已存在");
+        }
+        // 可用时只返回200和data=false
+        return ResponseData.ok(false);
     }
 
     @PostMapping("/logout")

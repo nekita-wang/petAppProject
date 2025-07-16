@@ -20,6 +20,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/app/auth/sendCode",
                         "/app/auth/logout",
                         "/app/auth/verifyCode",
+                        "/app/auth/checkNickname",
+                        "/app/auth/checkPhone",
                         "/app/auth/stepRegister",
                         "/public/app/upload/avatar",
                         "/app/auth/register",
