@@ -1,29 +1,29 @@
 <template>
 	<view class="login-container">
 		<!-- 自定义导航栏 -->
-		<u-navbar rightText="手机号验证码登录" :autoBack="true" @rightClick="ToSMSLogin" fixed></u-navbar>
+		<up-navbar rightText="手机号验证码登录" :autoBack="true" @rightClick="ToSMSLogin" fixed></up-navbar>
 		<!-- 手机号输入 -->
 		<view class="phone-box">
 			<view class="input-group">
 				<view class="prefix">+86</view>
-				<up-input placeholder="请输入手机号" type='number' shape="circle" clearable v-model="phone"
+				<up-input placeholder="请输入手机号" type='number' shape="circle" clearable v-model="pwdReactive.phone"
 					maxlength="11"></up-input>
 			</view>
 			<!-- 密码输入组 -->
 			<view class="input-group-pwd">
-				<u-input v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="请输入密码"
+				<up-input v-model="pwdReactive.password" :type="showPassword ? 'text' : 'password'" placeholder="请输入密码"
 					:passwordIcon="false" maxlength="10">
 					<template #suffix>
-						<u-icon :name="showPassword ? 'eye-fill' : 'eye-off'"
+						<up-icon :name="showPassword ? 'eye-fill' : 'eye-off'"
 							:color="showPassword ? '#2979ff' : '#c0c4cc'" size="25"
 							@click="showPassword = !showPassword" />
 					</template>
-				</u-input>
+				</up-input>
 			</view>
 			<!-- 登录按钮 -->
-			<u-button class="login-btn" :disabled="!isFormValid" @click="handleLogin">
+			<up-button class="login-btn" :disabled="!isFormValid" @click="handleLogin">
 				登录
-			</u-button>
+			</up-button>
 		</view>
 	</view>
 </template>
@@ -31,68 +31,79 @@
 <script setup>
 	import {
 		ref,
-		computed
+		computed,
+		reactive
 	} from 'vue'
-	import {
-		apiGetPwd
-	} from '../../api/login'
 	import {
 		useAuthStore
 	} from '@/stores/auth'
-	const grantType = ref('password') //后端指定类型
-	const phone = ref('') //手机号
-	const password = ref('') //密码
+	import {
+		request
+	} from '../../utils/request'
+	const pwdReactive = reactive({
+		grantType: 'password', //后端指定类型
+		phone: '', //手机号
+		password: '' //密码
+	})
 	const showPassword = ref(false) //密码显示按钮
 	//点击跳转手机验证码登录
-	const ToSMSLogin = () => {
-		uni.navigateTo({
-			url: '/pages/login/sms',
-		})
-	}
-	// 按钮状态
-	const isFormValid = computed(() => {
-		return (
-			phone.value.length !== 0 &&
-			password.value.length !== 0
-		)
+	const ToSMSLogin = () => uni.navigateTo({
+		url: '/pages/login/sms',
 	})
+
+	// 按钮状态
+	const isFormValid = computed(() => pwdReactive.phone && pwdReactive.password)
 	// 点击登录
 	const handleLogin = async () => {
 		try {
-			const res = await apiGetPwd(grantType.value, phone.value, password.value)
-			const authStore = useAuthStore()
-			const userInfo = {
-				...(res.data?.token && {
-					token: res.data.token
-				}),
-				...(res.data?.userId && {
-					userId: res.data.userId
-				}),
-				phone: phone.value
-			}
-			authStore.setUserInfo(userInfo)
-			if (res.code === 200) {
+			const authStore = useAuthStore();
+			const res = await request({
+				url: '/app/auth/login',
+				method: 'POST',
+				data: {
+					...pwdReactive
+				}
+			});
+			// 未注册
+			if (res.code === 1000) {
+				uni.showToast({
+					title: res.msg,
+					icon: 'none'
+				});
+				await authStore.setUserInfo({
+					phone: pwdReactive.phone
+				});
 				return uni.navigateTo({
-					url: '/pages/petSelection/petSelection'
-				})
+					url: '/pages/login/register'
+				});
 			}
 
-			uni.showToast({
-				title: res.msg || '登录失败',
-				icon: 'none'
-			})
-			if (res.code === 1000) uni.navigateTo({
-				url: '/pages/login/register'
-			})
+			if (!res.success) {
+				return uni.showToast({
+					title: res.msg || '登录失败',
+					icon: 'none'
+				});
+			}
+
+			await authStore.setUserInfo({
+				token: res.data.token || '',
+				userId: res.data.userId,
+				phone: pwdReactive.phone
+			});
+
+			uni.navigateTo({
+				url: res.data.needPetInfo ?
+					'/pages/petSelection/petSelection' :
+					'/pages/home/home'
+			});
 
 		} catch (error) {
-			console.error('登录请求失败:', error)
 			uni.showToast({
-				title: '网络错误，请重试',
+				title: error.message || '网络错误，请重试',
 				icon: 'none'
-			})
+			});
 		}
-	}
+	};
 </script>
 
 <style lang="scss" scoped>

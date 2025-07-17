@@ -7,8 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://115.120.195.253',
+        target: 'http://122.228.237.118:53627',
         changeOrigin: true,
+		"secure": false, // 忽略证书验证
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }

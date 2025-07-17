@@ -21,7 +21,7 @@ const props = defineProps({
   modelValue: String,
   defaultDate: {
     type: [Date, String],
-    default: () => new Date()
+    default: () => new Date('2000-06-06')
   }
 })
 

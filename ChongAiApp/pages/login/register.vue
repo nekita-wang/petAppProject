@@ -3,7 +3,7 @@
 
 		<!-- 头像上传 -->
 		<view class="avatar-upload" @click="UploadImage">
-			<up-image :src=avatar width="80px" height="80px" shape="circle"> </up-image>
+			<up-image width="100%" height="100%" :src="rgtReactive.avatarUrl" shape="circle"> </up-image>
 		</view>
 		<!-- 表单区域 -->
 		<view class="form-group">
@@ -16,7 +16,7 @@
 			<!-- 昵称 -->
 			<view class="form-item">
 				<text class="label">昵称:</text>
-				<up-input v-model="nickname" placeholder="请输入" shape="circle" maxlength="10"></up-input>
+				<up-input v-model="rgtReactive.nickName" placeholder="请输入" shape="circle" maxlength="10"></up-input>
 			</view>
 			<!-- 性别选择区域 -->
 			<view class="form-item">
@@ -24,19 +24,20 @@
 				<view class="gender-container">
 					<!-- 男性选项 -->
 					<view class="gender-option">
-						<view class="sex-male" :class="{ active: gender === '0' }">
+						<view class="sex-male" :class="{ active: rgtReactive.gender === '0' }">
 							<image src="/static/nan.svg" class="gender-icon" />
 						</view>
-						<text class="gender-tag male" :class="{ active: gender === '0' }" @click="gender = '0'">男</text>
+						<text class="gender-tag male" :class="{ active: rgtReactive.gender === '0' }"
+							@click="rgtReactive.gender = '0'">男</text>
 					</view>
 
 					<!-- 女性选项 -->
 					<view class="gender-option">
-						<view class="sex-female" :class="{ active: gender === '1' }">
+						<view class="sex-female" :class="{ active: rgtReactive.gender === '1' }">
 							<image src="/static/nv.svg" class="gender-icon" />
 						</view>
-						<text class="gender-tag female" :class="{ active: gender === '1' }"
-							@click="gender = '1'">女</text>
+						<text class="gender-tag female" :class="{ active: rgtReactive.gender === '1' }"
+							@click="rgtReactive.gender = '1'">女</text>
 					</view>
 				</view>
 			</view>
@@ -44,14 +45,14 @@
 			<!-- 生日-->
 			<view class="form-item">
 				<text class="label">您的生日:</text>
-				<DatePicker @date-change="handleBirthdayChange" />
+				<DatePicker @date-change="handleBirthdayChange" :default-date="rgtReactive.birthday" />
 			</view>
 
 			<!-- 密码 -->
 			<view class="form-item">
 				<text class="label">密码:</text>
 				<view class="form-item-pwd">
-					<u-input shape="circle" v-model="password" :type="showPassword ? 'text' : 'password'"
+					<u-input shape="circle" v-model="rgtReactive.password" :type="showPassword ? 'text' : 'password'"
 						placeholder="请输入" :passwordIcon="false" maxlength="10" @change="checkPasswordStrength">
 						<template #suffix>
 							<u-icon :name="showPassword ? 'eye-fill' : 'eye-off'"
@@ -86,8 +87,9 @@
 			<view class="form-item">
 				<text class="label">密码确认:</text>
 				<view class="form-item-pwd">
-					<u-input shape="circle" v-model="confirmPassword" :type="showCmPassword ? 'text' : 'password'"
-						placeholder="请输入" :passwordIcon="false" maxlength="10">
+					<u-input shape="circle" v-model="rgtReactive.passwordConfirm"
+						:type="showCmPassword ? 'text' : 'password'" placeholder="请输入" :passwordIcon="false"
+						maxlength="10">
 						<template #suffix>
 							<u-icon :name="showCmPassword ? 'eye-fill' : 'eye-off'"
 								:color="showCmPassword ? '#2979ff' : '#c0c4cc'" size="25"
@@ -117,65 +119,86 @@
 	import {
 		onMounted,
 		computed,
-		ref
+		ref,
+		reactive
 	} from 'vue'
 	import {
 		useAuthStore
 	} from '@/stores/auth'
 	import {
-		apiCompleteProfile
-	} from '../../api/login'
-	import {
 		getPublicKey,
 		encryptWithRSA
 	} from '@/utils/rsa'
+	import {
+		uploadImg
+	} from '../../utils/uploadImg'
+	import {
+		request
+	} from '../../utils/request'
 	const strengthLevel = ref(0) //密码强度
 	const ShowStrenth = ref(false) //显示密码强度
+	const relativePath = ref('') //不携带ip的头像地址
 	const authStore = useAuthStore() //使用pinia
-	const avatar = ref('/static/touxiang.svg')
-	const phone = ref('') //手机号
-	const nickname = ref('') //昵称
-	const password = ref('') //密码
-	const confirmPassword = ref('') //确认密码
-	const gender = ref('0') //性别
-	const birthday = ref('2024-6-6') //生日
+	const rgtReactive = reactive({
+		phone: authStore.phone,
+		nickName: '',
+		password: '',
+		birthday: '2000-6-6',
+		gender: '0',
+		avatarUrl: '/static/touxiang.svg',
+		passwordConfirm: ''
+	})
 	const showPassword = ref(false) //密码显示按钮
 	const showCmPassword = ref(false) //确认密码显示按钮
 
 	// 按钮状态
-	const isFormValid = computed(() => {
-		return (
-			nickname.value.trim() !== '' &&
-			gender.value !== '' &&
-			password.value.length !== 0 && // 密码长度要求 
-			confirmPassword.value.length !== 0
-		)
-	})
+	const isFormValid = computed(() =>
+		rgtReactive.nickName &&
+		rgtReactive.password &&
+		rgtReactive.passwordConfirm
+	)
 	//日期选择器
 	const handleBirthdayChange = (date) => {
-		birthday.value = date
+		rgtReactive.birthday = date
 	}
-	// 完善个人资料接口
+	// 用户是否上传头像
+	const hasUploadedAvatar = computed(() => rgtReactive.avatarUrl !== '/static/touxiang.svg')
+	//点击上传图片
+	const UploadImage = () => {
+		uploadImg((AvatarCallback) => {
+			rgtReactive.avatarUrl = AvatarCallback.fullUrl; //带有ip地址的
+			relativePath.value = AvatarCallback.relativePath
+		});
+	};
+	onLoad(() => {
+		rgtReactive.birthday = '2000-06-06' // 设置初始值
+	})
+	// 个人完善接口
 	const completeProfile = async () => {
 		try {
 			// 获取密钥
 			const publicKey = await getPublicKey()
-			const encryptedPwd = encryptWithRSA(publicKey, password.value)
-			const res = await apiCompleteProfile({
-				userId: authStore.userId,
-				nickname: nickname.value,
-				password: encryptedPwd,
-				avatar: avatar.value,
-				gender: gender.value,
-				birthday: birthday.value
+			const encryptedPwd = encryptWithRSA(publicKey, rgtReactive.password)
+			const res = await request({
+				url: '/app/user/registerProfile',
+				method: 'POST',
+				data: {
+					...rgtReactive,
+					avatarUrl:relativePath.value,
+					password: encryptedPwd,
+					passwordConfirm: encryptedPwd
+				}
 			})
-
+			console.log(res);
 			res.code === 200 ?
 				(uni.showToast({
 						title: '注册成功',
 						icon: 'success'
 					}),
-					uni.navigateTo({
+					authStore.setUserInfo({
+						token: res.data.token,
+						userId:res.data.userId
+					}), uni.navigateTo({
 						url: '/pages/petSelection/petSelection'
 					})) :
 				uni.showToast({
@@ -196,15 +219,15 @@
 		}
 	}
 	const handelNext = () => {
-		if (password.value !== confirmPassword.value) {
+		if (rgtReactive.password !== rgtReactive.passwordConfirm) {
 			return uni.showToast({
 				title: '两次密码不一致',
 				icon: 'none'
 			})
 		}
-		if (strengthLevel.value <= 1) {
+		if (!hasUploadedAvatar.value) {
 			return uni.showToast({
-				title: '密码较弱请重新设置',
+				title: '请上传头像',
 				icon: 'none'
 			})
 		}
@@ -219,8 +242,8 @@
 	})
 	//输入框判断密码强度
 	const checkPasswordStrength = debounce((e) => {
-		password.value = e.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
-		const pass = password.value
+		rgtReactive.password = e.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
+		const pass = rgtReactive.password
 
 		ShowStrenth.value = pass.length > 0
 
@@ -238,24 +261,8 @@
 			/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass),
 			/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)
 		].filter(Boolean).length
-
 		strengthLevel.value = score <= 3 ? 1 : score <= 6 ? 2 : 3
 	}, 300)
-	// 上传图片
-	const UploadImage = () => {
-		uni.chooseImage({
-			count: 1,
-			success(res) {
-				avatar.value = res.tempFilePaths[0]
-			}
-		})
-	}
-	onLoad(() => {
-		function formatDate(date) {
-			return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-		}
-		birthday.value = formatDate(new Date())
-	})
 </script>
 
 <style scoped lang="scss">
@@ -263,7 +270,6 @@
 		padding: 0 40rpx 0 20rpx;
 		background-color: #fff;
 	}
-
 
 	/* 头像上传 */
 	.avatar-upload {
