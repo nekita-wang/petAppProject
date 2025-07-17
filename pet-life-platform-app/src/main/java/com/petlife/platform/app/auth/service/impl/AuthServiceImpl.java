@@ -12,14 +12,10 @@ import com.petlife.platform.common.core.domain.model.LoginUser;
 import com.petlife.platform.common.core.exception.PetException;
 import com.petlife.platform.common.enums.UserType;
 import com.petlife.platform.common.pojo.dto.LoginDTO;
-import com.petlife.platform.common.pojo.dto.PetInfoDTO;
 import com.petlife.platform.common.pojo.dto.SendCodeDTO;
-import com.petlife.platform.common.pojo.dto.StepRegisterDTO;
-import com.petlife.platform.common.pojo.dto.VerifyCodeDTO;
 import com.petlife.platform.common.pojo.entity.User;
 import com.petlife.platform.common.pojo.vo.AuthUserInfo;
 import com.petlife.platform.common.utils.PasswordStrengthUtils;
-import com.petlife.platform.common.utils.SecurityUtils;
 import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.sign.RsaUtils;
 import com.petlife.platform.framework.web.service.TokenService;
@@ -27,14 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.Objects;
 import com.petlife.platform.app.mapper.StatusInfoMapper;
-import com.petlife.platform.common.pojo.entity.StatusInfo;
 
 @Slf4j
 @Service
@@ -109,150 +101,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseData<String> verifyCode(VerifyCodeDTO dto) {
-        String phone = dto.getPhone();
-        String code = dto.getCode();
-        User existingUser = userMapper.selectByPhone(phone);
-        if (existingUser != null) {
-            log.warn("手机号已注册: {}", phone);
-            return ResponseData.error(AuthExceptionCode.ACCOUNT_ALREADY_EXISTS);
-        }
-        String redisKey = AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + phone;
-        String cachedCode = redisTemplate.opsForValue().get(redisKey);
-        if (cachedCode == null) {
-            log.warn("验证码已过期或未发送: phone={}", phone);
-            return ResponseData.error(AuthExceptionCode.CODE_EXPIRED);
-        }
-        if (!code.equals(cachedCode)) {
-            log.warn("验证码不正确: 输入={}, 实际={}", code, cachedCode);
-            return ResponseData.error(AuthExceptionCode.CODE_INCORRECT);
-        }
-        String tempToken = generateTempToken(phone);
-        redisTemplate.delete(redisKey);
-        log.info("验证码校验成功: phone={}", phone);
-        return ResponseData.ok(tempToken);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public ResponseData<AuthUserInfo> stepRegister(StepRegisterDTO dto) {
-        String phone = dto.getPhone();
-        if (!AbstractTokenGranter.PHONE_PATTERN.matcher(phone).matches()) {
-            log.warn("手机号格式不合法: {}", phone);
-            return ResponseData.error(AuthExceptionCode.PHONE_FORMAT_ERROR);
-        }
-        //校验性别
-        if (dto.getGender() == null || dto.getGender() < 0 || dto.getGender() > 2) {
-            log.warn("性别字段非法: {}", dto.getGender());
-            return ResponseData.error(400, "性别字段非法");
-        }
-
-        User existingUser = userMapper.selectByPhone(phone);
-        if (existingUser != null) {
-            log.warn("手机号已注册: {}", phone);
-            return ResponseData.error(AuthExceptionCode.ACCOUNT_ALREADY_EXISTS);
-        }
-        int nickNameCount = userMapper.countByNickname(dto.getNickName());
-        if (nickNameCount > 0) {
-            log.warn("昵称已存在: {}", dto.getNickName());
-            return ResponseData.error(AuthExceptionCode.USER_NICKNAME_EXIST);
-        }
-        String rawPassword;
-        try {
-            String privateKey = RsaUtils.getPrivateKey();
-            if (privateKey == null || privateKey.isEmpty()) {
-                log.error("RSA私钥为空，无法解密密码");
-                return ResponseData.error(500, "RSA密钥对未初始化，请重启应用");
-            }
-            log.info("开始解密密码，加密密码长度: {}", dto.getPassword().length());
-            rawPassword = RsaUtils.decryptByPrivateKey(dto.getPassword());
-            log.info("密码解密成功，明文密码长度: {}", rawPassword.length());
-        } catch (Exception e) {
-            log.error("密码解密失败: {}", e.getMessage(), e);
-            return ResponseData.error(AuthExceptionCode.PASSWORD_DECRYPT_ERROR);
-        }
-        PasswordStrengthUtils.PasswordStrengthResult strengthResult = PasswordStrengthUtils.validatePassword(rawPassword);
-        if (!strengthResult.isValid()) {
-            log.warn("密码强度不足: {}", String.join(", ", strengthResult.getErrors()));
-            return ResponseData.error(AuthExceptionCode.PASSWORD_TOO_WEAK.getCode(),
-                    "密码强度不足：" + String.join("，", strengthResult.getErrors()));
-        }
-        // 1. 计算年龄
-        LocalDate birthday;
-        try {
-            birthday = LocalDate.parse(dto.getBirthday());
-        } catch (Exception e) {
-            log.warn("生日格式不正确: {}", dto.getBirthday());
-            return ResponseData.error(400, "生日格式不正确，应为yyyy-MM-dd");
-        }
-        int age = Period.between(birthday, LocalDate.now()).getYears();
-        if (age < 18) {
-            log.warn("未满18周岁禁止注册: birthday={}, age={}", dto.getBirthday(), age);
-            return ResponseData.error(400, "未满18周岁禁止注册");
-        }
-        byte minor = (byte) (age < 18 ? 1 : 0); // 实际上此时一定为0
-
-        // 处理用户头像，确保只存相对路径
-        String avatarUrl = dto.getAvatarUrl();
-        if (avatarUrl != null && (avatarUrl.startsWith("http://") || avatarUrl.startsWith("https://"))) {
-            int idx = avatarUrl.indexOf("/profile");
-            if (idx != -1) {
-                avatarUrl = avatarUrl.substring(idx);
-            }
-        }
-        User newUser = new User();
-        newUser.setPhone(phone);
-        newUser.setNickName(dto.getNickName());
-        newUser.setPassword(SecurityUtils.encryptPassword(rawPassword));
-        newUser.setBirthday(birthday);
-        newUser.setGender(dto.getGender());
-        newUser.setMinor(minor); // 由后端赋值
-        newUser.setStatus((byte) 0);
-        newUser.setAvatarUrl(avatarUrl); // 只存相对路径
-        try {
-            userMapper.insert(newUser);
-            log.info("新用户注册成功: phone={}, nickName={}", phone, dto.getNickName());
-            // 注册成功后插入状态变更记录
-            StatusInfo statusInfo = new StatusInfo();
-            statusInfo.setUserId(newUser.getUserId());
-            statusInfo.setChangeType(0); // 注册激活
-            statusInfo.setOldStatus(1); // 默认已注销/未激活
-            statusInfo.setNewStatus(0); // 生效
-            statusInfo.setChangeTime(new java.util.Date());
-            statusInfo.setOperatorType(0); // 系统自动
-            statusInfo.setReason("注册激活");
-            statusInfo.setProof(null);
-            statusInfoMapper.insert(statusInfo);
-            // 注册成功后插入登录日志（等同于自动登录）
-            AbstractTokenGranter tokenGranter = (AbstractTokenGranter) granterContext.getGranter(GrantTypeEnum.PHONE); // 取任一实现
-            tokenGranter.insertLoginLog(tokenGranter.buildLoginLog(newUser.getUserId(), 0, 0, 0, null, null));
-        } catch (Exception e) {
-            log.error("用户注册失败", e);
-            return ResponseData.error(AuthExceptionCode.REGISTER_FAILED);
-        }
-        if (dto.getPets() != null && !dto.getPets().isEmpty()) {
-            for (PetInfoDTO petInfo : dto.getPets()) {
-                // 处理宠物头像，确保只存相对路径
-                String petAvatarUrl = petInfo.getPetAvatarURL();
-                if (petAvatarUrl != null && (petAvatarUrl.startsWith("http://") || petAvatarUrl.startsWith("https://"))) {
-                    int idx = petAvatarUrl.indexOf("/profile");
-                    if (idx != -1) {
-                        petAvatarUrl = petAvatarUrl.substring(idx);
-                    }
-                    petInfo.setPetAvatarURL(petAvatarUrl);
-                }
-                petInfo.setUserId(newUser.getUserId());
-                petService.addPetInfo(petInfo);
-            }
-            log.info("用户宠物信息添加成功: userId={}, petCount={}", newUser.getUserId(), dto.getPets().size());
-        }
-        AuthUserInfo authUserInfo = generateAuthUserInfo(newUser);
-        authUserInfo.setNewUser(true);
-        authUserInfo.setNeedPetInfo(dto.getPets() == null || dto.getPets().isEmpty());
-        return ResponseData.ok(authUserInfo);
-    }
-
-    @Override
     public ResponseData<PasswordStrengthUtils.PasswordStrengthResult> checkPasswordStrength(String password) {
         if (password == null || password.trim().isEmpty()) {
             return ResponseData.error(AuthExceptionCode.PARAMS_MISSING.getCode(), "密码不能为空");
@@ -297,17 +145,6 @@ public class AuthServiceImpl implements AuthService {
             log.error("退出登录时解析 token 出错: {}", e.getMessage());
             return ResponseData.error(500, "退出登录失败，请稍后再试");
         }
-    }
-
-    /**
-     * 校验手机号是否已注册
-     */
-    public boolean checkPhoneExists(String phone) {
-        if (!StringUtils.hasText(phone)) {
-            return false;
-        }
-        User user = userMapper.selectByPhone(phone);
-        return user != null;
     }
 
     /**

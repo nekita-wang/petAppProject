@@ -135,26 +135,22 @@ public class GlobalExceptionHandler
      * 自定义验证异常
      */
     @ExceptionHandler(BindException.class)
-    public AjaxResult handleBindException(BindException e)
+    public ResponseData<?> handleBindException(BindException e)
     {
         log.error(e.getMessage(), e);
         String message = e.getAllErrors().get(0).getDefaultMessage();
-        return AjaxResult.error(message);
+        return ResponseData.error(400, message);
     }
 
     /**
      * 自定义验证异常（@RequestBody参数校验失败）
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Object handleMethodArgumentNotValidException(MethodArgumentNotValidException e)
+    public ResponseData<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e)
     {
         log.error(e.getMessage(), e);
         String message = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-        // 如果是“两次输入的密码不一致”，返回ResponseData结构，否则保持原有AjaxResult结构
-        if ("两次输入的密码不一致".equals(message)) {
-            return ResponseData.error(400, message);
-        }
-        return AjaxResult.error(message);
+        return ResponseData.error(400, message);
     }
 
     /**

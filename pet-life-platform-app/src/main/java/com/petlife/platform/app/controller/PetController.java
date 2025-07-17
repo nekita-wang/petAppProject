@@ -1,14 +1,11 @@
 package com.petlife.platform.app.controller;
 
-
-
 import com.petlife.platform.common.core.domain.R;
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
 import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.api.ResponseData;
 import com.petlife.platform.common.pojo.dto.PetInfoDTO;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
-import com.petlife.platform.framework.config.ServerConfig;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +23,6 @@ import java.util.Map;
 public class PetController {
     @Autowired
     private PetService petService;
-
-    @Autowired
-    private ServerConfig serverConfig;
 
 
     /**

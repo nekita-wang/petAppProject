@@ -5,17 +5,15 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.validation.Valid;
 import javax.validation.constraints.*;
-import java.util.List;
 
 /**
- * 分步注册
+ * 完善个人资料注册
  */
 @Data
-@ApiModel(description = "分步注册请求")
+@ApiModel(description = "完善个人资料注册请求")
 @PasswordMatches
-public class StepRegisterDTO {
+public class UserProfileRegisterDTO {
 
     @ApiModelProperty(value = "手机号", required = true, example = "13812345678")
     @NotBlank(message = "手机号不能为空")
@@ -49,8 +47,4 @@ public class StepRegisterDTO {
     @ApiModelProperty(value = "头像URL", required = true, example = "/profile/avatar/default.jpg")
     @NotBlank(message = "头像不能为空")
     private String avatarUrl;
-
-    @ApiModelProperty(value = "宠物信息列表", required = false, notes = "可选，如果不填写则跳过宠物信息")
-    @Valid
-    private List<PetInfoDTO> pets;
 } 

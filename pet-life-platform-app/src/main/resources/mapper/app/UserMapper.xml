@@ -65,14 +65,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         WHERE nick_name = #{nickname}
     </select>
 
-    <!-- 查询昵称是否已存在（排除指定用户） -->
-    <select id="countByNicknameExcludeUser" resultType="int">
-        SELECT COUNT(*)
-        FROM user
-        WHERE nick_name = #{nickname}
-          AND user_id != #{userId}
-    </select>
-
     <!-- 更新用户基本资料 -->
     <update id="updateProfile">
         UPDATE user

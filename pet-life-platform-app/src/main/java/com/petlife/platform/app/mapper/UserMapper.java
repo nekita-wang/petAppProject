@@ -39,12 +39,4 @@ public interface UserMapper {
      */
     int countByNickname(@Param("nickname") String nickname);
 
-    /**
-     * 查询昵称是否已存在（排除指定用户）
-     * @param userId 要排除的用户ID
-     * @param nickname
-     * @return
-     */
-    int countByNicknameExcludeUser(@Param("userId") Long userId, @Param("nickname") String nickname);
-
 }

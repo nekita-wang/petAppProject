@@ -14,7 +14,8 @@ public enum UserProfileExceptionCode {
     BIRTHDAY_FORMAT_ERROR(40002, "生日格式错误，应为 yyyy-MM-dd"),
     GENDER_INVALID(40003, "性别非法"),
     NICKNAME_EXIST(40004, "昵称已存在"),
-    PASSWORD_DECRYPT_ERROR(40005, "密码解密失败");
+    PASSWORD_DECRYPT_ERROR(40005, "密码解密失败"),
+    PHONE_EMPTY(40000, "手机号不能为空");
 
     private final int code;
     private final String message;

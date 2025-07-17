@@ -111,7 +111,7 @@ public class SecurityConfig
             .authorizeHttpRequests((requests) -> {
                 permitAllUrl.getUrls().forEach(url -> requests.antMatchers(url).permitAll());
                 // 对于登录login 注册register 验证码captchaImage 允许匿名访问
-                requests.antMatchers("/app/auth/checkNickname","/app/auth/checkPhone","/app/auth/logout","/public/publicKey","/public/app/upload/avatar","/login", "/app/auth/login","/app/auth/sendCode","/app/auth/verifyCode","/app/auth/stepRegister","/app/auth/register","/register", "/captchaImage").permitAll()
+                requests.antMatchers("/app/user/registerProfile","/app/pet/addPet","/app/auth/logout","/public/publicKey","/public/app/upload/avatar","/login", "/app/auth/login","/app/auth/sendCode","/register", "/captchaImage").permitAll()
                     // 静态资源，可匿名访问
                     .antMatchers(HttpMethod.GET, "/", "/*.html", "/**/*.html", "/**/*.css", "/**/*.js", "/profile/**").permitAll()
                     .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/*/api-docs", "/druid/**").permitAll()
