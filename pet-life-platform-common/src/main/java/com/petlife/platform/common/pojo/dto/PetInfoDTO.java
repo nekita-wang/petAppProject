@@ -10,9 +10,6 @@ import java.time.LocalDate;
 @Data
 public class PetInfoDTO {
 
-    /** 用户ID（注册时自动设置） */
-    private Long userId;
-
     /** 宠物头像 */
     @NotBlank(message = "请上传头像")
     private String petAvatarURL;

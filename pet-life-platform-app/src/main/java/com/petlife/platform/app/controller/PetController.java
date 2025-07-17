@@ -6,6 +6,9 @@ import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.api.ResponseData;
 import com.petlife.platform.common.pojo.dto.PetInfoDTO;
 import com.petlife.platform.common.pojo.vo.PetClassVo;
+import com.petlife.platform.framework.web.service.TokenService;
+import com.petlife.platform.common.core.domain.model.LoginUser;
+import javax.servlet.http.HttpServletRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,8 @@ import java.util.Map;
 public class PetController {
     @Autowired
     private PetService petService;
+    @Autowired
+    private TokenService tokenService;
 
 
     /**
@@ -32,8 +37,13 @@ public class PetController {
      */
     @PostMapping("/addPet")
     @ApiOperation(value = "添加宠物信息", notes = "新用户注册后可选择添加宠物")
-    public ResponseData<Void> addPet(@Validated @RequestBody PetInfoDTO petInfoDTO) {
-        petService.addPetInfo(petInfoDTO);
+    public ResponseData<Void> addPet(@Validated @RequestBody PetInfoDTO petInfoDTO, HttpServletRequest request) {
+        LoginUser loginUser = tokenService.getLoginUser(request);
+        if (loginUser == null) {
+            return ResponseData.error(401, "未登录或token无效");
+        }
+
+        petService.addPetInfo(petInfoDTO,loginUser.getUserId());
         return ResponseData.ok();
     }
 

@@ -10,7 +10,7 @@ import java.util.Map;
 public interface PetService {
     boolean isPetNicknameExist(Long userId, String nickname);
 
-    void addPetInfo(PetInfoDTO petInfoDTO);
+    void addPetInfo(PetInfoDTO petInfoDTO,Long userId);
 
     Map<String, Object> selectPetBreedAppList(PetBreedQuery petBreedQuery);
 

@@ -93,8 +93,9 @@ public class PwdCaptchaStrategy extends AbstractTokenGranter {
 
         // 7. 登录成功生成 token
         AuthUserInfo authUserInfo = createToken(user);
-        // 密码登录流程，needPetInfo始终为false
-        authUserInfo.setNeedPetInfo(false);
+        // 设置 needPetInfo 字段，只有真正有宠物信息才为 false
+        boolean hasPet = petMapper.countByUserId(user.getUserId()) > 0;
+        authUserInfo.setNeedPetInfo(!hasPet);
 
         // 登录日志-成功
         insertLoginLog(buildLoginLog(user.getUserId(), 1, 0, 0, null, loginDTO));

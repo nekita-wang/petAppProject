@@ -3,16 +3,16 @@ package com.petlife.platform.app.auth.provider.token;
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.app.auth.provider.TokenGranterStrategy;
 import com.petlife.platform.app.mapper.PetMapper;
+import com.petlife.platform.app.mapper.UserMapper;
 import com.petlife.platform.common.core.domain.model.LoginUser;
 import com.petlife.platform.common.core.exception.PetException;
-import com.petlife.platform.app.mapper.UserMapper;
 import com.petlife.platform.common.enums.UserType;
 import com.petlife.platform.common.pojo.dto.LoginDTO;
 import com.petlife.platform.common.pojo.entity.User;
 import com.petlife.platform.common.pojo.vo.AuthUserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import com.petlife.platform.framework.web.service.TokenService;
@@ -30,15 +30,14 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public abstract class AbstractTokenGranter implements TokenGranterStrategy {
-
     @Autowired
-    protected UserMapper userMapper;
+    public RedisTemplate<String,String> redisTemplate;
     @Autowired
-    protected StringRedisTemplate redisTemplate;
+    public UserMapper userMapper;
+    @Autowired
+    public PetMapper petMapper;
     @Autowired
     private TokenService tokenService;
-    @Autowired
-    protected PetMapper petMapper;
     @Autowired
     protected LoginLogMapper loginLogMapper;
 
@@ -110,7 +109,6 @@ public abstract class AbstractTokenGranter implements TokenGranterStrategy {
 
         // 调用若依生成 token
         String token = tokenService.createToken(loginUser);
-
 
         // 返回给前端
         AuthUserInfo authUserInfo = new AuthUserInfo();

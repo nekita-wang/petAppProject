@@ -20,7 +20,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/app/auth/sendCode",
                         "/app/auth/logout",
                         "/public/app/upload/avatar",
-                        "/app/pet/addPet",
                         "/app/user/registerProfile",
                         "/public/publicKey",
                         "/dev-api/captchaImage",

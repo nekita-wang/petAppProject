@@ -2,7 +2,6 @@ package com.petlife.platform.app.auth.provider.token;
 
 import com.petlife.platform.app.auth.enums.AuthExceptionCode;
 import com.petlife.platform.common.pojo.dto.LoginDTO;
-import com.petlife.platform.common.pojo.entity.LoginLog;
 import com.petlife.platform.common.pojo.entity.User;
 import com.petlife.platform.common.pojo.vo.AuthUserInfo;
 import com.petlife.platform.common.core.exception.PetException;
@@ -10,11 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import javax.servlet.http.HttpServletRequest;
-
-import java.time.LocalDate;
 import java.util.Optional;
 
 @Slf4j
@@ -66,13 +60,12 @@ public class PhoneCaptchaStrategy extends AbstractTokenGranter {
             checkUser(user);
             // 生成 token 返回
             AuthUserInfo authUserInfo = createToken(user);
-            authUserInfo.setNewUser(false);
-            // 设置 needPetInfo 字段
+            // 设置 needPetInfo 字段，只有真正有宠物信息才为 false
             boolean hasPet = petMapper.countByUserId(user.getUserId()) > 0;
             authUserInfo.setNeedPetInfo(!hasPet);
             // 登录日志-成功
             insertLoginLog(buildLoginLog(user.getUserId(), 0, 0, 0, null, loginDTO));
-            log.info("手机号验证码登录成功: userId={}, isNewUser=false", user.getUserId());
+            log.info("手机号验证码登录成功: userId={},", user.getUserId());
             return authUserInfo;
         } else {
             // 用户不存在：抛出特定异常，引导用户注册

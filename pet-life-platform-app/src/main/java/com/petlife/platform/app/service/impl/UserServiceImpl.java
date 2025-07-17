@@ -129,7 +129,6 @@ public class UserServiceImpl implements UserService {
             return ResponseData.error(AuthExceptionCode.REGISTER_FAILED);
         }
         AuthUserInfo authUserInfo = generateAuthUserInfo(newUser);
-        authUserInfo.setNewUser(true);
         authUserInfo.setNeedPetInfo(true); // 只注册用户，未注册宠物
         return ResponseData.ok(authUserInfo);
     }
