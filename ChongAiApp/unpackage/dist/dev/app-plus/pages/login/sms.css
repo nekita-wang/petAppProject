@@ -616,7 +616,6 @@ to {
 /* 文章场景相关 */
 .login-container[data-v-4e4cd1cc] {
   position: relative;
-  height: 100vh;
   padding-top: var(--status-bar-height);
 }
 [data-v-4e4cd1cc] .u-navbar__content__right__text span {
@@ -625,16 +624,10 @@ to {
   font-weight: bold;
 }
 .phone-box[data-v-4e4cd1cc] {
-  padding-top: 3.125rem;
+  padding-top: 1.875rem;
   /* 导航栏高度 */
   padding-left: 1.25rem;
   padding-right: 1.25rem;
-}
-.login-method[data-v-4e4cd1cc] {
-  color: #007aff;
-  font-size: 1rem;
-  text-align: right;
-  margin-bottom: 2.5rem;
 }
 .input-group[data-v-4e4cd1cc] {
   display: flex;

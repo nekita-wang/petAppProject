@@ -1315,12 +1315,14 @@ to {
   display: flex;
   flex-direction: column;
 }
-.content-wrapper[data-v-4cc5dec4] {
+.content-no-roll[data-v-4cc5dec4] {
+  margin-top: 4.21875rem;
   width: 100%;
-  height: 100%;
-  margin-top: 1.25rem;
-  /* 将间距移到导航栏 */
-  position: fixed;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 4.21875rem;
+  z-index: 10;
+  background: white;
 }
 
 /* 页签样式 */
@@ -1333,7 +1335,7 @@ to {
   scrollbar-width: none;
 }
 .tab-item[data-v-4cc5dec4] {
-  flex: 0 0 auto;
+  flex: 1;
   /* 取消等分，改为自适应 */
   width: 25%;
   padding: 8px 12px;
@@ -1352,9 +1354,15 @@ to {
 
 /* 未养宠内容区域 */
 .no-pet-section[data-v-4cc5dec4] {
-  flex: 1;
-  height: 100vh;
   position: relative;
+  height: 100vh;
+  /* 占满整个视口 */
+  overflow: hidden;
+  /* 禁止内部滚动 */
+  background: white;
+  /* 避免透明背景导致下方内容可见 */
+  touch-action: none;
+  /* 禁止触摸滚动 */
 }
 .fullscreen-bg[data-v-4cc5dec4] {
   position: absolute;
@@ -1365,7 +1373,7 @@ to {
 }
 .prompt-content[data-v-4cc5dec4] {
   position: absolute;
-  top: 20%;
+  top: 10%;
   left: 0;
   right: 0;
   text-align: center;
@@ -1425,14 +1433,14 @@ to {
 /* 字母列表 */
 .alphabet-section[data-v-4cc5dec4] {
   position: relative;
-  height: 60vh;
+  height: 75vh;
 }
 .alphabet-list[data-v-4cc5dec4] {
   height: 100%;
 }
 .letter-title[data-v-4cc5dec4] {
   display: block;
-  padding: 10px 0;
+  padding: 10px 5px;
   margin-right: 1.5625rem;
   font-size: 16px;
   color: black;
@@ -1440,7 +1448,7 @@ to {
   font-weight: bold;
 }
 .pet-item[data-v-4cc5dec4] {
-  padding: 12px 0;
+  padding: 12px 3px;
   font-size: 14px;
   color: #333;
   border-bottom: 1px solid #EEE;
@@ -1483,7 +1491,7 @@ to {
 /* 固定底部按钮 */
 .fixed-footer[data-v-4cc5dec4] {
   width: 50%;
-  position: absolute;
+  position: fixed;
   bottom: 1%;
   left: 25%;
   z-index: 10;

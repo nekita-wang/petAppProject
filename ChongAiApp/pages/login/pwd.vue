@@ -1,7 +1,7 @@
 <template>
 	<view class="login-container">
 		<!-- 自定义导航栏 -->
-		<up-navbar rightText="手机号验证码登录" :autoBack="true" @rightClick="ToSMSLogin" fixed></up-navbar>
+		<up-navbar  rightText="手机号验证码登录" :autoBack="true" @rightClick="ToSMSLogin" fixed></up-navbar>
 		<!-- 手机号输入 -->
 		<view class="phone-box">
 			<view class="input-group">
@@ -24,6 +24,9 @@
 			<up-button class="login-btn" :disabled="!isFormValid" @click="handleLogin">
 				登录
 			</up-button>
+			<u-modal confirmText="去注册" cancelText="取消" :show="showAgreementModal" :title="title" :content='content'
+				showCancelButton width="260px" @confirm="handleAgreement(true)"
+				@cancel="handleAgreement(false)"></u-modal>
 		</view>
 	</view>
 </template>
@@ -45,18 +48,32 @@
 		phone: '', //手机号
 		password: '' //密码
 	})
+	const showAgreementModal = ref(false) //模态框
+	const title = ref('温馨提示');
+	const content = ref('该手机号未注册，请先通过手机号注册');
 	const showPassword = ref(false) //密码显示按钮
+	const authStore = useAuthStore();
 	//点击跳转手机验证码登录
 	const ToSMSLogin = () => uni.navigateTo({
 		url: '/pages/login/sms',
 	})
-
+	// 模态框
+	const handleAgreement = async (agree) => {
+		if (agree) {
+			await authStore.setUserInfo({
+				phone: pwdReactive.phone
+			});
+			uni.navigateTo({
+				url: '/pages/login/register'
+			});
+		}
+		showAgreementModal.value = false;
+	}
 	// 按钮状态
 	const isFormValid = computed(() => pwdReactive.phone && pwdReactive.password)
 	// 点击登录
 	const handleLogin = async () => {
 		try {
-			const authStore = useAuthStore();
 			const res = await request({
 				url: '/app/auth/login',
 				method: 'POST',
@@ -64,25 +81,16 @@
 					...pwdReactive
 				}
 			});
-			// 未注册
-			if (res.code === 1000) {
-				uni.showToast({
-					title: res.msg,
-					icon: 'none'
-				});
-				await authStore.setUserInfo({
-					phone: pwdReactive.phone
-				});
-				return uni.navigateTo({
-					url: '/pages/login/register'
-				});
-			}
-
 			if (!res.success) {
-				return uni.showToast({
+				// 未注册
+				if (res.code === 1000) {
+					return showAgreementModal.value = true
+				}
+				 uni.showToast({
 					title: res.msg || '登录失败',
 					icon: 'none'
 				});
+				return
 			}
 
 			await authStore.setUserInfo({
@@ -93,8 +101,7 @@
 
 			uni.navigateTo({
 				url: res.data.needPetInfo ?
-					'/pages/petSelection/petSelection' :
-					'/pages/home/home'
+					'/pages/petSelection/petSelection' : '/pages/home/home'
 			});
 
 		} catch (error) {
@@ -109,7 +116,7 @@
 <style lang="scss" scoped>
 	.login-container {
 		position: relative;
-		height: 100vh;
+		// height: 100vh;
 		padding-top: var(--status-bar-height);
 	}
 
@@ -120,7 +127,7 @@
 	}
 
 	.phone-box {
-		padding-top: 100rpx;
+		padding-top: 80rpx;
 		/* 导航栏高度 */
 		padding-left: 40rpx;
 		padding-right: 40rpx;

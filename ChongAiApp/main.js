@@ -1,10 +1,9 @@
 import App from './App'
-
+import 'url-search-params-polyfill';
 // #ifndef VUE3
 import Vue from 'vue'
 import './uni.promisify.adaptor'
-
-
+import polyfills from '@/utils/polyfills.js.js'
 
 Vue.config.productionTip = false
 App.mpType = 'app'

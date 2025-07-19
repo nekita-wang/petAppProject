@@ -4,6 +4,7 @@
     "jsencrypt": "^3.3.2",
     "lodash-es": "^4.17.21",
     "pinia": "^3.0.3",
+    "url-search-params-polyfill": "^8.2.5",
     "uview-plus": "^3.4.49"
   },
   "devDependencies": {

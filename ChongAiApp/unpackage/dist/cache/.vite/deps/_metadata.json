@@ -1,27 +1,37 @@
 {
-  "hash": "4085ae96",
+  "hash": "16817a68",
   "configHash": "f5dec2f0",
-  "lockfileHash": "29385bb5",
-  "browserHash": "4ac10581",
+  "lockfileHash": "3da15f1f",
+  "browserHash": "de16ece5",
   "optimized": {
     "uview-plus": {
       "src": "../../../../../node_modules/uview-plus/index.js",
       "file": "uview-plus.js",
-      "fileHash": "169494df",
+      "fileHash": "8ec58f6f",
       "needsInterop": false
     },
     "lodash-es": {
       "src": "../../../../../node_modules/lodash-es/lodash.js",
       "file": "lodash-es.js",
-      "fileHash": "44e8a6d6",
+      "fileHash": "514c6939",
       "needsInterop": false
     },
     "jsencrypt": {
       "src": "../../../../../node_modules/jsencrypt/lib/index.js",
       "file": "jsencrypt.js",
-      "fileHash": "7697d819",
+      "fileHash": "39631787",
       "needsInterop": false
+    },
+    "url-search-params-polyfill": {
+      "src": "../../../../../node_modules/url-search-params-polyfill/index.js",
+      "file": "url-search-params-polyfill.js",
+      "fileHash": "734c5122",
+      "needsInterop": true
     }
   },
-  "chunks": {}
+  "chunks": {
+    "chunk-Y2F7D3TJ": {
+      "file": "chunk-Y2F7D3TJ.js"
+    }
+  }
 }

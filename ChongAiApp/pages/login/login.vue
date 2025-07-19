@@ -27,7 +27,8 @@
 			</view>
 		</view>
 	</view>
-
+	<u-modal confirmText="同意" cancelText="不同意" :show="showAgreementModal" :title="title" :content='content'
+		showCancelButton width="260px" @confirm="handleAgreement(true)" @cancel="handleAgreement(false)"></u-modal>
 
 </template>
 
@@ -36,18 +37,22 @@
 		ref
 	} from 'vue'
 	const agreed = ref(false)
+	const showAgreementModal = ref(false)
+	const title = ref('温馨提示');
+	const content = ref('请先阅读并同意《宠主用户协议》和《个人信息保护政策》');
 	// 点击手机号登录
 	const handlePhoneLogin = () => {
-		!agreed.value ? uni.showModal({
-			title: '温馨提示',
-			content: '请先阅读并同意《宠主用户协议》和《个人信息保护政策》',
-			confirmText: '同意',
-			cancelText: '不同意',
-			success: ({
-				confirm
-			}) => confirm && (agreed.value = true)
-		}) : uni.navigateTo({
+		!agreed.value ? showAgreementModal.value = true : uni.navigateTo({
 			url: '/pages/login/sms'
+		})
+	}
+	// 模态框
+	const handleAgreement = (agree) => {
+		agreed.value = agree
+		showAgreementModal.value = false
+		if (!agree) uni.showToast({
+			title: '请先同意协议条款',
+			icon: 'none'
 		})
 	}
 	// 点击其他方式登录

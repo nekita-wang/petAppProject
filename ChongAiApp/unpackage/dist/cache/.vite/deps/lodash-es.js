@@ -1,3 +1,5 @@
+import "./chunk-Y2F7D3TJ.js";
+
 // ../../../../ChongAi/ChongAiApp/node_modules/lodash-es/_freeGlobal.js
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
 var freeGlobal_default = freeGlobal;

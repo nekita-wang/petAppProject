@@ -1,7 +1,7 @@
 <template>
 	<view class="login-container">
 		<!-- 自定义导航栏 -->
-		<u-navbar rightText="手机号密码登录" :autoBack="true" @rightClick="ToPasswordLogin" fixed></u-navbar>
+		<up-navbar rightText="手机号密码登录" :autoBack="true" @rightClick="ToPasswordLogin" fixed></up-navbar>
 		<!-- 手机号输入 -->
 		<view class="phone-box">
 			<view class="input-group">
@@ -147,7 +147,7 @@
 <style lang="scss" scoped>
 	.login-container {
 		position: relative;
-		height: 100vh;
+		// height: 100vh;
 		padding-top: var(--status-bar-height);
 	}
 
@@ -158,17 +158,10 @@
 	}
 
 	.phone-box {
-		padding-top: 100rpx;
+		padding-top: 80rpx;
 		/* 导航栏高度 */
 		padding-left: 40rpx;
 		padding-right: 40rpx;
-	}
-
-	.login-method {
-		color: #007aff;
-		font-size: 32rpx;
-		text-align: right;
-		margin-bottom: 80rpx;
 	}
 
 	.input-group {

@@ -1,7 +1,7 @@
 <template>
 	<!-- 自定义导航栏 -->
-	<up-navbar title="您养的宠物（2/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>s
 	<view class="pet-info-container">
+		<up-navbar title="您养的宠物（2/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>s
 		<!-- 头像上传 -->
 		<view class="avatar-upload" @click="UploadImage">
 			<up-image width="100%" height="100%" :src="petReactive.petAvatarURL" shape="circle"></up-image>
@@ -60,13 +60,13 @@
 			<!-- 宠物生日 -->
 			<view class="form-item">
 				<text class="label">宠物生日:</text>
-				<DatePicker @date-change="handleBirthdayChange" />
+				<DatePicker v-model="petReactive.petBirthday" @date-change="handleBirthdayChange" />
 			</view>
 
 			<!-- 到家日期 -->
 			<view class="form-item">
 				<text class="label">到家日期:</text>
-				<DatePicker @date-change="handleArrivalDateChange" />
+				<DatePicker v-model="petReactive.adoptionDate" @date-change="handleArrivalDateChange" />
 			</view>
 		</view>
 
@@ -81,7 +81,8 @@
 	import {
 		onMounted,
 		computed,
-		reactive
+		reactive,
+		ref
 	} from 'vue'
 	import {
 		onLoad
@@ -95,9 +96,10 @@
 	import {
 		request
 	} from '../../utils/request'
+	const relativePath = ref('')
 	const authStore = useAuthStore() //使用pinia
 	const petReactive = reactive({
-		petAvatarURL: '/static/touxiang.svg', // 宠物头像
+		petAvatarURL: '/static/tx.svg', // 宠物头像
 		petBreed: '', // 宠物品种
 		petClass: '', // 宠物类别
 		petNickName: '', // 宠物昵称
@@ -106,18 +108,27 @@
 		petBirthday: '2000-06-06', // 宠物生日
 		adoptionDate: '2000-06-06' // 到家日期
 	})
+
 	// 跳过方法
 	const handleSkip = () => {
 		uni.navigateTo({
 			url: '/pages/home/home'
 		})
 	}
+	//日期选择器
+	const handleBirthdayChange = (date) => {
+		petReactive.petBirthday = date
+	}
+	const handleArrivalDateChange = (date) => {
+		petReactive.adoptionDate = date
+	}
 	// 用户是否上传头像
-	const hasUploadedAvatar = computed(() => petReactive.petAvatarURL !== '/static/touxiang.svg')
+	const hasUploadedAvatar = computed(() => petReactive.petAvatarURL !== '/static/tx.svg')
 	//点击上传图片
 	const UploadImage = async () => {
-		uploadImg((newUrl) => {
-			petReactive.petAvatarURL = newUrl;
+		uploadImg((AvatarCallback) => {
+			petReactive.petAvatarURL = AvatarCallback.fullUrl; //带有ip地址的
+			relativePath.value = AvatarCallback.relativePath
 		});
 
 	}
@@ -140,38 +151,47 @@
 			method: 'POST',
 			data: {
 				...petReactive,
+				petAvatarURL: relativePath.value,
 				userId: Number(authStore.userId) // 强制转换为数字
 			}
 		})
 		console.log(res);
-		if (res.code === 200) {
+		// 防止用户返回处理
+		if (res.code === 4002) {
 			uni.showToast({
-				title: '添加成功',
-				icon: 'success'
+				title: "您已填写过信息,为您前往下一个页面",
+				icon: 'none',
+				duration: 2000
 			})
 			uni.navigateTo({
 				url: '/pages/home/home'
-			})
-		} else {
-			uni.showToast({
-				title: res.msg,
-				icon: 'none'
-			})
+			});
+			return
 		}
+		if (!res.success) {
+			return uni.showToast({
+				title: res.msg || '登录失败',
+				icon: 'none'
+			});
+		}
+
+		uni.showToast({
+			title: '添加成功',
+			icon: 'success'
+		})
+		uni.navigateTo({
+			url: '/pages/home/home'
+		})
+
 	}
 	onLoad((options) => {
 		petReactive.petBreed = decodeURIComponent(options.petBreed) // 必须解码
 		petReactive.petClass = decodeURIComponent(options.petClass)
-		if (petReactive.petBreed === 'undefined') {
-			petReactive.petBreed = ''
-		}
 	})
 </script>
 
 <style scoped lang="scss">
 	.pet-selection-container {
-
-
 		display: flex;
 		flex-direction: column;
 	}
@@ -179,7 +199,7 @@
 
 	/* 头像上传 */
 	.avatar-upload {
-		padding-top: 50rpx;
+		padding-top: 108rpx;
 		position: relative;
 		width: 160rpx;
 		height: 160rpx;

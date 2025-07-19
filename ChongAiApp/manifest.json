@@ -55,6 +55,9 @@
                         "__platform__" : [ "ios", "android" ]
                     }
                 }
+            },
+            "splashscreen" : {
+                "androidStyle" : "default"
             }
         }
     },

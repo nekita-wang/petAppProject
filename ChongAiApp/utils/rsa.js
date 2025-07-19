@@ -10,7 +10,7 @@ export async function getPublicKey() {
 		method: 'GET'
 	})
 	// 调试输出完整响应
-	console.log('公钥接口完整响应:', res.publicKey)
+	// console.log('公钥接口完整响应:', res.publicKey)
 	return res.publicKey
 }
 

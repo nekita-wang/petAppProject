@@ -665,22 +665,16 @@ to {
   flex: 1;
   height: 6.25rem;
 }
-
-/* 选择器样式 */
 uni-picker-view[data-v-9f4f5132] {
   width: 100%;
   height: 100%;
 }
-
-/* 选择项样式 */
 .item[data-v-9f4f5132] {
   line-height: 2.5rem;
   text-align: center;
   font-size: 1rem;
   color: #666;
 }
-
-/* 选中项样式 */
 uni-picker-view-column uni-view.item[data-v-9f4f5132] {
   font-weight: bold;
   color: black;

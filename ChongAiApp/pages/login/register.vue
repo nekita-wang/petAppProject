@@ -45,7 +45,7 @@
 			<!-- 生日-->
 			<view class="form-item">
 				<text class="label">您的生日:</text>
-				<DatePicker @date-change="handleBirthdayChange" :default-date="rgtReactive.birthday" />
+				<DatePicker v-model="rgtReactive.birthday" @date-change="handleBirthdayChange" :default-date="rgtReactive.birthday" />
 			</view>
 
 			<!-- 密码 -->
@@ -143,9 +143,9 @@
 		phone: authStore.phone,
 		nickName: '',
 		password: '',
-		birthday: '2000-6-6',
+		birthday: '2000-06-06',
 		gender: '0',
-		avatarUrl: '/static/touxiang.svg',
+		avatarUrl: '/static/tx.svg',
 		passwordConfirm: ''
 	})
 	const showPassword = ref(false) //密码显示按钮
@@ -162,7 +162,7 @@
 		rgtReactive.birthday = date
 	}
 	// 用户是否上传头像
-	const hasUploadedAvatar = computed(() => rgtReactive.avatarUrl !== '/static/touxiang.svg')
+	const hasUploadedAvatar = computed(() => rgtReactive.avatarUrl !== '/static/tx.svg')
 	//点击上传图片
 	const UploadImage = () => {
 		uploadImg((AvatarCallback) => {
@@ -184,39 +184,52 @@
 				method: 'POST',
 				data: {
 					...rgtReactive,
-					avatarUrl:relativePath.value,
+					avatarUrl: relativePath.value,
 					password: encryptedPwd,
 					passwordConfirm: encryptedPwd
 				}
 			})
-			console.log(res);
-			res.code === 200 ?
-				(uni.showToast({
-						title: '注册成功',
-						icon: 'success'
-					}),
-					authStore.setUserInfo({
-						token: res.data.token,
-						userId:res.data.userId
-					}), uni.navigateTo({
-						url: '/pages/petSelection/petSelection'
-					})) :
+			// 防止用户返回处理
+			if (res.code === 1020) {
 				uni.showToast({
-					title: res.msg,
-					icon: 'none'
+					title: "您已完成注册,为您前往下一个页面",
+					icon: 'none',
+					duration: 2000
 				})
-
-		} catch (error) {
-			const errorMsg = {
-				'getPublicKey': '获取加密密钥失败',
-				'encryptWithRSA': '密码加密失败'
-			} [error.type] || '操作失败'
-
+				 uni.navigateTo({
+					url: '/pages/petSelection/petSelection'
+				});
+				return
+			}
+			if (!res.success) {
+				return uni.showToast({
+					title: res.msg || '登录失败',
+					icon: 'none'
+				});
+			}
 			uni.showToast({
-				title: errorMsg,
-				icon: 'none'
+					title: '注册成功',
+					icon: 'success'
+				}),
+				authStore.setUserInfo({
+					token: res.data.token,
+					userId: res.data.userId,
+					phone: rgtReactive.phone
+				})
+			uni.navigateTo({
+				url: '/pages/petSelection/petSelection'
 			})
-		}
+	} catch (error) {
+		const errorMsg = {
+			'getPublicKey': '获取加密密钥失败',
+			'encryptWithRSA': '密码加密失败'
+		} [error.type] || '操作失败'
+
+		uni.showToast({
+			title: errorMsg,
+			icon: 'none'
+		})
+	}
 	}
 	const handelNext = () => {
 		if (rgtReactive.password !== rgtReactive.passwordConfirm) {

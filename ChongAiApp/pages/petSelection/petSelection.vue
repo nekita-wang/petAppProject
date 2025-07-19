@@ -1,9 +1,8 @@
 <template>
-	<!-- 自定义导航栏 -->
-	<up-navbar title="您养的宠物（1/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>s
 	<view class="pet-selection-container">
-
-		<view class="content-wrapper">
+		<!-- 自定义导航栏 -->
+		<up-navbar title="您养的宠物（1/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>
+		<view class="content-no-roll">
 			<!-- 页签区域 -->
 			<view class="tabs">
 				<view v-for="tab in tabs" :key="tab.petClassId"
@@ -28,10 +27,10 @@
 				<!-- 搜索栏 -->
 				<view class="search-bar">
 					<uni-search-bar style="padding: 5rpx 5rpx;" placeholder="搜索宠物品种" radius="30" bgColor="#F5F5F5"
-						cancelButton="none" @confirm="petSearch" v-model="petBreed" />
+						cancelButton="none" @confirm="petSearch" v-model="petBreed" @clear="petSearch" />
 				</view>
 				<!-- 热门品种 -->
-				<view class="hot-section">
+				<view class="hot-section" v-if="hotPets">
 					<view class="section-title">热门:</view>
 					<view class="hot-tags">
 						<text v-for="(pet, index) in hotPets" :key="index" class="hot-tag"
@@ -40,29 +39,28 @@
 						</text>
 					</view>
 				</view>
-
-				<!-- 字母分类列表 -->
-				<view class="alphabet-section">
-					<scroll-view class="alphabet-list" :show-scrollbar='false' scroll-y
-						:scroll-into-view="currentLetter">
-						<view v-for="(pets, letter) in petData" :key="letter" :id="`letter-${letter}`">
-							<text class="letter-title">{{ letter }}</text>
-							<view v-for="(pet, index) in pets" :key="index" class="pet-item"
-								@click="checkPet(pet.petBreed,petClass)">
-								{{ pet.petBreed }}
-							</view>
-						</view>
-					</scroll-view>
-					<!-- 字母导航（右侧固定定位） -->
-					<view class="alphabet-nav-wrapper">
-						<view class="alphabet-nav">
-							<text v-for="letter in Object.keys(petData)" :key="letter"
-								:class="['alphabet-char', { active: currentLetter === `letter-${letter}` }]"
-								@click.="scrollToLetter(letter)">
-								{{ letter }}
-							</text>
-						</view>
+			</view>
+		</view>
+		<!-- 字母分类列表 -->
+		<view class="alphabet-section">
+			<scroll-view class="alphabet-list" :show-scrollbar='false' scroll-y :scroll-into-view="currentLetter"
+				:scroll-with-animation="true">
+				<view v-for="(pets, letter) in petData" :key="letter" :id="`letter-${letter}`">
+					<text class="letter-title">{{ letter }}</text>
+					<view v-for="(pet, index) in pets" :key="index" class="pet-item"
+						@click="checkPet(pet.petBreed,petClass)">
+						{{ pet.petBreed }}
 					</view>
+				</view>
+			</scroll-view>
+			<!-- 字母导航（右侧固定定位） -->
+			<view class="alphabet-nav-wrapper" v-if="!showBtn">
+				<view class="alphabet-nav">
+					<text v-for="letter in Object.keys(petData)" :key="letter"
+						:class="['alphabet-char', { active: currentLetter === `letter-${letter}` }]"
+						@click="scrollToLetter(letter)">
+						{{ letter }}
+					</text>
 				</view>
 			</view>
 		</view>
@@ -98,33 +96,33 @@
 
 	const hotPets = ref([]) //热门宠物
 	const showBtn = ref(true) //显示按钮
-
+	// 跳转
 	const handleSkip = () => {
 		uni.navigateTo({
 			url: '/pages/home/home'
 		})
 	}
+	// 初始化
+	onMounted(() => {
+		GetPetTypeList()
+	})
 	// 切换tab栏
 	const handleTabChange = async (tab) => {
 		petClass.value = tab.petClass
 		activeTab.value = tab.petClassId
-		// 是否显示按钮
-		if (activeTab.value != 0) {
-			showBtn.value = false
-		} else {
-			showBtn.value = true
+		petBreed.value = ''; // 清空搜索框
+		currentLetter.value = 'letter-A'
+		// 统一控制显示逻辑
+		showBtn.value = activeTab.value === '0'
+
+		if (activeTab.value !== '0') {
+			await GetBreedList()
 		}
-		//获取宠物品种列表
-		GetBreedList()
 	}
 	//点击字母显示高亮
 	const scrollToLetter = (letter) => {
 		currentLetter.value = `letter-${letter}`
 	}
-	// 初始化
-	onMounted(() => {
-		GetPetTypeList()
-	})
 	//获取宠物类别列表 
 	const GetPetTypeList = async () => {
 		try {
@@ -132,23 +130,37 @@
 				url: '/app/pet/pet',
 			})
 			tabs.value = res.data
+			console.log(res);
 		} catch (error) {
 			console.error('获取宠物类型失败:', error)
 		}
 	}
 	// 获取宠物列表
 	const GetBreedList = async () => {
+		uni.showLoading({
+			title: '加载中'
+		});
 		try {
 			const res = await request({
 				url: '/app/pet/breeds',
 				data: {
 					petClass: petClass.value,
 					petBreed: petBreed.value
-				}
+				},
 			});
+			// 处理空数据情况
+			if (Object.keys(res.data.breeds).length === 0 && petBreed.value) {
+				uni.showToast({
+					title: `未找到"${petBreed.value}"相关品种`,
+					icon: 'none',
+					duration: 2000
+				});
+			}
 			hotPets.value = res.data.hot;
 			petData.value = res.data.breeds;
+			uni.hideLoading();
 		} catch (error) {
+			console.log(error);
 			uni.showToast({
 				title: '获取品种数据失败',
 				icon: 'none'
@@ -157,32 +169,33 @@
 	};
 
 	// 搜索框
-	const petSearch = () => {
-		GetBreedList()
-	}
+	const petSearch = () => (petBreed.value = petBreed.value.trim()) && GetBreedList()
 	// 点击宠物标签
 	const checkPet = (breed, type) => {
+		// 使用 uni-app 的 encodeURIComponent
+		const encodedBreed = encodeURIComponent(breed);
+		const encodedType = encodeURIComponent(type);
+
 		uni.navigateTo({
-			url: `/pages/petSelection/petInfo?petBreed=${encodeURIComponent(breed)}&petClass=${encodeURIComponent(type)}`
-		})
+			url: `/pages/petSelection/petInfo?petBreed=${encodedBreed}&petClass=${encodedType}`
+		});
 	}
 </script>
 
 <style scoped lang="scss">
 	.pet-selection-container {
 		display: flex;
-
 		flex-direction: column;
 	}
 
-	.content-wrapper {
+	.content-no-roll {
+		margin-top: 135rpx;
 		width: 100%;
-		height: 100%;
-		margin-top: 40rpx;
-		/* 将间距移到导航栏 */
-		position: fixed;
-
-
+		position: sticky;
+		top: 135rpx;
+		z-index: 10;
+		background: white;
+		// margin-top: 80rpx;
 	}
 
 	/* 页签样式 */
@@ -196,7 +209,8 @@
 	}
 
 	.tab-item {
-		flex: 0 0 auto;
+		// flex: 0 0 auto;
+		flex: 1;
 		/* 取消等分，改为自适应 */
 		width: 25%;
 		padding: 8px 12px;
@@ -216,9 +230,15 @@
 
 	/* 未养宠内容区域 */
 	.no-pet-section {
-		flex: 1;
-		height: 100vh;
 		position: relative;
+		height: 100vh;
+		/* 占满整个视口 */
+		overflow: hidden;
+		/* 禁止内部滚动 */
+		background: white;
+		/* 避免透明背景导致下方内容可见 */
+		touch-action: none;
+		/* 禁止触摸滚动 */
 	}
 
 	.fullscreen-bg {
@@ -231,7 +251,7 @@
 
 	.prompt-content {
 		position: absolute;
-		top: 20%;
+		top: 10%;
 		left: 0;
 		right: 0;
 		text-align: center;
@@ -300,7 +320,7 @@
 	/* 字母列表 */
 	.alphabet-section {
 		position: relative;
-		height: 60vh;
+		height: 75vh;
 	}
 
 	.alphabet-list {
@@ -309,7 +329,7 @@
 
 	.letter-title {
 		display: block;
-		padding: 10px 0;
+		padding: 10px 5px;
 		margin-right: 50rpx;
 		font-size: 16px;
 		color: black;
@@ -318,7 +338,7 @@
 	}
 
 	.pet-item {
-		padding: 12px 0;
+		padding: 12px 3px;
 		font-size: 14px;
 		color: #333;
 		border-bottom: 1px solid #EEE;
@@ -364,7 +384,7 @@
 	/* 固定底部按钮 */
 	.fixed-footer {
 		width: 50%;
-		position: absolute;
+		position: fixed;
 		bottom: 1%;
 		left: 25%;
 		// right: 0;
