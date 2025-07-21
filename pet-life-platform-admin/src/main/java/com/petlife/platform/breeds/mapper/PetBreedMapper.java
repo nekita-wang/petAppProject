@@ -1,6 +1,7 @@
 package com.petlife.platform.breeds.mapper;
 
 import com.petlife.platform.breeds.domain.PetBreed;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -58,9 +59,9 @@ public interface PetBreedMapper
      * @param petClassIds 需要删除的数据主键集合
      * @return 结果
      */
-    public int deletePetBreedByPetClassIds(String[] petClassIds);
+     int deletePetBreedByPetClassIds(String[] petClassIds);
 
-    public int updateBreedStatus(List<String> ids);
+     int updateBreedStatus(@Param("ids") List<String> ids, @Param("status") Integer status);
 
 
 

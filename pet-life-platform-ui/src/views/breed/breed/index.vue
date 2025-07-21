@@ -46,21 +46,22 @@
     </el-row>
 
     <el-table v-loading="loading" :data="breedList" @selection-change="handleSelectionChange">
-<el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="中文排序" align="center" prop="cnNo" />
-      <el-table-column label="英文排序" align="center" prop="enNo" />
-         <el-table-column label="宠物分类" align="center" prop="petClass" width="100">
-    <template slot-scope="scope">
-      <el-select v-model="scope.row.petClass" placeholder="请选择宠物类型" disabled>
-        <el-option v-for="pet in petClassType" :key="pet.petClassId" :label="pet.petClass" :value="pet.petClass"></el-option>
-      </el-select>
-    </template>
-  </el-table-column>
-      <el-table-column label="中文首字母" align="center" prop="cnInitials" />
-      <el-table-column label="宠物品种" align="center" prop="petBreed" />
-      <el-table-column label="英文首字母" align="center" prop="enInitials" />
-      <el-table-column label="宠物品种（英文）" align="center" prop="petBreedEn" width="130"/>
-      <el-table-column label="状态" align="center" prop="status">
+      <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="中文排序" align="center" prop="cnNo" width="90" />
+      <el-table-column label="英文排序" align="center" prop="enNo" width="90" />
+      <el-table-column label="宠物分类" align="center" prop="petClass" width="110">
+        <template slot-scope="scope">
+          <el-select v-model="scope.row.petClass" placeholder="请选择宠物类型" disabled>
+            <el-option v-for="pet in petClassType" :key="pet.petClassId" :label="pet.petClass"
+              :value="pet.petClass"></el-option>
+          </el-select>
+        </template>
+      </el-table-column>
+      <el-table-column label="中文首字母" align="center" prop="cnInitials" width="100" />
+      <el-table-column label="宠物品种" align="center" prop="petBreed" width="120" />
+      <el-table-column label="英文首字母" align="center" prop="enInitials" width="100" />
+      <el-table-column label="宠物品种（英文）" align="center" prop="petBreedEn" width="150" />
+      <el-table-column label="状态" align="center" prop="status" width="70">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.pet_class_status" :value="scope.row.status" />
         </template>
@@ -75,8 +76,16 @@
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="创建人" align="center" prop="creator" />
-      <el-table-column label="最后更新人" align="center" prop="lastUpdater" />
+      <el-table-column label="创建人" align="center" prop="creator" width="80" />
+      <el-table-column label="最后更新人" align="center" prop="lastUpdater" width="100" />
+      <el-table-column label="操作" align="center" width="180">
+        <template slot-scope="scope">
+          <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">修改</el-button>
+          <el-button v-if="scope.row.status === 1" type="success" size="mini"
+            @click="handleToggleStatus(scope.row, 0)">有效</el-button>
+          <el-button v-else type="danger" size="mini" @click="handleToggleStatus(scope.row, 1)">失效</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
@@ -232,19 +241,19 @@ export default {
       })
     },
     //全部查询
-      async getListPet(includeInactive) {
+    async getListPet(includeInactive) {
       try {
         const response = await listPet(includeInactive);
-        this.petClassType = response.data;  
+        this.petClassType = response.data;
       } catch (error) {
         console.error('查询失败', error);
       }
     },
     //筛选查询生效
-      async getAddPet(includeInactive) {
+    async getAddPet(includeInactive) {
       try {
         const response = await listPet(includeInactive);
-        this.addPetClassType = response.data;  
+        this.addPetClassType = response.data;
       } catch (error) {
         console.error('查询失败', error);
       }
@@ -299,11 +308,11 @@ export default {
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-     
+
       this.reset()
       const petBreedId = row.petBreedId || this.ids
       getBreed(petBreedId).then(response => {
-         console.log(response.data)
+        console.log(response.data)
         this.form = response.data
         this.open = true
         this.title = "修改宠物品种"
@@ -316,10 +325,20 @@ export default {
         return;
       }
       this.$modal.confirm('是否确认将所选宠物分类设置为失效状态？').then(() => {
-        return updateBreedStatus({ ids: this.ids });
+        // 始终传递数组
+        return updateBreedStatus(this.ids, 1);
       }).then(() => {
         this.getList();
-        this.$modal.msgSuccess("失效成功");
+        this.$modal.msgSuccess("操作成功");
+      }).catch(() => { });
+    },
+    handleToggleStatus(row, status) {
+      const action = status === 0 ? '设为有效' : '设为失效';
+      this.$modal.confirm(`确定要将该品种${action}吗？`).then(() => {
+        return updateBreedStatus([row.petBreedId], status);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess('操作成功');
       }).catch(() => { });
     },
     /** 提交按钮 */

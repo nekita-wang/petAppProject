@@ -141,7 +141,7 @@ public class PetBreedServiceImpl implements IPetBreedService
     }
 
     @Override
-    public int updateBreedStatus(List<String> ids) {
-        return petBreedMapper.updateBreedStatus(ids);
+    public int updateBreedStatus(List<String> ids, Integer status) {
+        return petBreedMapper.updateBreedStatus(ids, status);
     }
 }

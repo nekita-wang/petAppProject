@@ -118,11 +118,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
-    <update id="updateBreedStatus" parameterType="list">
+    <update id="updateBreedStatus">
         UPDATE pet_breed
-        SET status = 1
+        SET status = #{status}
         WHERE pet_breed_id IN
-        <foreach collection="list" item="id" open="(" separator="," close=")">
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </update>

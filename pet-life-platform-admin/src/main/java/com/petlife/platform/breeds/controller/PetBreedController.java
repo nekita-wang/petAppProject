@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * 宠物品种Controller
@@ -48,10 +50,18 @@ public class PetBreedController extends BaseController
      * 修改宠物状态
      */
     @PutMapping("/updateBreedStatus")
-    public AjaxResult updateBreedStatus(@RequestBody Map<String, List<String>> request) {
-        List<String> ids = request.get("ids");
-
-        return toAjax(petBreedService.updateBreedStatus(ids));
+    public AjaxResult updateBreedStatus(@RequestBody Map<String, Object> request) {
+        Object idsObj = request.get("ids");
+        List<String> ids = new ArrayList<>();
+        if (idsObj instanceof List<?>) {
+            ids = ((List<?>) idsObj).stream().map(String::valueOf).collect(Collectors.toList());
+        } else if (idsObj instanceof String) {
+            ids.add((String) idsObj);
+        } else {
+            throw new IllegalArgumentException("ids参数格式错误");
+        }
+        Integer status = (Integer) request.get("status");
+        return toAjax(petBreedService.updateBreedStatus(ids, status));
     }
     /**
      * 导出宠物品种列表

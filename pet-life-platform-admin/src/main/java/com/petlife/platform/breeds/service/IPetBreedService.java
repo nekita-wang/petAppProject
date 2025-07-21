@@ -64,5 +64,5 @@ public interface IPetBreedService
      */
     public int deletePetBreedByPetClassId(String petClassId);
 
-    public int updateBreedStatus(List<String> ids);
+    public int updateBreedStatus(List<String> ids, Integer status);
 }
