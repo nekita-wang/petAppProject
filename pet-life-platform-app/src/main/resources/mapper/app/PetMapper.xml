@@ -18,16 +18,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
 
     <select id="selectPetBreedAppList" resultType="com.petlife.platform.common.pojo.vo.PetBreedVo">
-        SELECT cn_initials AS cnInitials,
-        pet_class ,
-        pet_breed ,
-        pet_breed_en
-        FROM pet_breed
-        WHERE pet_class = #{petClass}
+        SELECT b.cn_initials AS cnInitials,
+               b.pet_class,
+               b.pet_breed,
+               b.pet_breed_en
+        FROM pet_breed b
+        JOIN pet_classification c ON b.pet_class_id = c.pet_class_id
+        WHERE b.pet_class = #{petClass}
+          AND b.status = 0
+          AND c.status = 0
         <if test="petBreed != null and petBreed != ''">
-            AND pet_breed LIKE CONCAT('%', #{petBreed}, '%')
+            AND b.pet_breed LIKE CONCAT('%', #{petBreed}, '%')
         </if>
-        ORDER BY cn_initials ASC, pet_breed ASC;
+        ORDER BY b.cn_initials ASC, b.pet_breed ASC;
     </select>
 
     <!-- 添加宠物信息 -->
@@ -56,17 +59,31 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </insert>
 
     <select id="selectHot" resultType="String">
-        SELECT pet_breed
-        FROM pet_info
-        WHERE pet_class = #{petClass}
-        GROUP BY pet_breed
-        ORDER BY COUNT(*) DESC
+        SELECT b.pet_breed
+        FROM pet_breed b
+        JOIN pet_classification c ON b.pet_class_id = c.pet_class_id
+        WHERE b.pet_class = #{petClass}
+          AND b.status = 0
+          AND c.status = 0
+          AND b.pet_breed IN (
+            SELECT pi.pet_breed
+            FROM pet_info pi
+            WHERE pi.pet_class = #{petClass}
+              AND pi.status = 0
+          )
+        GROUP BY b.pet_breed
+        ORDER BY (
+            SELECT COUNT(*)
+            FROM pet_info pi2
+            WHERE pi2.pet_breed = b.pet_breed
+              AND pi2.status = 0
+        ) DESC
         LIMIT 6;
     </select>
 
     <select id="selectPetClass" resultType="com.petlife.platform.common.pojo.vo.PetClassVo" >
-        select pet_class_id petClassId, pet_class petClass
-        from pet_classification
-        where status = 0
+        SELECT pet_class_id AS petClassId, pet_class AS petClass
+        FROM pet_classification
+        WHERE status = 0
     </select>
 </mapper>
