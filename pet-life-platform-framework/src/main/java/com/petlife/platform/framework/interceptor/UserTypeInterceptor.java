@@ -45,7 +45,7 @@ public class UserTypeInterceptor implements HandlerInterceptor {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return false;
             }
-        } else if (uri.startsWith("/dev-api/")) {
+        } else if (uri.startsWith("/dev-api/") || uri.startsWith("/prod-api/")) {
             if (!"SYS_USER".equals(userType)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return false;

@@ -39,15 +39,6 @@ public class AuthController {
         return authService.login(loginDTO);
     }
 
-    /**
-     * 获取RSA公钥接口
-     */
-    @GetMapping("/getPublicKey")
-    @ApiOperation(value = "获取RSA公钥", notes = "用于前端加密密码")
-    public ResponseData<String> getPublicKey() {
-        return authService.getPublicKey();
-    }
-
     @PostMapping("/logout")
     @ApiOperation(value = "退出登录", notes = "清理登录状态")
     public ResponseData<String> logout() {

@@ -1,10 +1,6 @@
 <template>
-  <el-image
-    :src="`${realSrc}`"
-    fit="cover"
-    :style="`width:${realWidth};height:${realHeight};`"
-    :preview-src-list="realSrcList"
-  >
+  <el-image :src="`${realSrc}`" fit="cover" :style="`width:${realWidth};height:${realHeight};`"
+    :preview-src-list="realSrcList">
     <div slot="error" class="image-slot">
       <i class="el-icon-picture-outline"></i>
     </div>
@@ -70,13 +66,16 @@ export default {
   border-radius: 5px;
   background-color: #ebeef5;
   box-shadow: 0 0 5px 1px #ccc;
+
   ::v-deep .el-image__inner {
     transition: all 0.3s;
     cursor: pointer;
+
     &:hover {
       transform: scale(1.2);
     }
   }
+
   ::v-deep .image-slot {
     display: flex;
     justify-content: center;

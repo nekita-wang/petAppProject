@@ -61,30 +61,39 @@ public class PetServiceImpl implements PetService {
         DateValidationUtils.validatePetDateLogic(petInfoDTO.getAdoptionDate(),
                 now, "到家日期不能晚于当前时间");
 
+
+        // 处理头像路径，只保留 /profile 后面的内容
+        String avatarUrl = petInfoDTO.getPetAvatarURL();
+        if (avatarUrl != null) {
+            int idx = avatarUrl.indexOf("/profile");
+            if (idx != -1) {
+                avatarUrl = avatarUrl.substring(idx); // 只保留 /profile 开头及后面
+            }
+        }
+
         // 使用 MapStruct 进行转换
         PetInfo info = petInfoMapping.petInfoQueryToPetInfo(petInfoDTO);
         info.setUserId(userId);
         info.setStatus(0L);
+        info.setPetAvatarURL(avatarUrl); // 覆盖为相对路径
 
-        //判断是否唯一，不唯一抛异常
-        if (isPetNicknameExist(info.getUserId(), info.getPetNickName())) {
+        // 判断是否唯一，不唯一抛异常
+        if (isPetNicknameExist(userId, info.getPetNickName())) {
             throw new PetException(PetProfileExceptionCode.PET_NICKNAME_EXIST.getCode(), 
                                  PetProfileExceptionCode.PET_NICKNAME_EXIST.getMessage());
         }
 
-        //插入数据
+        // 插入数据
         try {
-            int insertPetInfo= petMapper.insertPetInfo(info);
+            int insertPetInfo = petMapper.insertPetInfo(info);
             if (insertPetInfo <= 0) {
                 throw new PetException(PetProfileExceptionCode.PET_INFO_INSERT_FAILED.getCode(), 
                                      PetProfileExceptionCode.PET_INFO_INSERT_FAILED.getMessage());
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new PetException(PetProfileExceptionCode.PET_INFO_FILL_EXCEPTION.getCode(), 
                                  PetProfileExceptionCode.PET_INFO_FILL_EXCEPTION.getMessage());
         }
-
-
     }
 
     @Override

@@ -66,6 +66,10 @@ public class SysProfileController extends BaseController
         currentUser.setEmail(user.getEmail());
         currentUser.setPhonenumber(user.getPhonenumber());
         currentUser.setSex(user.getSex());
+        // 支持更新头像
+        if (StringUtils.isNotEmpty(user.getAvatar())) {
+            currentUser.setAvatar(user.getAvatar());
+        }
         if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(currentUser))
         {
             return error("修改用户'" + loginUser.getUsername() + "'失败，手机号码已存在");
@@ -110,6 +114,25 @@ public class SysProfileController extends BaseController
             return AjaxResult.success();
         }
         return AjaxResult.error("修改密码异常，请联系管理员");
+    }
+
+    /**
+     * 更新用户头像
+     */
+    @Log(title = "个人信息", businessType = BusinessType.UPDATE)
+    @PutMapping("/avatar")
+    public AjaxResult updateAvatar(@RequestBody SysUser user) {
+        LoginUser loginUser = getLoginUser();
+        if (StringUtils.isEmpty(user.getAvatar())) {
+            return error("头像地址不能为空");
+        }
+        if (userService.updateUserAvatar(loginUser.getUserId(), user.getAvatar())) {
+            // 更新缓存用户头像
+            loginUser.getUser().setAvatar(user.getAvatar());
+            tokenService.setLoginUser(loginUser);
+            return success();
+        }
+        return error("修改头像异常，请联系管理员");
     }
 
 }

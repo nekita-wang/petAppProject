@@ -21,7 +21,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/app/auth/logout",
                         "/public/app/upload/avatar",
                         "/app/user/registerProfile",
-                        "/public/publicKey",
                         "/dev-api/captchaImage",
                         "/dev-api/login"
                 );

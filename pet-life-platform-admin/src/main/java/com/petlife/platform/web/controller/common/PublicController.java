@@ -1,5 +1,6 @@
 package com.petlife.platform.web.controller.common;
 
+import com.petlife.platform.common.annotation.Anonymous;
 import com.petlife.platform.common.config.RuoYiConfig;
 import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.exception.file.InvalidExtensionException;
@@ -14,14 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import java.io.File;
 
 @RestController
 @RequestMapping("/public")
+@Anonymous
 public class PublicController {
     @Autowired
     private TokenService tokenService;

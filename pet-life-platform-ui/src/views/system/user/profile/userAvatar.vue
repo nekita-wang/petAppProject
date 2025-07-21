@@ -50,7 +50,7 @@
 <script>
 import store from "@/store"
 import { VueCropper } from "vue-cropper"
-import { uploadAvatar } from "@/api/system/user"
+import { uploadAvatar, updateUserProfile } from "@/api/system/user"
 import { debounce } from '@/utils'
 
 export default {
@@ -130,11 +130,19 @@ export default {
         let formData = new FormData()
         formData.append("avatarfile", data, this.options.filename)
         uploadAvatar(formData).then(response => {
-          this.open = false
-          this.options.img = process.env.VUE_APP_BASE_API + response.imgUrl
-          store.commit('SET_AVATAR', this.options.img)
-          this.$modal.msgSuccess("修改成功")
-          this.visible = false
+          // 上传成功后，调用更新头像接口
+          const avatarData = {
+            avatar: response.imgUrl
+          }
+          return updateUserProfile(avatarData).then(() => {
+            this.open = false
+            this.options.img = process.env.VUE_APP_BASE_API + response.imgUrl
+            store.commit('SET_AVATAR', this.options.img)
+            this.$modal.msgSuccess("修改成功")
+            this.visible = false
+          })
+        }).catch(error => {
+          this.$modal.msgError("修改失败：" + (error.message || "未知错误"))
         })
       })
     },

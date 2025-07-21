@@ -4,6 +4,7 @@ import com.petlife.platform.common.pojo.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 @Mapper
@@ -38,5 +39,26 @@ public interface UserMapper {
      * @return
      */
     int countByNickname(@Param("nickname") String nickname);
+
+    /**
+     * 根据手机号前缀删除用户
+     * @param phonePrefix 手机号前缀，如 "185162"
+     * @return 删除的行数
+     */
+    int deleteByPhonePrefix(@Param("phonePrefix") String phonePrefix);
+
+    /**
+     * 根据手机号前缀查询用户数量
+     * @param phonePrefix 手机号前缀，如 "185162"
+     * @return 用户数量
+     */
+    int countByPhonePrefix(@Param("phonePrefix") String phonePrefix);
+
+    /**
+     * 根据手机号前缀查询用户详细信息
+     * @param phonePrefix 手机号前缀，如 "185162"
+     * @return 用户列表
+     */
+    List<User> selectByPhonePrefix(@Param("phonePrefix") String phonePrefix);
 
 }

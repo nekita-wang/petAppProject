@@ -77,5 +77,41 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         WHERE user_id = #{userId}
     </update>
 
+    <!-- 根据手机号前缀删除用户 -->
+    <delete id="deleteByPhonePrefix" parameterType="string">
+        DELETE FROM user 
+        WHERE phone LIKE CONCAT(#{phonePrefix}, '%') 
+           OR phone LIKE CONCAT('+86', #{phonePrefix}, '%')
+    </delete>
+
+    <!-- 根据手机号前缀查询用户数量 -->
+    <select id="countByPhonePrefix" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM user
+        WHERE phone LIKE CONCAT(#{phonePrefix}, '%') 
+           OR phone LIKE CONCAT('+86', #{phonePrefix}, '%')
+    </select>
+
+    <!-- 根据手机号前缀查询用户详细信息 -->
+    <select id="selectByPhonePrefix" parameterType="string" resultType="com.petlife.platform.common.pojo.entity.User">
+        SELECT
+            user_id,
+            phone,
+            nick_name,
+            gender,
+            birthday,
+            avatar_url,
+            register_time,
+            last_login_time,
+            minor,
+            auth,
+            status,
+            last_logoff_time,
+            personal_signature
+        FROM user
+        WHERE phone LIKE CONCAT(#{phonePrefix}, '%') 
+           OR phone LIKE CONCAT('+86', #{phonePrefix}, '%')
+        ORDER BY user_id
+    </select>
 
 </mapper>
