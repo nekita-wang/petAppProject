@@ -77,8 +77,9 @@ public class UserServiceImpl implements UserService {
         PasswordStrengthUtils.PasswordStrengthResult strengthResult = PasswordStrengthUtils.validatePassword(rawPassword);
         if (!strengthResult.isValid()) {
             log.warn("密码强度不足: {}", String.join(", ", strengthResult.getErrors()));
+            // 统一返回密码规则提示
             return ResponseData.error(AuthExceptionCode.PASSWORD_TOO_WEAK.getCode(),
-                    "密码强度不足：" + String.join("，", strengthResult.getErrors()));
+                    "请输入包含大小写字母及特殊符号的10位密码");
         }
         LocalDate birthday;
         try {
