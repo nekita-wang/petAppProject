@@ -3,7 +3,9 @@ import {
 } from "../stores/auth";
 
 export function uploadImg(AvatarCallback) {
-	const URL = 'https://122.228.237.118:53627';
+	// const URL = 'https://122.228.237.118:53627';
+	const URL = 'http://1.15.123.85' //服务器
+	
 	const authStore = useAuthStore();
 	const token = authStore.token;
 	uni.chooseImage({
@@ -25,12 +27,12 @@ export function uploadImg(AvatarCallback) {
 						Authorization: `Bearer ${token}`
 					}
 				});
-
+				console.log(chooseImageRes.tempFilePaths[0]);
 				const response = JSON.parse(uploadRes.data);
-
 				AvatarCallback?.({
 					relativePath: response.imgUrl,
-					fullUrl: URL + response.imgUrl
+					fullUrl: chooseImageRes.tempFilePaths[0]
+					// fullUrl: URL + response.imgUrl
 				});
 
 				uni.showToast({

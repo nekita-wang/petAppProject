@@ -28,7 +28,7 @@
 		</view>
 	</view>
 	<u-modal confirmText="同意" cancelText="不同意" :show="showAgreementModal" :title="title" :content='content'
-		showCancelButton width="260px" @confirm="handleAgreement(true)" @cancel="handleAgreement(false)"></u-modal>
+		showCancelButton width="300px" @confirm="handleAgreement(true)" @cancel="handleAgreement(false)"></u-modal>
 
 </template>
 

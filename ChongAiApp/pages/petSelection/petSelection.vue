@@ -1,7 +1,7 @@
 <template>
 	<view class="pet-selection-container">
 		<!-- 自定义导航栏 -->
-		<up-navbar title="您养的宠物（1/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>
+		<up-navbar title="您养的宠物（1/2）" rightText="跳过" @leftClick="customBack" @rightClick="handleSkip" fixed></up-navbar>
 		<view class="content-no-roll">
 			<!-- 页签区域 -->
 			<view class="tabs">
@@ -27,7 +27,7 @@
 				<!-- 搜索栏 -->
 				<view class="search-bar">
 					<uni-search-bar style="padding: 5rpx 5rpx;" placeholder="搜索宠物品种" radius="30" bgColor="#F5F5F5"
-						cancelButton="none" @confirm="petSearch" v-model="petBreed" @clear="petSearch" />
+						cancelButton="none" @confirm="petSearch" v-model="petBreed" @clear="petSearch"	 />
 				</view>
 				<!-- 热门品种 -->
 				<view class="hot-section" v-if="hotPets">
@@ -96,6 +96,12 @@
 
 	const hotPets = ref([]) //热门宠物
 	const showBtn = ref(true) //显示按钮
+	// 返回
+	const customBack = () => {
+	  uni.redirectTo({
+	    url: '/pages/login/sms'
+	  })
+	}
 	// 跳转
 	const handleSkip = () => {
 		uni.navigateTo({
@@ -112,6 +118,13 @@
 		activeTab.value = tab.petClassId
 		petBreed.value = ''; // 清空搜索框
 		currentLetter.value = 'letter-A'
+		 // 强制重置滚动位置
+		  if (activeTab.value === '0') {
+		    uni.pageScrollTo({
+		      scrollTop: 0,
+		      duration: 0
+		    })
+		  }
 		// 统一控制显示逻辑
 		showBtn.value = activeTab.value === '0'
 
@@ -169,7 +182,7 @@
 	};
 
 	// 搜索框
-	const petSearch = () => (petBreed.value = petBreed.value.trim()) && GetBreedList()
+const petSearch = () => (petBreed.value = petBreed.value.trim()) && GetBreedList()
 	// 点击宠物标签
 	const checkPet = (breed, type) => {
 		// 使用 uni-app 的 encodeURIComponent

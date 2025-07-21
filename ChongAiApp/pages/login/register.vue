@@ -16,7 +16,7 @@
 			<!-- 昵称 -->
 			<view class="form-item">
 				<text class="label">昵称:</text>
-				<up-input v-model="rgtReactive.nickName" placeholder="请输入" shape="circle" maxlength="10"></up-input>
+				<up-input v-model="rgtReactive.nickName" placeholder="请输入昵称" shape="circle" maxlength="10"></up-input>
 			</view>
 			<!-- 性别选择区域 -->
 			<view class="form-item">
@@ -45,66 +45,54 @@
 			<!-- 生日-->
 			<view class="form-item">
 				<text class="label">您的生日:</text>
-				<DatePicker v-model="rgtReactive.birthday" @date-change="handleBirthdayChange" :default-date="rgtReactive.birthday" />
+				<DatePicker v-model="rgtReactive.birthday" @date-change="handleBirthdayChange"
+					:default-date="rgtReactive.birthday" />
 			</view>
 
-			<!-- 密码 -->
+			<!-- 密码输入 -->
 			<view class="form-item">
 				<text class="label">密码:</text>
 				<view class="form-item-pwd">
-					<u-input shape="circle" v-model="rgtReactive.password" :type="showPassword ? 'text' : 'password'"
-						placeholder="请输入" :passwordIcon="false" maxlength="10" @change="checkPasswordStrength">
+					<up-input shape="circle" clearable maxlength="10" v-model="rgtReactive.password"
+						:type="showPassword ? 'text' : 'password'" placeholder="10位包含大小写字母、数字特殊符号"
+						@change="checkPasswordStrength">
 						<template #suffix>
-							<u-icon :name="showPassword ? 'eye-fill' : 'eye-off'"
+							<up-icon :name="showPassword ? 'eye-fill' : 'eye-off'"
 								:color="showPassword ? '#2979ff' : '#c0c4cc'" size="25"
 								@click="showPassword = !showPassword" />
 						</template>
-					</u-input>
+					</up-input>
 				</view>
-
-
 			</view>
-			<!-- 密码强度 -->
-			<view class="password-strength" v-if="ShowStrenth">
-				<view class="strength-bar" :class="{
-							'weak': strengthLevel === 1,
-							'medium': strengthLevel === 2,
-							'strong': strengthLevel === 3,
-							'active': strengthLevel >= 0
-						}"></view>
-				<view class="strength-bar" :class="{
-							'medium': strengthLevel === 2,
-							'strong': strengthLevel === 3,
-							'active': strengthLevel >= 2
-						}"></view>
-				<view class="strength-bar" :class="{
-							'strong': strengthLevel === 3,
-							'active': strengthLevel >= 3
-						}"></view>
-				<text class="strength-text">{{ strengthText }}</text>
+			<view class="password-strength">
+				<!-- 密码缺失提示 -->
+				<view class="missing-tips" v-if="rgtReactive.password && missingRules.length > 0">
+					<text>缺少{{ missingRules.join('，') }}</text>
+				</view>
 			</view>
+
 			<!-- 密码确认 -->
 			<view class="form-item">
 				<text class="label">密码确认:</text>
 				<view class="form-item-pwd">
-					<u-input shape="circle" v-model="rgtReactive.passwordConfirm"
-						:type="showCmPassword ? 'text' : 'password'" placeholder="请输入" :passwordIcon="false"
+					<up-input shape="circle" clearable v-model="rgtReactive.passwordConfirm"
+						:type="showCmPassword ? 'text' : 'password'" placeholder="请输入确认密码" :passwordIcon="false"
 						maxlength="10">
 						<template #suffix>
-							<u-icon :name="showCmPassword ? 'eye-fill' : 'eye-off'"
+							<up-icon :name="showCmPassword ? 'eye-fill' : 'eye-off'"
 								:color="showCmPassword ? '#2979ff' : '#c0c4cc'" size="25"
 								@click="showCmPassword = !showCmPassword" />
 						</template>
-					</u-input>
+					</up-input>
 				</view>
 
 			</view>
 		</view>
 
 		<!-- 下一步按钮 -->
-		<u-button class="next-btn" :disabled="!isFormValid" @click="handelNext">
+		<up-button class="next-btn" :disabled="!isFormValid" @click="handelNext">
 			下一步
-		</u-button>
+		</up-button>
 	</view>
 </template>
 
@@ -168,6 +156,7 @@
 		uploadImg((AvatarCallback) => {
 			rgtReactive.avatarUrl = AvatarCallback.fullUrl; //带有ip地址的
 			relativePath.value = AvatarCallback.relativePath
+
 		});
 	};
 	onLoad(() => {
@@ -189,18 +178,6 @@
 					passwordConfirm: encryptedPwd
 				}
 			})
-			// 防止用户返回处理
-			if (res.code === 1020) {
-				uni.showToast({
-					title: "您已完成注册,为您前往下一个页面",
-					icon: 'none',
-					duration: 2000
-				})
-				 uni.navigateTo({
-					url: '/pages/petSelection/petSelection'
-				});
-				return
-			}
 			if (!res.success) {
 				return uni.showToast({
 					title: res.msg || '登录失败',
@@ -219,17 +196,17 @@
 			uni.navigateTo({
 				url: '/pages/petSelection/petSelection'
 			})
-	} catch (error) {
-		const errorMsg = {
-			'getPublicKey': '获取加密密钥失败',
-			'encryptWithRSA': '密码加密失败'
-		} [error.type] || '操作失败'
+		} catch (error) {
+			const errorMsg = {
+				'getPublicKey': '获取加密密钥失败',
+				'encryptWithRSA': '密码加密失败'
+			} [error.type] || '操作失败'
 
-		uni.showToast({
-			title: errorMsg,
-			icon: 'none'
-		})
-	}
+			uni.showToast({
+				title: errorMsg,
+				icon: 'none'
+			})
+		}
 	}
 	const handelNext = () => {
 		if (rgtReactive.password !== rgtReactive.passwordConfirm) {
@@ -246,35 +223,31 @@
 		}
 		completeProfile()
 	}
-	// 密码强度文本
-	const strengthText = computed(() => {
-		if (strengthLevel.value === 0) return '弱'
-		if (strengthLevel.value === 1) return '弱'
-		if (strengthLevel.value === 2) return '中'
-		return '强'
+	// 密码规则校验
+	const hasLength = computed(() => rgtReactive.password.length >= 10)
+	const hasLowercase = computed(() => /[a-z]/.test(rgtReactive.password))
+	const hasUppercase = computed(() => /[A-Z]/.test(rgtReactive.password))
+	const hasNumber = computed(() => /\d/.test(rgtReactive.password))
+	const hasSpecialChar = computed(() => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(rgtReactive.password))
+	// 缺失规则提示
+	const missingRules = computed(() => {
+		const rules = []
+		// if (!hasLength.value) rules.push('长度不足10位')
+		if (!hasNumber.value) rules.push('数字')
+		if (!hasUppercase.value) rules.push('大写字母')
+		if (!hasLowercase.value) rules.push('小写字母')
+		if (!hasSpecialChar.value) rules.push('特殊符号')
+		return rules
 	})
-	//输入框判断密码强度
+	// 密码强度校验
 	const checkPasswordStrength = debounce((e) => {
 		rgtReactive.password = e.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
-		const pass = rgtReactive.password
-
-		ShowStrenth.value = pass.length > 0
-
-		if (!pass || pass.length < 8) {
-			strengthLevel.value = 0
+		const pwd = rgtReactive.password
+		if (!pwd) {
+			ShowStrenth.value = false
 			return
 		}
-
-		const score = [
-			pass.length >= 2,
-			pass.length >= 5,
-			/[a-z]/.test(pass),
-			/[A-Z]/.test(pass),
-			/\d/.test(pass),
-			/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass),
-			/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)
-		].filter(Boolean).length
-		strengthLevel.value = score <= 3 ? 1 : score <= 6 ? 2 : 3
+		ShowStrenth.value = true
 	}, 300)
 </script>
 
@@ -475,7 +448,7 @@
 		text-align: center;
 	}
 
-	//密码强度
+	//密码校验
 	.password-strength {
 		margin-left: 160rpx;
 		display: flex;
@@ -483,35 +456,11 @@
 
 	}
 
-	.strength-bar {
-		height: 6rpx;
-		flex: 1;
-		margin-right: 4rpx;
-		background-color: #eee;
-		border-radius: 3rpx;
-		transition: all 0.3s;
-	}
-
-	.strength-bar.active {
-		background-color: #ff4d4f;
-	}
-
-	.strength-bar.weak {
-		background-color: #ff4d4f;
-	}
-
-	.strength-bar.medium {
-		background-color: #faad14;
-	}
-
-	.strength-bar.strong {
-		background-color: #52c41a;
-	}
-
-	.strength-text {
-		margin-left: 20rpx;
+	/* 缺失提示样式 */
+	.missing-tips {
 		font-size: 24rpx;
-		color: #666;
+		font-weight: bold;
+		color: #ff4d4f;
 	}
 
 	/* 下一步按钮 */

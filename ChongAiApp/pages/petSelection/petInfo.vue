@@ -69,9 +69,10 @@
 				<DatePicker v-model="petReactive.adoptionDate" @date-change="handleArrivalDateChange" />
 			</view>
 		</view>
-
 		<!-- 完成按钮 -->
-		<button class="next-btn" :disabled="!isFormValid" @click="complete">完成</button>
+		<up-button class="next-btn" :disabled="!isFormValid" @click="complete">
+			完成
+		</up-button>
 
 	</view>
 </template>
@@ -344,16 +345,13 @@
 
 	/* 下一步按钮 */
 	.next-btn {
-		width: 300rpx;
 		background-color: #007aff;
-		color: white;
+		color: #fff;
 		border-radius: 50rpx;
-		height: 70rpx;
+		height: 90rpx;
+		line-height: 90rpx;
+		font-size: 32rpx;
 		margin-top: 60rpx;
-		line-height: 70rpx;
-
-		&.active {
-			background-color: #007aff;
-		}
+		width: 300rpx;
 	}
 </style>

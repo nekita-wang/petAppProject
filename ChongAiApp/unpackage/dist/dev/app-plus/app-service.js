@@ -6230,7 +6230,7 @@ if (uni.restoreGlobal) {
           title: $setup.title,
           content: $setup.content,
           showCancelButton: "",
-          width: "260px",
+          width: "300px",
           onConfirm: _cache[3] || (_cache[3] = ($event) => $setup.handleAgreement(true)),
           onCancel: _cache[4] || (_cache[4] = ($event) => $setup.handleAgreement(false))
         }, null, 8, ["show", "title", "content"])
@@ -8425,7 +8425,7 @@ This will fail in production.`);
       clearUserInfo
     };
   });
-  const BASE_URL = "https://122.228.237.118:53627";
+  const BASE_URL = "http://1.15.123.85";
   const request = (config2 = {}) => {
     const { url: url2, method = "GET", data = {}, header = {} } = config2;
     const token = useAuthStore().token;
@@ -13060,7 +13060,7 @@ This will fail in production.`);
     return encryptor.encrypt(text);
   }
   function uploadImg(AvatarCallback) {
-    const URL2 = "https://122.228.237.118:53627";
+    const URL2 = "http://1.15.123.85";
     const authStore = useAuthStore();
     const token = authStore.token;
     uni.chooseImage({
@@ -13082,17 +13082,19 @@ This will fail in production.`);
               Authorization: `Bearer ${token}`
             }
           });
+          formatAppLog("log", "at utils/uploadImg.js:30", chooseImageRes.tempFilePaths[0]);
           const response = JSON.parse(uploadRes.data);
           AvatarCallback == null ? void 0 : AvatarCallback({
             relativePath: response.imgUrl,
-            fullUrl: URL2 + response.imgUrl
+            fullUrl: chooseImageRes.tempFilePaths[0]
+            // fullUrl: URL + response.imgUrl
           });
           uni.showToast({
             title: "上传成功",
             icon: "success"
           });
         } catch (error2) {
-          formatAppLog("error", "at utils/uploadImg.js:42", "上传处理异常:", error2);
+          formatAppLog("error", "at utils/uploadImg.js:44", "上传处理异常:", error2);
           uni.showToast({
             title: error2.message || "上传失败",
             icon: "none"
@@ -13103,7 +13105,7 @@ This will fail in production.`);
       },
       fail: (error2) => {
         uni.hideLoading();
-        formatAppLog("error", "at utils/uploadImg.js:53", "选择图片失败:", error2);
+        formatAppLog("error", "at utils/uploadImg.js:55", "选择图片失败:", error2);
         uni.showToast({
           title: "选择图片失败",
           icon: "none"
@@ -13162,17 +13164,6 @@ This will fail in production.`);
               passwordConfirm: encryptedPwd
             }
           });
-          if (res.code === 1020) {
-            uni.showToast({
-              title: "您已完成注册,为您前往下一个页面",
-              icon: "none",
-              duration: 2e3
-            });
-            uni.navigateTo({
-              url: "/pages/petSelection/petSelection"
-            });
-            return;
-          }
           if (!res.success) {
             return uni.showToast({
               title: res.msg || "登录失败",
@@ -13216,35 +13207,33 @@ This will fail in production.`);
         }
         completeProfile();
       };
-      const strengthText = vue.computed(() => {
-        if (strengthLevel.value === 0)
-          return "弱";
-        if (strengthLevel.value === 1)
-          return "弱";
-        if (strengthLevel.value === 2)
-          return "中";
-        return "强";
+      const hasLength = vue.computed(() => rgtReactive.password.length >= 10);
+      const hasLowercase = vue.computed(() => /[a-z]/.test(rgtReactive.password));
+      const hasUppercase = vue.computed(() => /[A-Z]/.test(rgtReactive.password));
+      const hasNumber = vue.computed(() => /\d/.test(rgtReactive.password));
+      const hasSpecialChar = vue.computed(() => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(rgtReactive.password));
+      const missingRules = vue.computed(() => {
+        const rules2 = [];
+        if (!hasNumber.value)
+          rules2.push("数字");
+        if (!hasUppercase.value)
+          rules2.push("大写字母");
+        if (!hasLowercase.value)
+          rules2.push("小写字母");
+        if (!hasSpecialChar.value)
+          rules2.push("特殊符号");
+        return rules2;
       });
       const checkPasswordStrength = debounce((e) => {
         rgtReactive.password = e.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, "");
-        const pass = rgtReactive.password;
-        ShowStrenth.value = pass.length > 0;
-        if (!pass || pass.length < 8) {
-          strengthLevel.value = 0;
+        const pwd = rgtReactive.password;
+        if (!pwd) {
+          ShowStrenth.value = false;
           return;
         }
-        const score = [
-          pass.length >= 2,
-          pass.length >= 5,
-          /[a-z]/.test(pass),
-          /[A-Z]/.test(pass),
-          /\d/.test(pass),
-          /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass),
-          /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)
-        ].filter(Boolean).length;
-        strengthLevel.value = score <= 3 ? 1 : score <= 6 ? 2 : 3;
+        ShowStrenth.value = true;
       }, 300);
-      const __returned__ = { strengthLevel, ShowStrenth, relativePath, authStore, rgtReactive, showPassword, showCmPassword, isFormValid, handleBirthdayChange, hasUploadedAvatar, UploadImage, completeProfile, handelNext, strengthText, checkPasswordStrength, get onLoad() {
+      const __returned__ = { strengthLevel, ShowStrenth, relativePath, authStore, rgtReactive, showPassword, showCmPassword, isFormValid, handleBirthdayChange, hasUploadedAvatar, UploadImage, completeProfile, handelNext, hasLength, hasLowercase, hasUppercase, hasNumber, hasSpecialChar, missingRules, checkPasswordStrength, get onLoad() {
         return onLoad;
       }, get debounce() {
         return debounce;
@@ -13266,9 +13255,8 @@ This will fail in production.`);
   function _sfc_render$1O(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_up_image = resolveEasycom(vue.resolveDynamicComponent("up-image"), __easycom_1$e);
     const _component_up_input = resolveEasycom(vue.resolveDynamicComponent("up-input"), __easycom_0$4);
-    const _component_u_icon = resolveEasycom(vue.resolveDynamicComponent("u-icon"), __easycom_1$f);
-    const _component_u_input = resolveEasycom(vue.resolveDynamicComponent("u-input"), __easycom_0$4);
-    const _component_u_button = resolveEasycom(vue.resolveDynamicComponent("u-button"), __easycom_1$d);
+    const _component_up_icon = resolveEasycom(vue.resolveDynamicComponent("up-icon"), __easycom_1$f);
+    const _component_up_button = resolveEasycom(vue.resolveDynamicComponent("up-button"), __easycom_1$d);
     return vue.openBlock(), vue.createElementBlock("view", { class: "profile-container" }, [
       vue.createCommentVNode(" 头像上传 "),
       vue.createElementVNode("view", {
@@ -13301,7 +13289,7 @@ This will fail in production.`);
           vue.createVNode(_component_up_input, {
             modelValue: $setup.rgtReactive.nickName,
             "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.rgtReactive.nickName = $event),
-            placeholder: "请输入",
+            placeholder: "请输入昵称",
             shape: "circle",
             maxlength: "10"
           }, null, 8, ["modelValue"])
@@ -13376,22 +13364,22 @@ This will fail in production.`);
             "default-date": $setup.rgtReactive.birthday
           }, null, 8, ["modelValue", "default-date"])
         ]),
-        vue.createCommentVNode(" 密码 "),
+        vue.createCommentVNode(" 密码输入 "),
         vue.createElementVNode("view", { class: "form-item" }, [
           vue.createElementVNode("text", { class: "label" }, "密码:"),
           vue.createElementVNode("view", { class: "form-item-pwd" }, [
-            vue.createVNode(_component_u_input, {
+            vue.createVNode(_component_up_input, {
               shape: "circle",
+              clearable: "",
+              maxlength: "10",
               modelValue: $setup.rgtReactive.password,
               "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.rgtReactive.password = $event),
               type: $setup.showPassword ? "text" : "password",
-              placeholder: "请输入",
-              passwordIcon: false,
-              maxlength: "10",
+              placeholder: "10位包含大小写字母、数字特殊符号",
               onChange: $setup.checkPasswordStrength
             }, {
               suffix: vue.withCtx(() => [
-                vue.createVNode(_component_u_icon, {
+                vue.createVNode(_component_up_icon, {
                   name: $setup.showPassword ? "eye-fill" : "eye-off",
                   color: $setup.showPassword ? "#2979ff" : "#c0c4cc",
                   size: "25",
@@ -13403,73 +13391,37 @@ This will fail in production.`);
             }, 8, ["modelValue", "type", "onChange"])
           ])
         ]),
-        vue.createCommentVNode(" 密码强度 "),
-        $setup.ShowStrenth ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "password-strength"
-        }, [
-          vue.createElementVNode(
-            "view",
-            {
-              class: vue.normalizeClass(["strength-bar", {
-                "weak": $setup.strengthLevel === 1,
-                "medium": $setup.strengthLevel === 2,
-                "strong": $setup.strengthLevel === 3,
-                "active": $setup.strengthLevel >= 0
-              }])
-            },
-            null,
-            2
-            /* CLASS */
-          ),
-          vue.createElementVNode(
-            "view",
-            {
-              class: vue.normalizeClass(["strength-bar", {
-                "medium": $setup.strengthLevel === 2,
-                "strong": $setup.strengthLevel === 3,
-                "active": $setup.strengthLevel >= 2
-              }])
-            },
-            null,
-            2
-            /* CLASS */
-          ),
-          vue.createElementVNode(
-            "view",
-            {
-              class: vue.normalizeClass(["strength-bar", {
-                "strong": $setup.strengthLevel === 3,
-                "active": $setup.strengthLevel >= 3
-              }])
-            },
-            null,
-            2
-            /* CLASS */
-          ),
-          vue.createElementVNode(
-            "text",
-            { class: "strength-text" },
-            vue.toDisplayString($setup.strengthText),
-            1
-            /* TEXT */
-          )
-        ])) : vue.createCommentVNode("v-if", true),
+        vue.createElementVNode("view", { class: "password-strength" }, [
+          vue.createCommentVNode(" 密码缺失提示 "),
+          $setup.rgtReactive.password && $setup.missingRules.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "missing-tips"
+          }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "缺少" + vue.toDisplayString($setup.missingRules.join("，")),
+              1
+              /* TEXT */
+            )
+          ])) : vue.createCommentVNode("v-if", true)
+        ]),
         vue.createCommentVNode(" 密码确认 "),
         vue.createElementVNode("view", { class: "form-item" }, [
           vue.createElementVNode("text", { class: "label" }, "密码确认:"),
           vue.createElementVNode("view", { class: "form-item-pwd" }, [
-            vue.createVNode(_component_u_input, {
+            vue.createVNode(_component_up_input, {
               shape: "circle",
+              clearable: "",
               modelValue: $setup.rgtReactive.passwordConfirm,
               "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => $setup.rgtReactive.passwordConfirm = $event),
               type: $setup.showCmPassword ? "text" : "password",
-              placeholder: "请输入",
+              placeholder: "请输入确认密码",
               passwordIcon: false,
               maxlength: "10"
             }, {
               suffix: vue.withCtx(() => [
-                vue.createVNode(_component_u_icon, {
+                vue.createVNode(_component_up_icon, {
                   name: $setup.showCmPassword ? "eye-fill" : "eye-off",
                   color: $setup.showCmPassword ? "#2979ff" : "#c0c4cc",
                   size: "25",
@@ -13483,7 +13435,7 @@ This will fail in production.`);
         ])
       ]),
       vue.createCommentVNode(" 下一步按钮 "),
-      vue.createVNode(_component_u_button, {
+      vue.createVNode(_component_up_button, {
         class: "next-btn",
         disabled: !$setup.isFormValid,
         onClick: $setup.handelNext
@@ -14801,6 +14753,11 @@ This will fail in production.`);
       const petData = vue.ref("");
       const hotPets = vue.ref([]);
       const showBtn = vue.ref(true);
+      const customBack = () => {
+        uni.redirectTo({
+          url: "/pages/login/sms"
+        });
+      };
       const handleSkip = () => {
         uni.navigateTo({
           url: "/pages/home/home"
@@ -14814,6 +14771,12 @@ This will fail in production.`);
         activeTab.value = tab.petClassId;
         petBreed.value = "";
         currentLetter.value = "letter-A";
+        if (activeTab.value === "0") {
+          uni.pageScrollTo({
+            scrollTop: 0,
+            duration: 0
+          });
+        }
         showBtn.value = activeTab.value === "0";
         if (activeTab.value !== "0") {
           await GetBreedList();
@@ -14828,9 +14791,9 @@ This will fail in production.`);
             url: "/app/pet/pet"
           });
           tabs.value = res.data;
-          formatAppLog("log", "at pages/petSelection/petSelection.vue:133", res);
+          formatAppLog("log", "at pages/petSelection/petSelection.vue:146", res);
         } catch (error2) {
-          formatAppLog("error", "at pages/petSelection/petSelection.vue:135", "获取宠物类型失败:", error2);
+          formatAppLog("error", "at pages/petSelection/petSelection.vue:148", "获取宠物类型失败:", error2);
         }
       };
       const GetBreedList = async () => {
@@ -14856,7 +14819,7 @@ This will fail in production.`);
           petData.value = res.data.breeds;
           uni.hideLoading();
         } catch (error2) {
-          formatAppLog("log", "at pages/petSelection/petSelection.vue:163", error2);
+          formatAppLog("log", "at pages/petSelection/petSelection.vue:176", error2);
           uni.showToast({
             title: "获取品种数据失败",
             icon: "none"
@@ -14871,7 +14834,7 @@ This will fail in production.`);
           url: `/pages/petSelection/petInfo?petBreed=${encodedBreed}&petClass=${encodedType}`
         });
       };
-      const __returned__ = { tabs, activeTab, currentLetter, petClass, petBreed, petData, hotPets, showBtn, handleSkip, handleTabChange, scrollToLetter, GetPetTypeList, GetBreedList, petSearch, checkPet, ref: vue.ref, onMounted: vue.onMounted, getCurrentInstance: vue.getCurrentInstance, get useAuthStore() {
+      const __returned__ = { tabs, activeTab, currentLetter, petClass, petBreed, petData, hotPets, showBtn, customBack, handleSkip, handleTabChange, scrollToLetter, GetPetTypeList, GetBreedList, petSearch, checkPet, ref: vue.ref, onMounted: vue.onMounted, getCurrentInstance: vue.getCurrentInstance, get useAuthStore() {
         return useAuthStore;
       }, get request() {
         return request;
@@ -14890,7 +14853,7 @@ This will fail in production.`);
       vue.createVNode(_component_up_navbar, {
         title: "您养的宠物（1/2）",
         rightText: "跳过",
-        autoBack: true,
+        onLeftClick: $setup.customBack,
         onRightClick: $setup.handleSkip,
         fixed: ""
       }),
@@ -15124,7 +15087,7 @@ This will fail in production.`);
             // 强制转换为数字
           }
         });
-        formatAppLog("log", "at pages/petSelection/petInfo.vue:158", res);
+        formatAppLog("log", "at pages/petSelection/petInfo.vue:159", res);
         if (res.code === 4002) {
           uni.showToast({
             title: "您已填写过信息,为您前往下一个页面",
@@ -15170,6 +15133,7 @@ This will fail in production.`);
   function _sfc_render$1J(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_up_navbar = resolveEasycom(vue.resolveDynamicComponent("up-navbar"), __easycom_0$5);
     const _component_up_image = resolveEasycom(vue.resolveDynamicComponent("up-image"), __easycom_1$e);
+    const _component_up_button = resolveEasycom(vue.resolveDynamicComponent("up-button"), __easycom_1$d);
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -15339,11 +15303,17 @@ This will fail in production.`);
             ])
           ]),
           vue.createCommentVNode(" 完成按钮 "),
-          vue.createElementVNode("button", {
+          vue.createVNode(_component_up_button, {
             class: "next-btn",
             disabled: !$setup.isFormValid,
             onClick: $setup.complete
-          }, "完成", 8, ["disabled"])
+          }, {
+            default: vue.withCtx(() => [
+              vue.createTextVNode(" 完成 ")
+            ]),
+            _: 1
+            /* STABLE */
+          }, 8, ["disabled"])
         ])
       ],
       2112

@@ -1,7 +1,8 @@
 // utils/request.js
 import { useAuthStore } from '@/stores/auth'
 
-const BASE_URL = 'https://122.228.237.118:53627'
+// const BASE_URL = 'https://122.228.237.118:53627' 
+const BASE_URL = 'http://1.15.123.85' //服务器
 
 export const request = (config = {}) => {
   const { url, method = "GET", data = {}, header = {} } = config
@@ -45,7 +46,7 @@ export const request = (config = {}) => {
         })
       }
     })
-  }).catch(err => { // 添加全局catch处理
+  }).catch(err => { 
     if (err.statusCode === 401) {
       uni.navigateTo({ url: '/pages/login/login' })
     }

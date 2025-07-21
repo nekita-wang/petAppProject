@@ -888,30 +888,12 @@ uni-picker-view-column uni-view.item[data-v-838b72c9] {
   display: flex;
   align-items: center;
 }
-.strength-bar[data-v-838b72c9] {
-  height: 0.1875rem;
-  flex: 1;
-  margin-right: 0.125rem;
-  background-color: #eee;
-  border-radius: 0.09375rem;
-  transition: all 0.3s;
-}
-.strength-bar.active[data-v-838b72c9] {
-  background-color: #ff4d4f;
-}
-.strength-bar.weak[data-v-838b72c9] {
-  background-color: #ff4d4f;
-}
-.strength-bar.medium[data-v-838b72c9] {
-  background-color: #faad14;
-}
-.strength-bar.strong[data-v-838b72c9] {
-  background-color: #52c41a;
-}
-.strength-text[data-v-838b72c9] {
-  margin-left: 0.625rem;
+
+/* 缺失提示样式 */
+.missing-tips[data-v-838b72c9] {
   font-size: 0.75rem;
-  color: #666;
+  font-weight: bold;
+  color: #ff4d4f;
 }
 
 /* 下一步按钮 */
