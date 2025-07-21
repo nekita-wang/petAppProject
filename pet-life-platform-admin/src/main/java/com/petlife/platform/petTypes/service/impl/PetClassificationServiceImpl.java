@@ -121,4 +121,11 @@ public class PetClassificationServiceImpl implements IPetClassificationService
     public int petClassificationByPetClassIds(List<String> ids) {
         return petClassificationMapper.petClassificationByPetClassIds(ids);
     }
+
+
+    @Override
+    public int updatePetClassificationStatusByIds(List<String> ids, Integer status) {
+        return petClassificationMapper.updatePetClassificationStatusByIds(ids, status);
+    }
+
 }

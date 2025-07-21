@@ -29,39 +29,42 @@
         <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate"
           v-hasPermi="['petType:petType:edit']">修改</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button type="danger" plain icon="el-icon-remove" size="mini" :disabled="single" @click="handleInvalidate"
-          v-hasPermi="['petType:petType:invalidate']">失效</el-button>
-      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="petTypeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" prop="no" />
-      <el-table-column label="宠物分类" align="center" prop="petClass" />
-      <el-table-column label="宠物分类(英文)" align="center" prop="petClassEn"  />
-      <el-table-column label="状态" align="center" prop="status">
+      <el-table-column label="序号" align="center" prop="no" width="80" />
+      <el-table-column label="宠物分类" align="center" prop="petClass" width="120" />
+      <el-table-column label="宠物分类(英文)" align="center" prop="petClassEn" width="150" />
+      <el-table-column label="状态" align="center" prop="status" width="70">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.pet_class_status" :value="scope.row.status" />
         </template>
       </el-table-column>
-            <el-table-column label="最后更新时间" align="center" prop="lastUpdateTime" width="180">
+      <el-table-column label="最后更新时间" align="center" prop="lastUpdateTime" width="160">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.lastUpdateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="160">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="创建人" align="center" prop="creator" />
-
-      <el-table-column label="最后更新人" align="center" prop="lastUpdater" />
+      <el-table-column label="创建人" align="center" prop="creator" width="80" />
+      <el-table-column label="最后更新人" align="center" prop="lastUpdater" width="100" />
+      <el-table-column label="操作" align="center" width="180">
+        <template slot-scope="scope">
+          <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">修改</el-button>
+          <el-button v-if="scope.row.status === 1" type="success" size="mini"
+            @click="handleToggleStatus(scope.row, 0)">有效</el-button>
+          <el-button v-else type="danger" size="mini" @click="handleToggleStatus(scope.row, 1)">失效</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
-    <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
+    <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
       @pagination="getList" />
 
     <!-- 添加或修改宠物分类对话框 -->
@@ -104,14 +107,14 @@
 </template>
 
 <script>
-import { listPetType, getPetType, delPetType, addPetType, updatePetType ,listPet,updatePetTypeStatusBatch} from "@/api/petType/petType"
+import { listPetType, getPetType, delPetType, addPetType, updatePetType, listPet, updatePetTypeStatusBatch } from "@/api/petType/petType"
 
 export default {
   name: "PetType",
   dicts: ['pet_class_status'],
   data() {
     return {
-      petClassType:null,
+      petClassType: null,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -146,11 +149,11 @@ export default {
         ],
         petClass: [
           { required: true, message: "宠物分类不能为空", trigger: "change" },
-           { max: 40, message: "宠物分类不能超过40个字符", trigger: "blur" }
+          { max: 40, message: "宠物分类不能超过40个字符", trigger: "blur" }
         ],
         petClassEn: [
           { required: true, message: "宠物分类不能为空", trigger: "blur" },
-           { max: 40, message: "宠物分类英文不能超过40个字符", trigger: "blur" }
+          { max: 40, message: "宠物分类英文不能超过40个字符", trigger: "blur" }
         ]
       }
     }
@@ -169,11 +172,11 @@ export default {
         this.loading = false
       })
     },
-    
-      async getListPet(includeInactive) {
+
+    async getListPet(includeInactive) {
       try {
         const response = await listPet(includeInactive);
-        this.petClassType = response.data;  
+        this.petClassType = response.data;
       } catch (error) {
         console.error('查询失败', error);
       }
@@ -201,7 +204,7 @@ export default {
         creator: null,
         lastUpdateTime: null,
         lastUpdater: null,
-        petClassType:null
+        petClassType: null
       }
       this.resetForm("form")
     },
@@ -218,7 +221,7 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.petClassId)
-      this.single = selection.length!==1
+      this.single = selection.length !== 1
       this.multiple = !selection.length
     },
     /** 新增按钮操作 */
@@ -236,19 +239,6 @@ export default {
         this.open = true
         this.title = "修改宠物分类"
       })
-    },
-    //失效
-    handleInvalidate(){
-    if (this.ids.length === 0) {
-      this.$modal.msgError("请先选择要失效的宠物分类");
-      return;
-    }
-    this.$modal.confirm('是否确认将所选宠物分类设置为失效状态？').then(() => {
-      return updatePetTypeStatusBatch({ ids: this.ids}); 
-    }).then(() => {
-      this.getList();
-      this.$modal.msgSuccess("失效成功");
-    }).catch(() => {});
     },
     /** 提交按钮 */
     submitForm() {
@@ -273,18 +263,28 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const petClassIds = row.petClassId || this.ids
-      this.$modal.confirm('是否确认删除宠物分类编号为"' + petClassIds + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除宠物分类编号为"' + petClassIds + '"的数据项？').then(function () {
         return delPetType(petClassIds)
       }).then(() => {
         this.getList()
         this.$modal.msgSuccess("删除成功")
-      }).catch(() => {})
+      }).catch(() => { })
     },
     /** 导出按钮操作 */
     handleExport() {
       this.download('petType/petType/export', {
         ...this.queryParams
       }, `petType_${new Date().getTime()}.xlsx`)
+    },
+    handleToggleStatus(row, status) {
+      const action = status === 0 ? '设为有效' : '设为失效';
+      this.$modal.confirm(`确定要将该分类${action}吗？`).then(() => {
+        // 修正为调用 updatePetTypeStatusBatch 并传递 { ids, status }
+        return updatePetTypeStatusBatch({ ids: [row.petClassId], status });
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess('操作成功');
+      }).catch(() => { });
     }
   }
 }

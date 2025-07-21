@@ -77,4 +77,14 @@ public interface PetClassificationMapper
      * @return
      */
     public int petClassificationByPetClassIds(List<String> ids);
+
+
+    /**
+     * 修改宠物分类状态
+     * @param ids
+     * @param status
+     * @return
+     */
+    int updatePetClassificationStatusByIds(@Param("ids") List<String> ids, @Param("status") Integer status);
+
 }

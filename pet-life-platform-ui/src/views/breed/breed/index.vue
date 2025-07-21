@@ -35,10 +35,6 @@
           v-hasPermi="['breed:breed:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="danger" plain icon="el-icon-remove" size="mini" :disabled="single" @click="handleInvalidate"
-          v-hasPermi="['petType:petType:invalidate']">失效</el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
           v-hasPermi="['breed:breed:export']">导出</el-button>
       </el-col>
@@ -317,20 +313,6 @@ export default {
         this.open = true
         this.title = "修改宠物品种"
       })
-    },
-    //失效
-    handleInvalidate() {
-      if (this.ids.length === 0) {
-        this.$modal.msgError("请先选择要失效的宠物分类");
-        return;
-      }
-      this.$modal.confirm('是否确认将所选宠物分类设置为失效状态？').then(() => {
-        // 始终传递数组
-        return updateBreedStatus(this.ids, 1);
-      }).then(() => {
-        this.getList();
-        this.$modal.msgSuccess("操作成功");
-      }).catch(() => { });
     },
     handleToggleStatus(row, status) {
       const action = status === 0 ? '设为有效' : '设为失效';

@@ -15,8 +15,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -128,9 +130,18 @@ public class PetClassificationController extends BaseController
      * @return
      */
     @PutMapping("/updateStatusBatch")
-    public AjaxResult updatePetTypeStatusBatch(@RequestBody Map<String, List<String>> request) {
-        List<String> ids = request.get("ids");
-
-        return toAjax(petClassificationService.petClassificationByPetClassIds(ids));
+    public AjaxResult updatePetTypeStatusBatch(@RequestBody Map<String, Object> request) {
+        Object idsObj = request.get("ids");
+        List<String> ids = new ArrayList<>();
+        if (idsObj instanceof List<?>) {
+            ids = ((List<?>) idsObj).stream().map(String::valueOf).collect(Collectors.toList());
+        } else if (idsObj instanceof String) {
+            ids.add((String) idsObj);
+        } else {
+            throw new IllegalArgumentException("ids参数格式错误");
+        }
+        Integer status = (Integer) request.get("status");
+        if (status == null) status = 1;
+        return toAjax(petClassificationService.updatePetClassificationStatusByIds(ids, status));
     }
 }

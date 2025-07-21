@@ -110,4 +110,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </update>
 
+    <update id="updatePetClassificationStatusByIds">
+        UPDATE pet_classification
+        SET status = #{status}
+        WHERE pet_class_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

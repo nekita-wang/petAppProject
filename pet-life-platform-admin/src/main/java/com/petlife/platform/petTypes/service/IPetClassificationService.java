@@ -69,4 +69,6 @@ public interface IPetClassificationService
     public int deletePetClassificationByPetClassId(String petClassId);
 
     public int petClassificationByPetClassIds(List<String> ids);
+
+    int updatePetClassificationStatusByIds(List<String> ids, Integer status);
 }
