@@ -81,6 +81,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LIMIT 6;
     </select>
 
+
     <select id="selectPetClass" resultType="com.petlife.platform.common.pojo.vo.PetClassVo" >
         SELECT pet_class_id AS petClassId, pet_class AS petClass
         FROM pet_classification

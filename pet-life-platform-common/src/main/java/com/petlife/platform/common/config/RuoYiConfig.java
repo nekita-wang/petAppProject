@@ -127,4 +127,12 @@ public class RuoYiConfig
     public static String getTempAvatarPath() {
         return getProfile() + "/temp/avatar";
     }
+
+    /**
+     * 获取广告图片上传路径
+     * @return
+     */
+    public static String getAdvertisementPath() {
+        return getProfile() + "/advertisement";
+    }
 }

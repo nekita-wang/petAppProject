@@ -14,7 +14,12 @@ public class TempAvatarCleaner {
 
     @Scheduled(cron = "0 0 2 * * ?") // 每天凌晨2点
     public void cleanTempAvatars() {
-        File tempDir = new File(RuoYiConfig.getTempAvatarPath());
+        // 清理临时头像
+        cleanTempDirectory(RuoYiConfig.getTempAvatarPath());
+    }
+
+    private void cleanTempDirectory(String dirPath) {
+        File tempDir = new File(dirPath);
         File[] files = tempDir.listFiles();
         if (files != null) {
             for (File file : files) {

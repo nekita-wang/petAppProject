@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petlife.platform.advertisement.mapper.AdvertisementMapper">
+    
+    <resultMap type="Advertisement" id="AdvertisementResult">
+        <result property="id"    column="id"    />
+        <result property="adPosition"    column="ad_position"    />
+        <result property="adName"    column="ad_name"    />
+        <result property="brand"    column="brand"    />
+        <result property="status"    column="status"    />
+        <result property="clickCount"    column="click_count"    />
+        <result property="cleard"    column="cleard"    />
+        <result property="adRevenue"    column="ad_revenue"    />
+        <result property="revenueAttachment"    column="revenue_attachment"    />
+        <result property="targetUrl"    column="target_url"    />
+        <result property="adImage"    column="ad_image"    />
+        <result property="adStartTime"    column="ad_start_time"    />
+        <result property="adEndTime"    column="ad_end_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="creator"    column="creator"    />
+        <result property="lastUpdateTime"    column="last_update_time"    />
+        <result property="lastUpdater"    column="last_updater"    />
+    </resultMap>
+
+    <sql id="selectAdvertisementVo">
+        select id, ad_position, ad_name, brand, status, click_count, cleard, ad_revenue, revenue_attachment, target_url, ad_image, ad_start_time, ad_end_time, create_time, creator, last_update_time, last_updater from advertisement
+    </sql>
+
+    <select id="selectAdvertisementList" parameterType="Advertisement" resultMap="AdvertisementResult">
+        <include refid="selectAdvertisementVo"/>
+        <where>  
+            <if test="adPosition != null  and adPosition != ''"> and ad_position = #{adPosition}</if>
+            <if test="adName != null  and adName != ''"> and ad_name like concat('%', #{adName}, '%')</if>
+            <if test="brand != null  and brand != ''"> and brand like concat('%', #{brand}, '%')</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="cleard != null "> and cleard = #{cleard}</if>
+            <if test="adStartTime != null "> and ad_start_time &gt;= #{adStartTime}</if>
+            <if test="adEndTime != null "> and ad_end_time &lt;= #{adEndTime}</if>
+        </where>
+        order by last_update_time desc
+    </select>
+    
+    <select id="selectAdvertisementById" parameterType="Integer" resultMap="AdvertisementResult">
+        <include refid="selectAdvertisementVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectRunningAdvertisementByPosition" parameterType="String" resultMap="AdvertisementResult">
+        <include refid="selectAdvertisementVo"/>
+        where ad_position = #{adPosition} and status = 1
+        and NOW() between ad_start_time and ad_end_time
+        limit 1
+    </select>
+        
+    <insert id="insertAdvertisement" parameterType="Advertisement" useGeneratedKeys="true" keyProperty="id">
+        insert into advertisement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="adPosition != null and adPosition != ''">ad_position,</if>
+            <if test="adName != null and adName != ''">ad_name,</if>
+            <if test="brand != null and brand != ''">brand,</if>
+            <if test="status != null">status,</if>
+            <if test="clickCount != null">click_count,</if>
+            <if test="cleard != null">cleard,</if>
+            <if test="adRevenue != null">ad_revenue,</if>
+            <if test="revenueAttachment != null">revenue_attachment,</if>
+            <if test="targetUrl != null and targetUrl != ''">target_url,</if>
+            <if test="adImage != null and adImage != ''">ad_image,</if>
+            <if test="adStartTime != null">ad_start_time,</if>
+            <if test="adEndTime != null">ad_end_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="creator != null and creator != ''">creator,</if>
+            <if test="lastUpdateTime != null">last_update_time,</if>
+            <if test="lastUpdater != null and lastUpdater != ''">last_updater,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="adPosition != null and adPosition != ''">#{adPosition},</if>
+            <if test="adName != null and adName != ''">#{adName},</if>
+            <if test="brand != null and brand != ''">#{brand},</if>
+            <if test="status != null">#{status},</if>
+            <if test="clickCount != null">#{clickCount},</if>
+            <if test="cleard != null">#{cleard},</if>
+            <if test="adRevenue != null">#{adRevenue},</if>
+            <if test="revenueAttachment != null">#{revenueAttachment},</if>
+            <if test="targetUrl != null and targetUrl != ''">#{targetUrl},</if>
+            <if test="adImage != null and adImage != ''">#{adImage},</if>
+            <if test="adStartTime != null">#{adStartTime},</if>
+            <if test="adEndTime != null">#{adEndTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="creator != null and creator != ''">#{creator},</if>
+            <if test="lastUpdateTime != null">#{lastUpdateTime},</if>
+            <if test="lastUpdater != null and lastUpdater != ''">#{lastUpdater},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAdvertisement" parameterType="Advertisement">
+        update advertisement
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="adPosition != null and adPosition != ''">ad_position = #{adPosition},</if>
+            <if test="adName != null and adName != ''">ad_name = #{adName},</if>
+            <if test="brand != null and brand != ''">brand = #{brand},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="clickCount != null">click_count = #{clickCount},</if>
+            <if test="cleard != null">cleard = #{cleard},</if>
+            <if test="adRevenue != null">ad_revenue = #{adRevenue},</if>
+            <if test="revenueAttachment != null">revenue_attachment = #{revenueAttachment},</if>
+            <if test="targetUrl != null and targetUrl != ''">target_url = #{targetUrl},</if>
+            <if test="adImage != null and adImage != ''">ad_image = #{adImage},</if>
+            <if test="adStartTime != null">ad_start_time = #{adStartTime},</if>
+            <if test="adEndTime != null">ad_end_time = #{adEndTime},</if>
+            <if test="lastUpdateTime != null">last_update_time = #{lastUpdateTime},</if>
+            <if test="lastUpdater != null and lastUpdater != ''">last_updater = #{lastUpdater},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAdvertisementById" parameterType="Integer">
+        delete from advertisement where id = #{id}
+    </delete>
+
+    <delete id="deleteAdvertisementByIds" parameterType="String">
+        delete from advertisement where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="updateClickCount" parameterType="Integer">
+        update advertisement set click_count = click_count + 1, last_update_time = NOW() where id = #{id}
+    </update>
+
+    <update id="updateCleardStatus">
+        update advertisement
+        set cleard = #{cleard}, last_update_time = NOW(), last_updater = #{lastUpdater}
+        where id = #{id}
+    </update>
+
+    <update id="invalidateAdvertisement">
+        update advertisement
+        set status = 3, last_update_time = NOW(), last_updater = #{lastUpdater}
+        where id = #{id}
+    </update>
+
+    <update id="clearanceAdvertisement" parameterType="Advertisement">
+        update advertisement
+        set status = #{status},
+            cleard = #{cleard},
+            ad_revenue = #{adRevenue},
+            revenue_attachment = #{revenueAttachment},
+            last_update_time = #{lastUpdateTime},
+            last_updater = #{lastUpdater}
+        where id = #{id}
+    </update>
+
+    <select id="getAdvertisementStatistics" resultType="com.petlife.platform.advertisement.domain.AdvertisementStatistics">
+        SELECT
+            COUNT(*) as totalAds,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as runningAds,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as clearedAds,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as invalidAds,
+            COALESCE(SUM(click_count), 0) as totalClicks,
+            COALESCE(SUM(CASE WHEN ad_revenue IS NOT NULL THEN ad_revenue ELSE 0 END), 0) as totalRevenue,
+            COALESCE(AVG(click_count), 0) as avgClicks,
+            COALESCE(AVG(CASE WHEN ad_revenue IS NOT NULL THEN ad_revenue ELSE NULL END), 0) as avgRevenue
+        FROM advertisement
+    </select>
+</mapper>

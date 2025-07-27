@@ -3,7 +3,7 @@
     <el-upload multiple :action="uploadFileUrl" :before-upload="handleBeforeUpload" :file-list="fileList" :data="data"
       :limit="limit" :on-error="handleUploadError" :on-exceed="handleExceed" :on-success="handleUploadSuccess"
       :show-file-list="false" :headers="headers" class="upload-file-uploader" ref="fileUpload" v-if="!disabled"
-      name="avatarfile">
+      :name="name">
       <!-- 上传按钮 -->
       <el-button size="mini" type="primary">选取文件</el-button>
       <!-- 上传提示 -->
@@ -67,6 +67,11 @@ export default {
     isShowTip: {
       type: Boolean,
       default: true
+    },
+    // 上传参数名
+    name: {
+      type: String,
+      default: "avatarfile"
     },
     // 禁用组件（仅查看文件）
     disabled: {
@@ -178,7 +183,10 @@ export default {
     // 上传成功回调
     handleUploadSuccess(res, file) {
       if (res.code === 200) {
-        this.uploadList.push({ name: res.fileName, url: res.fileName })
+        // 兼容不同的响应格式
+        let fileName = res.fileName || res.imgUrl;
+        let url = res.url || res.imgUrl || res.fileName;
+        this.uploadList.push({ name: fileName, url: fileName })
         this.uploadedSuccessfully()
       } else {
         this.number--

@@ -57,6 +57,24 @@ public class PublicController {
     }
 
     /**
+     * 后台管理系统广告图片上传接口（仅SYS_USER可用）
+     */
+    @PostMapping("/admin/upload/advertisement")
+    public AjaxResult uploadAdminAdvertisement(@RequestParam("avatarfile") MultipartFile file) throws IOException, InvalidExtensionException {
+        LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
+        if (loginUser == null || loginUser.getUserType() == null || !"SYS_USER".equals(loginUser.getUserType().name())) {
+            return AjaxResult.error(401, "无权限：仅后台管理员可用");
+        }
+        if (file.isEmpty()) {
+            return AjaxResult.error("上传图片不能为空");
+        }
+        String advertisement = FileUploadUtils.upload(RuoYiConfig.getAdvertisementPath(), file, MimeTypeUtils.IMAGE_EXTENSION, true);
+        AjaxResult ajax = AjaxResult.success();
+        ajax.put("imgUrl", advertisement);
+        return ajax;
+    }
+
+    /**
      * 获取公钥
      */
     @GetMapping("/publicKey")
