@@ -34,16 +34,16 @@ CREATE TABLE `advertisement` (
   `revenue_attachment` varchar(255) DEFAULT NULL COMMENT '打款截图文件路径',
   `target_url` varchar(255) NOT NULL COMMENT '广告目标链接（https格式）',
   `ad_image` varchar(255) NOT NULL COMMENT '广告图片文件路径',
-  `ad_start_time` datetime NOT NULL COMMENT '广告开始时间（YYYY-MM-DD）',
-  `ad_end_time` datetime NOT NULL COMMENT '广告结束时间（YYYY-MM-DD）',
+  `ad_start_time` datetime NOT NULL COMMENT '广告开始时间，显示格式：YYYY-MM-DD',
+  `ad_end_time` datetime NOT NULL COMMENT '广告结束时间，显示格式：YYYY-MM-DD',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `creator` varchar(50) NOT NULL COMMENT '创建人账号',
   `last_update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `last_updater` varchar(50) NOT NULL COMMENT '最后更新人账号',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_ad_position` (`ad_position`,`status`),
   KEY `idx_status` (`status`) COMMENT '按状态筛选索引',
-  KEY `idx_ad_position` (`ad_position`) COMMENT '按广告位筛选索引'
+  KEY `idx_ad_position` (`ad_position`) COMMENT '按广告位筛选索引',
+  KEY `idx_ad_position_status` (`ad_position`, `status`) COMMENT '广告位和状态组合索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='广告信息表（含新增、编辑、状态流转等全量字段）';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

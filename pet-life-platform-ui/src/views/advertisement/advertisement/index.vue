@@ -112,15 +112,19 @@
           <dict-tag :options="dict.type.advertisement_cleard" :value="scope.row.cleard" />
         </template>
       </el-table-column>
-      <el-table-column label="收入(元)" align="center" prop="adRevenue" width="100" />
+      <el-table-column label="收入(元)" align="center" prop="adRevenue" width="100">
+        <template slot-scope="scope">
+          <span>{{ scope.row.adRevenue ? Number(scope.row.adRevenue).toFixed(2) : '0.00' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="广告开始时间" align="center" prop="adStartTime" width="160">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.adStartTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.adStartTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="广告结束时间" align="center" prop="adEndTime" width="160">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.adEndTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.adEndTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" width="160">
@@ -170,12 +174,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="form.status" placeholder="请选择状态" style="width: 100%">
-                <el-option label="运行中" :value="1" />
-                <el-option label="已结清" :value="2" />
-                <el-option label="已失效" :value="3" />
-              </el-select>
+            <el-form-item label="状态">
+              <el-input :value="getStatusText(form.status)" disabled style="width: 100%" placeholder="系统自动设置" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -206,9 +206,9 @@
         <el-row>
           <el-col :span="24">
             <el-form-item label="广告投放" prop="adTimeRange">
-              <el-date-picker v-model="form.adTimeRange" type="datetimerange" range-separator="~"
-                start-placeholder="开始时间" end-placeholder="结束时间" value-format="yyyy-MM-dd HH:mm:ss"
-                format="yyyy-MM-dd HH:mm:ss" style="width: 100%" :picker-options="pickerOptions">
+              <el-date-picker v-model="form.adTimeRange" type="daterange" range-separator="~" start-placeholder="开始日期"
+                end-placeholder="结束日期" value-format="yyyy-MM-dd" format="yyyy-MM-dd" style="width: 100%"
+                :picker-options="pickerOptions">
               </el-date-picker>
             </el-form-item>
           </el-col>
@@ -224,7 +224,8 @@
     <el-dialog title="结清广告收入" :visible.sync="clearanceOpen" width="500px" append-to-body>
       <el-form ref="clearanceForm" :model="clearanceForm" :rules="clearanceRules" label-width="120px">
         <el-form-item label="收入 (CNY):" prop="adRevenue">
-          <el-input v-model="clearanceForm.adRevenue" placeholder="请输入收入金额" />
+          <el-input v-model="clearanceForm.adRevenue" placeholder="请输入收入金额，保留2位小数" type="number" step="0.01" min="0"
+            @blur="formatRevenue" />
         </el-form-item>
         <el-form-item label="上传打款截图:" prop="revenueAttachment">
           <SimpleImageUpload v-model="clearanceForm.revenueAttachment" title="上传打款截图" />
@@ -250,7 +251,7 @@
 </template>
 
 <script>
-import { listAdvertisement, getAdvertisement, delAdvertisement, addAdvertisement, updateAdvertisement, exportAdvertisement, invalidateAdvertisement, clearanceAdvertisement, getAdvertisementStatistics } from "@/api/advertisement/advertisement";
+import { listAdvertisement, getAdvertisement, delAdvertisement, addAdvertisement, updateAdvertisement, invalidateAdvertisement, clearanceAdvertisement, getAdvertisementStatistics } from "@/api/advertisement/advertisement";
 
 export default {
   name: "Advertisement",
@@ -312,9 +313,6 @@ export default {
         brand: [
           { required: true, message: "品牌方名称不能为空", trigger: "blur" }
         ],
-        status: [
-          { required: true, message: "状态不能为空", trigger: "change" }
-        ],
         targetUrl: [
           { required: true, message: "广告目标链接不能为空", trigger: "blur" },
           { pattern: /^https:\/\//, message: "目标链接必须以https://开头", trigger: "blur" }
@@ -335,7 +333,22 @@ export default {
       // 结清表单校验
       clearanceRules: {
         adRevenue: [
-          { required: true, message: "收入金额不能为空", trigger: "blur" }
+          { required: true, message: "收入金额不能为空", trigger: "blur" },
+          {
+            pattern: /^\d+(\.\d{1,2})?$/,
+            message: "收入金额格式不正确，请输入正数并保留最多2位小数",
+            trigger: "blur"
+          },
+          {
+            validator: (_, value, callback) => {
+              if (value && (isNaN(value) || Number(value) < 0)) {
+                callback(new Error('收入金额必须为非负数'));
+              } else {
+                callback();
+              }
+            },
+            trigger: "blur"
+          }
         ],
         revenueAttachment: [
           { required: true, message: "打款截图不能为空", trigger: "blur" }
@@ -405,6 +418,24 @@ export default {
     this.getStatistics();
   },
   methods: {
+    /** 获取状态文本 */
+    getStatusText(status) {
+      const statusMap = {
+        1: '运行中',
+        2: '已结清',
+        3: '已失效'
+      };
+      return status ? statusMap[status] : '待提交';
+    },
+    /** 格式化收入金额为2位小数 */
+    formatRevenue() {
+      if (this.clearanceForm.adRevenue) {
+        const value = parseFloat(this.clearanceForm.adRevenue);
+        if (!isNaN(value) && value >= 0) {
+          this.clearanceForm.adRevenue = value.toFixed(2);
+        }
+      }
+    },
     /** 查询广告信息列表 */
     getList() {
       this.loading = true;
@@ -432,7 +463,7 @@ export default {
         adPosition: null,
         adName: null,
         brand: null,
-        status: 1,
+        status: null, // 新增时状态为空，由系统自动设置
         clickCount: null,
         cleard: 0,
         adRevenue: null,
@@ -477,16 +508,16 @@ export default {
       const id = row.id || this.ids
       getAdvertisement(id).then(response => {
         this.form = response.data;
-        // 处理时间范围
+        // 处理时间范围 - 将日期时间格式转换为日期格式
         if (this.form.adStartTime && this.form.adEndTime) {
-          this.form.adTimeRange = [this.form.adStartTime, this.form.adEndTime];
+          // 提取日期部分（YYYY-MM-DD）
+          const startDate = this.form.adStartTime.split(' ')[0];
+          const endDate = this.form.adEndTime.split(' ')[0];
+          this.form.adTimeRange = [startDate, endDate];
         } else {
           this.form.adTimeRange = [];
         }
-        // 确保必填字段有默认值
-        if (!this.form.status) {
-          this.form.status = 1;
-        }
+        // 确保必填字段有默认值（不包括status，由系统管理）
         if (this.form.cleard === null || this.form.cleard === undefined) {
           this.form.cleard = 0;
         }
@@ -503,8 +534,9 @@ export default {
         if (valid) {
           // 处理时间范围
           if (this.form.adTimeRange && this.form.adTimeRange.length === 2) {
-            this.form.adStartTime = this.form.adTimeRange[0];
-            this.form.adEndTime = this.form.adTimeRange[1];
+            // 将日期格式转换为完整的日期时间格式
+            this.form.adStartTime = this.form.adTimeRange[0] + ' 00:00:00';
+            this.form.adEndTime = this.form.adTimeRange[1] + ' 23:59:59';
           } else {
             this.$modal.msgError("请选择广告投放时间");
             return;
@@ -516,8 +548,10 @@ export default {
             return;
           }
 
-          // 验证广告位是否已被占用（仅新增时检查）
+          // 系统自动设置状态：新增时设为"运行中"，编辑时保持原状态
           if (!this.form.id) {
+            this.form.status = 1; // 新增时自动设为"运行中"
+            // 验证广告位是否已被占用（仅新增时检查）
             const existingAd = this.advertisementList.find(ad =>
               ad.adPosition === this.form.adPosition && ad.status === 1
             );
@@ -526,6 +560,7 @@ export default {
               return;
             }
           }
+          // 编辑时状态保持不变，不需要额外处理
 
           if (this.form.id != null) {
             updateAdvertisement(this.form).then(() => {
@@ -570,7 +605,7 @@ export default {
     /** 结清按钮操作 */
     handleClearance(row) {
       this.clearanceForm = {
-        adRevenue: row.adRevenue || null,
+        adRevenue: row.adRevenue ? Number(row.adRevenue).toFixed(2) : null,
         revenueAttachment: row.revenueAttachment || null
       };
       this.currentId = row.id;

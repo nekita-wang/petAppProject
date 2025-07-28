@@ -132,14 +132,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <update id="updateCleardStatus">
         update advertisement
-        set cleard = #{cleard}, last_update_time = NOW(), last_updater = #{lastUpdater}
-        where id = #{id}
+        set cleard = #{arg1}, last_update_time = NOW(), last_updater = #{arg2}
+        where id = #{arg0}
     </update>
 
     <update id="invalidateAdvertisement">
         update advertisement
-        set status = 3, last_update_time = NOW(), last_updater = #{lastUpdater}
-        where id = #{id}
+        set status = 3, last_update_time = NOW(), last_updater = #{arg1}
+        where id = #{arg0}
     </update>
 
     <update id="clearanceAdvertisement" parameterType="Advertisement">

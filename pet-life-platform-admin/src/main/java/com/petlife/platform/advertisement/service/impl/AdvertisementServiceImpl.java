@@ -158,7 +158,34 @@ public class AdvertisementServiceImpl implements IAdvertisementService {
      */
     @Override
     public int invalidateAdvertisement(Integer id) {
-        return advertisementMapper.invalidateAdvertisement(id, SecurityUtils.getUsername());
+        try {
+            return advertisementMapper.invalidateAdvertisement(id, SecurityUtils.getUsername());
+        } catch (Exception e) {
+            // 如果是唯一约束冲突，尝试先删除相同广告位的已失效广告
+            if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("uk_ad_position")) {
+                Advertisement advertisement = advertisementMapper.selectAdvertisementById(id);
+                if (advertisement != null) {
+                    // 删除相同广告位的已失效广告
+                    List<Advertisement> existingInvalidAds = advertisementMapper.selectAdvertisementList(
+                            new Advertisement() {
+                                {
+                                    setAdPosition(advertisement.getAdPosition());
+                                    setStatus(3); // 已失效状态
+                                }
+                            });
+
+                    for (Advertisement existingAd : existingInvalidAds) {
+                        if (!existingAd.getId().equals(id)) {
+                            advertisementMapper.deleteAdvertisementById(existingAd.getId());
+                        }
+                    }
+
+                    // 重新尝试失效操作
+                    return advertisementMapper.invalidateAdvertisement(id, SecurityUtils.getUsername());
+                }
+            }
+            throw new RuntimeException("失效广告失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -174,7 +201,34 @@ public class AdvertisementServiceImpl implements IAdvertisementService {
         advertisement.setStatus(2); // 设置为已结清状态
         advertisement.setCleard(1); // 设置为已结清
 
-        return advertisementMapper.clearanceAdvertisement(advertisement);
+        try {
+            return advertisementMapper.clearanceAdvertisement(advertisement);
+        } catch (Exception e) {
+            // 如果是唯一约束冲突，尝试先删除相同广告位的已结清广告
+            if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("uk_ad_position")) {
+                Advertisement existingAd = advertisementMapper.selectAdvertisementById(advertisement.getId());
+                if (existingAd != null) {
+                    // 删除相同广告位的已结清广告
+                    List<Advertisement> existingClearedAds = advertisementMapper.selectAdvertisementList(
+                            new Advertisement() {
+                                {
+                                    setAdPosition(existingAd.getAdPosition());
+                                    setStatus(2); // 已结清状态
+                                }
+                            });
+
+                    for (Advertisement clearedAd : existingClearedAds) {
+                        if (!clearedAd.getId().equals(advertisement.getId())) {
+                            advertisementMapper.deleteAdvertisementById(clearedAd.getId());
+                        }
+                    }
+
+                    // 重新尝试结清操作
+                    return advertisementMapper.clearanceAdvertisement(advertisement);
+                }
+            }
+            throw new RuntimeException("结清广告失败: " + e.getMessage(), e);
+        }
     }
 
     /**
