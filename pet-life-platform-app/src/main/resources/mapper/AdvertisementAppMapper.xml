@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petlife.platform.app.mapper.AdvertisementAppMapper">
+
+    <!-- APP端广告信息结果映射 -->
+    <resultMap type="com.petlife.platform.app.dto.AdvertisementAppDto" id="AdvertisementAppResult">
+        <result property="adPosition"    column="ad_position"    />
+        <result property="adName"        column="ad_name"        />
+        <result property="brand"         column="brand"          />
+        <result property="adImage"       column="ad_image"       />
+        <result property="targetUrl"     column="target_url"     />
+        <result property="clickCount"    column="click_count"    />
+        <result property="adStartTime"   column="ad_start_time"  />
+        <result property="adEndTime"     column="ad_end_time"    />
+    </resultMap>
+
+    <!-- 根据广告位查询正在运行的广告（APP端专用，只返回必要字段） -->
+    <select id="selectRunningAdvertisementByPosition" parameterType="String" resultMap="AdvertisementAppResult">
+        SELECT 
+            ad_position,
+            ad_name,
+            brand,
+            ad_image,
+            target_url,
+            click_count,
+            ad_start_time,
+            ad_end_time
+        FROM advertisement
+        WHERE ad_position = #{adPosition} 
+          AND status = 1
+          AND NOW() BETWEEN ad_start_time AND ad_end_time
+        LIMIT 1
+    </select>
+
+    <!-- 更新广告点击量（根据广告位） -->
+    <update id="updateClickCountByPosition" parameterType="String">
+        UPDATE advertisement 
+        SET click_count = click_count + 1, 
+            last_update_time = NOW() 
+        WHERE ad_position = #{adPosition} 
+          AND status = 1
+          AND NOW() BETWEEN ad_start_time AND ad_end_time
+    </update>
+
+    <!-- 检查广告位是否有运行中的广告 -->
+    <select id="checkRunningAdvertisementExists" parameterType="String" resultType="Integer">
+        SELECT id 
+        FROM advertisement
+        WHERE ad_position = #{adPosition} 
+          AND status = 1
+          AND NOW() BETWEEN ad_start_time AND ad_end_time
+        LIMIT 1
+    </select>
+
+</mapper>

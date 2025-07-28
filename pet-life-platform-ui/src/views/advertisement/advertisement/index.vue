@@ -460,9 +460,9 @@ export default {
         if (this.form.cleard === null || this.form.cleard === undefined) {
           this.form.cleard = 0;
         }
-        // 确保文件字段正确初始化
-        this.form.adImage = row.adImage || null;
-        this.form.revenueAttachment = row.revenueAttachment || null;
+        // 确保文件字段正确初始化（从API响应中获取，而不是从row参数）
+        this.form.adImage = this.form.adImage || null;
+        this.form.revenueAttachment = this.form.revenueAttachment || null;
         this.open = true;
         this.title = "编辑广告";
       });

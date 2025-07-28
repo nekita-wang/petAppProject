@@ -19,13 +19,15 @@ public class UserTypeInterceptor implements HandlerInterceptor {
     private TokenService tokenService;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         String uri = request.getRequestURI();
 
         // 白名单：这些接口不需要登录
         if (uri.startsWith("/app/auth/login")
                 || uri.startsWith("/app/auth/sendCode")
                 || uri.startsWith("/app/auth/logout")
+                || uri.startsWith("/app/advertisement/")
                 || uri.startsWith("/public/publicKey")) {
             return true;
         }
