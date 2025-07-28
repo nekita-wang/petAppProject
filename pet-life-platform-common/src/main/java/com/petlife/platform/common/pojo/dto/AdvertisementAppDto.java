@@ -1,4 +1,4 @@
-package com.petlife.platform.app.dto;
+package com.petlife.platform.common.pojo.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;

@@ -1,6 +1,6 @@
 package com.petlife.platform.app.mapper;
 
-import com.petlife.platform.app.dto.AdvertisementAppDto;
+import com.petlife.platform.common.pojo.dto.AdvertisementAppDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

@@ -1,6 +1,6 @@
 package com.petlife.platform.app.service.impl;
 
-import com.petlife.platform.app.dto.AdvertisementAppDto;
+import com.petlife.platform.common.pojo.dto.AdvertisementAppDto;
 import com.petlife.platform.app.mapper.AdvertisementAppMapper;
 import com.petlife.platform.app.service.IAdvertisementAppService;
 import org.slf4j.Logger;
@@ -24,6 +24,7 @@ public class AdvertisementAppServiceImpl implements IAdvertisementAppService {
 
     /**
      * 根据广告位获取正在运行的广告（APP端专用）
+     * 只获取广告信息，不统计点击量
      */
     @Override
     public AdvertisementAppDto getRunningAdvertisement(String adPosition) {
@@ -36,17 +37,7 @@ public class AdvertisementAppServiceImpl implements IAdvertisementAppService {
                 return null;
             }
 
-            // 自动增加点击量（展示即算一次点击）
-            try {
-                advertisementAppMapper.updateClickCountByPosition(adPosition);
-                log.debug("广告位 {} 点击量已增加", adPosition);
-                // 更新返回数据中的点击量
-                advertisement.setClickCount(advertisement.getClickCount() + 1);
-            } catch (Exception e) {
-                log.warn("更新广告点击量失败: {}", e.getMessage());
-                // 不影响广告数据返回
-            }
-
+            log.debug("成功获取广告位 {} 的广告信息: {}", adPosition, advertisement.getAdName());
             return advertisement;
 
         } catch (Exception e) {

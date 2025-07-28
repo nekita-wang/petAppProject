@@ -150,7 +150,9 @@
       <!-- APP端广告展示测试 -->
       <div class="test-section">
         <h2>📱 APP端广告展示测试</h2>
-        <p>测试各个广告位的广告展示效果，每次点击会增加广告的点击量</p>
+        <p>
+          测试各个广告位的广告展示效果。点击广告图片或按钮会统计点击量并跳转到供应商链接。
+        </p>
 
         <div class="ad-position-buttons">
           <button class="btn btn-primary" onclick="getAdvertisement(1)">
@@ -215,15 +217,24 @@
         <div class="ad-info">
           <p><strong>服务地址:</strong> http://localhost:8080</p>
           <p>
-            <strong>APP端广告接口:</strong> GET
-            /advertisement/advertisement/running/{adPosition}
+            <strong>获取广告接口:</strong> GET
+            /app/advertisement/position/{adPosition}
+          </p>
+          <p>
+            <strong>点击统计接口:</strong> POST
+            /app/advertisement/click/{adPosition}
+          </p>
+          <p>
+            <strong>批量获取接口:</strong> GET
+            /app/advertisement/batch?positions=1,2,3
           </p>
           <p>
             <strong>统计数据接口:</strong> GET
             /advertisement/advertisement/statistics
           </p>
           <p>
-            <strong>特点:</strong> APP端接口无需认证，统计接口需要管理员权限
+            <strong>特点:</strong>
+            APP端接口无需认证，点击时自动统计并返回跳转链接，统计接口需要管理员权限
           </p>
         </div>
       </div>
@@ -243,7 +254,7 @@
 
         try {
           const response = await fetch(
-            `${baseUrl}/advertisement/advertisement/running/${position}`
+            `${baseUrl}/app/advertisement/position/${position}`
           );
           const data = await response.json();
 
@@ -276,22 +287,27 @@
                     <div class="ad-card">
                         ${
                           imageUrl
-                            ? `<img src="${imageUrl}" alt="${ad.adName}" class="ad-image" onerror="this.style.display='none'">`
+                            ? `<div style="position: relative; cursor: pointer;" onclick="clickAdvertisement(${position})">
+                                 <img src="${imageUrl}" alt="${ad.adName}" class="ad-image" onerror="this.style.display='none'">
+                                 <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
+                                   点击跳转
+                                 </div>
+                               </div>`
                             : ""
                         }
                         <div class="ad-info">
                             <p><strong>广告名称:</strong> ${ad.adName}</p>
                             <p><strong>品牌方:</strong> ${ad.brand}</p>
                             <p><strong>点击量:</strong> ${ad.clickCount}</p>
-                            <p><strong>状态:</strong> ${getStatusText(
-                              ad.status
-                            )}</p>
                             <p><strong>目标链接:</strong> <a href="${
                               ad.targetUrl
                             }" target="_blank">${ad.targetUrl}</a></p>
                             <p><strong>投放时间:</strong> ${ad.adStartTime} ~ ${
           ad.adEndTime
         }</p>
+                            <button class="btn btn-success" onclick="clickAdvertisement(${position})" style="margin-top: 10px;">
+                              🔗 点击广告（统计点击量）
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -316,7 +332,7 @@
         for (let i = 1; i <= 6; i++) {
           try {
             const response = await fetch(
-              `${baseUrl}/advertisement/advertisement/running/${i}`
+              `${baseUrl}/app/advertisement/position/${i}`
             );
             const data = await response.json();
 
@@ -352,7 +368,12 @@
                         <h4>广告位 ${item.position}</h4>
                         ${
                           imageUrl
-                            ? `<img src="${imageUrl}" alt="${ad.adName}" class="ad-image" onerror="this.style.display='none'">`
+                            ? `<div style="position: relative; cursor: pointer;" onclick="clickAdvertisement(${item.position})">
+                                 <img src="${imageUrl}" alt="${ad.adName}" class="ad-image" onerror="this.style.display='none'">
+                                 <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
+                                   点击跳转
+                                 </div>
+                               </div>`
                             : ""
                         }
                         <div class="ad-info">
@@ -362,6 +383,11 @@
                             <p><a href="${
                               ad.targetUrl
                             }" target="_blank">访问链接</a></p>
+                            <button class="btn btn-success" onclick="clickAdvertisement(${
+                              item.position
+                            })" style="margin-top: 10px; font-size: 12px;">
+                              🔗 点击广告
+                            </button>
                         </div>
                     </div>
                 `;
@@ -450,6 +476,50 @@
                     <pre>${JSON.stringify(stats, null, 2)}</pre>
                 </details>
             `;
+      }
+
+      // 点击广告（统计点击量并跳转）
+      async function clickAdvertisement(position) {
+        console.log(`点击广告位 ${position}`);
+
+        try {
+          const response = await fetch(
+            `${baseUrl}/app/advertisement/click/${position}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          const data = await response.json();
+
+          if (data.code === 200) {
+            const targetUrl = data.data;
+            console.log(`广告点击成功，跳转到: ${targetUrl}`);
+
+            // 显示成功提示
+            alert(`✅ 广告点击统计成功！\n即将跳转到: ${targetUrl}`);
+
+            // 跳转到目标链接
+            if (targetUrl) {
+              window.open(targetUrl, "_blank");
+            }
+
+            // 刷新当前广告数据以显示更新后的点击量
+            setTimeout(() => {
+              getAdvertisement(position);
+            }, 1000);
+          } else {
+            console.error("广告点击失败:", data.msg);
+            alert(`❌ 广告点击失败: ${data.msg}`);
+          }
+        } catch (error) {
+          console.error("广告点击请求失败:", error);
+          alert(
+            `❌ 广告点击请求失败: ${error.message}\n请确保服务已启动且地址正确`
+          );
+        }
       }
 
       // 获取状态文本

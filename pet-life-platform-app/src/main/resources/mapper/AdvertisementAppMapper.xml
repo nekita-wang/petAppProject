@@ -5,7 +5,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.petlife.platform.app.mapper.AdvertisementAppMapper">
 
     <!-- APP端广告信息结果映射 -->
-    <resultMap type="com.petlife.platform.app.dto.AdvertisementAppDto" id="AdvertisementAppResult">
+    <resultMap type="com.petlife.platform.common.pojo.dto.AdvertisementAppDto" id="AdvertisementAppResult">
         <result property="adPosition"    column="ad_position"    />
         <result property="adName"        column="ad_name"        />
         <result property="brand"         column="brand"          />

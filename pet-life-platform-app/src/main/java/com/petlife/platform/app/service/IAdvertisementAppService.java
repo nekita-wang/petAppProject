@@ -1,6 +1,6 @@
 package com.petlife.platform.app.service;
 
-import com.petlife.platform.app.dto.AdvertisementAppDto;
+import com.petlife.platform.common.pojo.dto.AdvertisementAppDto;
 
 /**
  * APP端广告服务接口
@@ -12,7 +12,7 @@ public interface IAdvertisementAppService {
 
     /**
      * 根据广告位获取正在运行的广告（APP端专用）
-     * 只返回前端必需的字段，并自动增加点击量
+     * 只返回前端必需的字段，不统计点击量
      *
      * @param adPosition 广告位标识
      * @return 广告信息DTO，如果没有运行中的广告则返回null
