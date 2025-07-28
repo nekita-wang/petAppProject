@@ -130,16 +130,16 @@ public class AdvertisementAppController {
     @ApiOperation("批量获取广告")
     @GetMapping("/batch")
     public AjaxResult getBatchAdvertisements(
-            @ApiParam(value = "广告位列表，逗号分隔", required = true, example = "1,2,3") @RequestParam("positions") String positions) {
+            @ApiParam(value = "广告位列表，逗号分隔", required = true, example = "1,2,3") @RequestParam("adPositions") String adPositions) {
 
-        log.info("APP端批量请求广告位: {}", positions);
+        log.info("APP端批量请求广告位: {}", adPositions);
 
-        if (positions == null || positions.trim().isEmpty()) {
+        if (adPositions == null || adPositions.trim().isEmpty()) {
             return AjaxResult.error("广告位参数不能为空");
         }
 
         try {
-            String[] positionArray = positions.split(",");
+            String[] positionArray = adPositions.split(",");
             java.util.Map<String, AdvertisementAppDto> result = new java.util.HashMap<>();
 
             for (String position : positionArray) {
