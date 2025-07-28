@@ -346,24 +346,54 @@ export default {
         shortcuts: [{
           text: '今天',
           onClick(picker) {
-            const end = new Date();
             const start = new Date();
+            const end = new Date();
+            end.setHours(23, 59, 59, 999); // 设置为今天的结束时间
             picker.$emit('pick', [start, end]);
           }
         }, {
           text: '最近一周',
           onClick(picker) {
-            const end = new Date();
             const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+            const end = new Date();
+            end.setDate(end.getDate() + 7); // 从今天开始往后7天
+            end.setHours(23, 59, 59, 999);
             picker.$emit('pick', [start, end]);
           }
         }, {
           text: '最近一个月',
           onClick(picker) {
-            const end = new Date();
             const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+            const end = new Date();
+            end.setMonth(end.getMonth() + 1); // 从今天开始往后1个月
+            end.setHours(23, 59, 59, 999);
+            picker.$emit('pick', [start, end]);
+          }
+        }, {
+          text: '最近三个月',
+          onClick(picker) {
+            const start = new Date();
+            const end = new Date();
+            end.setMonth(end.getMonth() + 3); // 从今天开始往后3个月
+            end.setHours(23, 59, 59, 999);
+            picker.$emit('pick', [start, end]);
+          }
+        }, {
+          text: '半年',
+          onClick(picker) {
+            const start = new Date();
+            const end = new Date();
+            end.setMonth(end.getMonth() + 6); // 从今天开始往后6个月
+            end.setHours(23, 59, 59, 999);
+            picker.$emit('pick', [start, end]);
+          }
+        }, {
+          text: '一年',
+          onClick(picker) {
+            const start = new Date();
+            const end = new Date();
+            end.setFullYear(end.getFullYear() + 1); // 从今天开始往后1年
+            end.setHours(23, 59, 59, 999);
             picker.$emit('pick', [start, end]);
           }
         }]
