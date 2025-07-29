@@ -1,12 +1,12 @@
 <template>
 	<view class="login-container">
 		<!-- 自定义导航栏 -->
-		<up-navbar  rightText="手机号验证码登录" :autoBack="true" @rightClick="ToSMSLogin" fixed></up-navbar>
+		<up-navbar  rightText="手机号验证码登录" @leftClick="customBack" @rightClick="ToSMSLogin" fixed></up-navbar>
 		<!-- 手机号输入 -->
 		<view class="phone-box">
 			<view class="input-group">
 				<view class="prefix">+86</view>
-				<up-input placeholder="请输入手机号" type='number' shape="circle" clearable v-model="pwdReactive.phone"
+				<up-input placeholder="请输入手机号" focus type='number' shape="circle" clearable v-model="pwdReactive.phone"
 					maxlength="11"></up-input>
 			</view>
 			<!-- 密码输入组 -->
@@ -53,6 +53,10 @@
 	const content = ref('该手机号未注册，请先通过手机号注册');
 	const showPassword = ref(false) //密码显示按钮
 	const authStore = useAuthStore();
+	// 返回
+	const customBack = () => uni.redirectTo({
+		url:'/pages/login/login'
+	})
 	//点击跳转手机验证码登录
 	const ToSMSLogin = () => uni.navigateTo({
 		url: '/pages/login/sms',

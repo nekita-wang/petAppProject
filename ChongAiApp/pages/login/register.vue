@@ -48,13 +48,13 @@
 				<DatePicker v-model="rgtReactive.birthday" @date-change="handleBirthdayChange"
 					:default-date="rgtReactive.birthday" />
 			</view>
-
+			
 			<!-- 密码输入 -->
 			<view class="form-item">
 				<text class="label">密码:</text>
 				<view class="form-item-pwd">
 					<up-input shape="circle" clearable maxlength="10" v-model="rgtReactive.password"
-						:type="showPassword ? 'text' : 'password'" placeholder="10位包含大小写字母、数字特殊符号"
+						:type="showPassword ? 'text' : 'password'" placeholder="密码需10位包含字母、数字、符号"
 						@change="checkPasswordStrength">
 						<template #suffix>
 							<up-icon :name="showPassword ? 'eye-fill' : 'eye-off'"

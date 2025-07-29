@@ -1,73 +1,66 @@
 {
 	"easycom": {
-			"autoscan": true,
-			"custom": {
-				"^u--(.*)": "uview-plus/components/u-$1/u-$1.vue",
-				"^up-(.*)": "uview-plus/components/u-$1/u-$1.vue",
-		        "^u-([^-].*)": "uview-plus/components/u-$1/u-$1.vue"
-			}
-		},
+		"autoscan": true,
+		"custom": {
+			"^u--(.*)": "uview-plus/components/u-$1/u-$1.vue",
+			"^up-(.*)": "uview-plus/components/u-$1/u-$1.vue",
+			"^u-([^-].*)": "uview-plus/components/u-$1/u-$1.vue"
+		}
+	},
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-			"path" : "pages/login/login",
-			"style" : 
-			{
-				"navigationBarTitleText" : "",
+			"path": "pages/login/login",
+			"style": {
+				"navigationStyle": "custom",
 				"backgroundColor": "white"
 			}
 		},
 		{
-			"path" : "pages/login/sms",
-			"style" : 
-			{
-				 "navigationStyle": "custom"
+			"path": "pages/login/sms",
+			"style": {
+				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path" : "pages/login/pwd",
-			"style" : 
-			{
-				 "navigationStyle": "custom"
+			"path": "pages/login/pwd",
+			"style": {
+				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path" : "pages/login/register",
-			"style" : 
-			{
-				"navigationBarTitleText" : "完善个人资料"
+			"path": "pages/login/register",
+			"style": {
+				"navigationBarTitleText": "完善个人资料"
 			}
 		},
-			{
-				"path" : "pages/petSelection/petSelection",
-				"style" : 
-				{
-					 "navigationStyle": "custom"
-				}
-			},
-			{
-				"path" : "pages/petSelection/petInfo",
-				"style" : 
-				{
-					"navigationStyle": "custom"
-				}
-			},
-			{
-				"path" : "pages/home/home",
-				"style" : 
-				{
-					"navigationBarTitleText" : "首页"
-				}
+		{
+			"path": "pages/petSelection/petSelection",
+			"style": {
+				"navigationStyle": "custom"
 			}
-		
+		},
+		{
+			"path": "pages/petSelection/petInfo",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/home/home",
+			"style": {
+				"navigationBarTitleText": "首页"
+			}
+		}
+
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#FFFFFF",
 		"backgroundColor": "#F8F8F8",
-		 "app-plus": {
-		      "bounce": "none" //禁用手机页面上下滑动
-		    }
+		"app-plus": {
+			"bounce": "none" //禁用手机页面上下滑动
+		}
 	},
 	"uniIdRouter": {}
 }

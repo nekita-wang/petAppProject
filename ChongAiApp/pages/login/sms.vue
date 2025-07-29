@@ -1,12 +1,12 @@
 <template>
 	<view class="login-container">
 		<!-- 自定义导航栏 -->
-		<up-navbar rightText="手机号密码登录" :autoBack="true" @rightClick="ToPasswordLogin" fixed></up-navbar>
+		<up-navbar rightText="手机号密码登录" :autoBack="false"  @leftClick="customBack" @rightClick="ToPasswordLogin" fixed></up-navbar>
 		<!-- 手机号输入 -->
 		<view class="phone-box">
 			<view class="input-group">
 				<view class="prefix">+86</view>
-				<up-input placeholder="请输入手机号" type='number' shape="circle" clearable v-model="smsReactive.phone"
+				<up-input placeholder="请输入手机号" focus type='number' shape="circle" clearable v-model="smsReactive.phone"
 					maxlength="11"></up-input>
 			</view>
 			<!-- 验证码输入组 -->
@@ -35,6 +35,7 @@
 	import {
 		ref,
 		computed,
+		onMounted,
 		onDeactivated,
 		reactive
 	} from 'vue'
@@ -51,11 +52,15 @@
 	})
 	const showPhoneError = ref(false) //手机号格式
 	const countdown = ref(0) //验证码倒计时
-
+	// 返回
+	const customBack = () => uni.redirectTo({
+		url:'/pages/login/login'
+	})
 	//点击跳转手机密码登录
 	const ToPasswordLogin = () => uni.navigateTo({
 		url: '/pages/login/pwd'
 	})
+
 	// 按钮状态
 	const isFormValid = computed(() => smsReactive.phone && smsReactive.code)
 	// 获取验证码

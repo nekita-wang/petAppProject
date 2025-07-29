@@ -1,9 +1,9 @@
 <template>
 	<!-- 自定义导航栏 -->
 	<view class="pet-info-container">
-		<up-navbar title="您养的宠物（2/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>s
+		<up-navbar title="您养的宠物（2/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>
 		<!-- 头像上传 -->
-		<view class="avatar-upload" @click="UploadImage">
+		<view class="avatar-upload" :style="{ paddingTop: navBarHeight }" @click="UploadImage">
 			<up-image width="100%" height="100%" :src="petReactive.petAvatarURL" shape="circle"></up-image>
 		</view>
 		<view class="section-title">为您的爱宠选一张靓照做头像</view>
@@ -12,13 +12,13 @@
 			<!-- 手机号-->
 			<view class="form-item">
 				<text class="label">宠物品种:</text>
-				<input v-model="petReactive.petBreed" disabled placeholder="请输入" />
+				<up-input v-model="petReactive.petBreed" disabled placeholder="请输入" shape="circle"></up-input>
 			</view>
 
 			<!-- 昵称 -->
 			<view class="form-item">
 				<text class="label">宠物昵称:</text>
-				<input v-model="petReactive.petNickName" placeholder="请输入宠物昵称" maxlength="10" />
+					<up-input v-model="petReactive.petNickName"  placeholder="请输入宠物昵称" shape="circle"></up-input>
 			</view>
 			<!-- 性别 -->
 			<view class="form-item">
@@ -97,6 +97,10 @@
 	import {
 		request
 	} from '../../utils/request'
+	
+	// 动态计算导航栏高度
+	const navBarHeight = ref('88px') // 默认值
+	
 	const relativePath = ref('')
 	const authStore = useAuthStore() //使用pinia
 	const petReactive = reactive({
@@ -185,6 +189,16 @@
 		})
 
 	}
+	
+	// 初始化时动态计算导航栏高度
+	onMounted(() => {
+		// 动态获取系统信息计算导航栏高度
+		const systemInfo = uni.getSystemInfoSync()
+		const statusBarHeight = systemInfo.statusBarHeight || 44
+		const navBarHeightValue = statusBarHeight + 44 // 44是导航栏高度
+		navBarHeight.value = `${navBarHeightValue}px`
+	})
+	
 	onLoad((options) => {
 		petReactive.petBreed = decodeURIComponent(options.petBreed) // 必须解码
 		petReactive.petClass = decodeURIComponent(options.petClass)
@@ -200,7 +214,6 @@
 
 	/* 头像上传 */
 	.avatar-upload {
-		padding-top: 108rpx;
 		position: relative;
 		width: 160rpx;
 		height: 160rpx;
@@ -240,7 +253,10 @@
 		font-size: 32rpx;
 		color: #333;
 	}
-
+	
+	::v-deep .u-input {
+		background-color: #e8e8e8;
+	}
 	input {
 		width: 70%;
 		font-size: 32rpx;

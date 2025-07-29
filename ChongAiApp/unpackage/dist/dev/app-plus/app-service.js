@@ -6156,9 +6156,9 @@ if (uni.restoreGlobal) {
   };
   function _sfc_render$1U(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_up_image = resolveEasycom(vue.resolveDynamicComponent("up-image"), __easycom_1$e);
-    const _component_u_button = resolveEasycom(vue.resolveDynamicComponent("u-button"), __easycom_1$d);
+    const _component_up_button = resolveEasycom(vue.resolveDynamicComponent("up-button"), __easycom_1$d);
     const _component_up_checkbox = resolveEasycom(vue.resolveDynamicComponent("up-checkbox"), __easycom_1$c);
-    const _component_u_modal = resolveEasycom(vue.resolveDynamicComponent("u-modal"), __easycom_4);
+    const _component_up_modal = resolveEasycom(vue.resolveDynamicComponent("up-modal"), __easycom_4);
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -6177,7 +6177,7 @@ if (uni.restoreGlobal) {
           vue.createElementVNode("view", { class: "title" }, " 宠爱 "),
           vue.createCommentVNode(" 登录按钮 "),
           vue.createElementVNode("view", { class: "button-box" }, [
-            vue.createVNode(_component_u_button, {
+            vue.createVNode(_component_up_button, {
               type: "primary",
               class: "sjh",
               onClick: $setup.handlePhoneLogin
@@ -6188,12 +6188,12 @@ if (uni.restoreGlobal) {
               _: 1
               /* STABLE */
             }),
-            vue.createVNode(_component_u_button, {
+            vue.createVNode(_component_up_button, {
               class: "qt",
               onClick: $setup.navigateToOtherLogin
             }, {
               default: vue.withCtx(() => [
-                vue.createTextVNode("其他方式登录> ")
+                vue.createTextVNode("其他方式登录")
               ]),
               _: 1
               /* STABLE */
@@ -6223,7 +6223,7 @@ if (uni.restoreGlobal) {
             ])
           ])
         ]),
-        vue.createVNode(_component_u_modal, {
+        vue.createVNode(_component_up_modal, {
           confirmText: "同意",
           cancelText: "不同意",
           show: $setup.showAgreementModal,
@@ -8488,6 +8488,9 @@ This will fail in production.`);
       });
       const showPhoneError = vue.ref(false);
       const countdown = vue.ref(0);
+      const customBack = () => uni.redirectTo({
+        url: "/pages/login/login"
+      });
       const ToPasswordLogin = () => uni.navigateTo({
         url: "/pages/login/pwd"
       });
@@ -8532,7 +8535,7 @@ This will fail in production.`);
               ...smsReactive
             }
           });
-          formatAppLog("log", "at pages/login/sms.vue:105", res);
+          formatAppLog("log", "at pages/login/sms.vue:110", res);
           if (res.code === 1e3) {
             uni.showToast({
               title: res.msg,
@@ -8566,7 +8569,7 @@ This will fail in production.`);
           });
         }
       };
-      const __returned__ = { smsReactive, showPhoneError, countdown, ToPasswordLogin, isFormValid, getSMSCode, handleLogin, ref: vue.ref, computed: vue.computed, onDeactivated: vue.onDeactivated, reactive: vue.reactive, get useAuthStore() {
+      const __returned__ = { smsReactive, showPhoneError, countdown, customBack, ToPasswordLogin, isFormValid, getSMSCode, handleLogin, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, onDeactivated: vue.onDeactivated, reactive: vue.reactive, get useAuthStore() {
         return useAuthStore;
       }, get request() {
         return request;
@@ -8584,7 +8587,8 @@ This will fail in production.`);
       vue.createCommentVNode(" 自定义导航栏 "),
       vue.createVNode(_component_up_navbar, {
         rightText: "手机号密码登录",
-        autoBack: true,
+        autoBack: false,
+        onLeftClick: $setup.customBack,
         onRightClick: $setup.ToPasswordLogin,
         fixed: ""
       }),
@@ -8594,6 +8598,7 @@ This will fail in production.`);
           vue.createElementVNode("view", { class: "prefix" }, "+86"),
           vue.createVNode(_component_up_input, {
             placeholder: "请输入手机号",
+            focus: "",
             type: "number",
             shape: "circle",
             clearable: "",
@@ -8663,6 +8668,9 @@ This will fail in production.`);
       const content = vue.ref("该手机号未注册，请先通过手机号注册");
       const showPassword = vue.ref(false);
       const authStore = useAuthStore();
+      const customBack = () => uni.redirectTo({
+        url: "/pages/login/login"
+      });
       const ToSMSLogin = () => uni.navigateTo({
         url: "/pages/login/sms"
       });
@@ -8712,7 +8720,7 @@ This will fail in production.`);
           });
         }
       };
-      const __returned__ = { pwdReactive, showAgreementModal, title, content, showPassword, authStore, ToSMSLogin, handleAgreement, isFormValid, handleLogin, ref: vue.ref, computed: vue.computed, reactive: vue.reactive, get useAuthStore() {
+      const __returned__ = { pwdReactive, showAgreementModal, title, content, showPassword, authStore, customBack, ToSMSLogin, handleAgreement, isFormValid, handleLogin, ref: vue.ref, computed: vue.computed, reactive: vue.reactive, get useAuthStore() {
         return useAuthStore;
       }, get request() {
         return request;
@@ -8731,7 +8739,7 @@ This will fail in production.`);
       vue.createCommentVNode(" 自定义导航栏 "),
       vue.createVNode(_component_up_navbar, {
         rightText: "手机号验证码登录",
-        autoBack: true,
+        onLeftClick: $setup.customBack,
         onRightClick: $setup.ToSMSLogin,
         fixed: ""
       }),
@@ -8741,6 +8749,7 @@ This will fail in production.`);
           vue.createElementVNode("view", { class: "prefix" }, "+86"),
           vue.createVNode(_component_up_input, {
             placeholder: "请输入手机号",
+            focus: "",
             type: "number",
             shape: "circle",
             clearable: "",
@@ -13375,7 +13384,7 @@ This will fail in production.`);
               modelValue: $setup.rgtReactive.password,
               "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.rgtReactive.password = $event),
               type: $setup.showPassword ? "text" : "password",
-              placeholder: "10位包含大小写字母、数字特殊符号",
+              placeholder: "密码需10位包含字母、数字、符号",
               onChange: $setup.checkPasswordStrength
             }, {
               suffix: vue.withCtx(() => [
@@ -14745,14 +14754,17 @@ This will fail in production.`);
     __name: "petSelection",
     setup(__props, { expose: __expose }) {
       __expose();
-      const tabs = vue.ref("");
+      const tabs = vue.ref([]);
       const activeTab = vue.ref("0");
-      const currentLetter = vue.ref("letter-A");
+      const currentLetter = vue.ref("");
+      const highlightLetter = vue.ref("");
       const petClass = vue.ref("");
       const petBreed = vue.ref("");
-      const petData = vue.ref("");
+      const petData = vue.ref({});
       const hotPets = vue.ref([]);
       const showBtn = vue.ref(true);
+      const navBarHeight = vue.ref(0);
+      const statusBarHeight = vue.ref(0);
       const customBack = () => {
         uni.redirectTo({
           url: "/pages/login/sms"
@@ -14764,26 +14776,57 @@ This will fail in production.`);
         });
       };
       vue.onMounted(() => {
+        try {
+          const systemInfo2 = uni.getSystemInfoSync();
+          statusBarHeight.value = systemInfo2.statusBarHeight || 0;
+          navBarHeight.value = statusBarHeight.value + 44;
+        } catch (error2) {
+          formatAppLog("error", "at pages/petSelection/petSelection.vue:136", "获取系统信息失败:", error2);
+          statusBarHeight.value = 20;
+          navBarHeight.value = 64;
+        }
         GetPetTypeList();
       });
+      const contentStyle = vue.computed(() => ({
+        marginTop: navBarHeight.value + "px",
+        top: navBarHeight.value + "px"
+      }));
       const handleTabChange = async (tab) => {
         petClass.value = tab.petClass;
         activeTab.value = tab.petClassId;
         petBreed.value = "";
-        currentLetter.value = "letter-A";
+        currentLetter.value = "";
+        highlightLetter.value = "";
         if (activeTab.value === "0") {
           uni.pageScrollTo({
             scrollTop: 0,
             duration: 0
           });
+          showBtn.value = true;
+          return;
         }
-        showBtn.value = activeTab.value === "0";
-        if (activeTab.value !== "0") {
-          await GetBreedList();
-        }
+        showBtn.value = false;
+        await GetBreedList();
+        vue.nextTick(() => {
+          currentLetter.value = "";
+          highlightLetter.value = "";
+          vue.nextTick(() => {
+            const letters = Object.keys(petData.value);
+            if (letters.length > 0) {
+              currentLetter.value = `letter-${letters[0]}`;
+              highlightLetter.value = `letter-${letters[0]}`;
+              ignoreNextScroll = true;
+            }
+          });
+        });
       };
       const scrollToLetter = (letter2) => {
+        isManualScroll = true;
         currentLetter.value = `letter-${letter2}`;
+        highlightLetter.value = `letter-${letter2}`;
+        setTimeout(() => {
+          isManualScroll = false;
+        }, 500);
       };
       const GetPetTypeList = async () => {
         try {
@@ -14791,9 +14834,8 @@ This will fail in production.`);
             url: "/app/pet/pet"
           });
           tabs.value = res.data;
-          formatAppLog("log", "at pages/petSelection/petSelection.vue:146", res);
         } catch (error2) {
-          formatAppLog("error", "at pages/petSelection/petSelection.vue:148", "获取宠物类型失败:", error2);
+          formatAppLog("error", "at pages/petSelection/petSelection.vue:202", "获取宠物类型失败:", error2);
         }
       };
       const GetBreedList = async () => {
@@ -14817,16 +14859,29 @@ This will fail in production.`);
           }
           hotPets.value = res.data.hot;
           petData.value = res.data.breeds;
+          const letters = Object.keys(res.data.breeds);
+          if (letters.length > 0) {
+            currentLetter.value = `letter-${letters[0]}`;
+          }
           uni.hideLoading();
         } catch (error2) {
-          formatAppLog("log", "at pages/petSelection/petSelection.vue:176", error2);
+          formatAppLog("log", "at pages/petSelection/petSelection.vue:237", error2);
           uni.showToast({
             title: "获取品种数据失败",
             icon: "none"
           });
         }
       };
-      const petSearch = () => (petBreed.value = petBreed.value.trim()) && GetBreedList();
+      const petSearch = () => {
+        petBreed.value = petBreed.value.trim();
+        if (petBreed.value) {
+          GetBreedList();
+        }
+      };
+      const handleClearSearch = () => {
+        petBreed.value = "";
+        GetBreedList();
+      };
       const checkPet = (breed, type2) => {
         const encodedBreed = encodeURIComponent(breed);
         const encodedType = encodeURIComponent(type2);
@@ -14834,9 +14889,46 @@ This will fail in production.`);
           url: `/pages/petSelection/petInfo?petBreed=${encodedBreed}&petClass=${encodedType}`
         });
       };
-      const __returned__ = { tabs, activeTab, currentLetter, petClass, petBreed, petData, hotPets, showBtn, customBack, handleSkip, handleTabChange, scrollToLetter, GetPetTypeList, GetBreedList, petSearch, checkPet, ref: vue.ref, onMounted: vue.onMounted, getCurrentInstance: vue.getCurrentInstance, get useAuthStore() {
-        return useAuthStore;
-      }, get request() {
+      let isManualScroll = false;
+      let ignoreNextScroll = false;
+      const onScroll = () => {
+        if (isManualScroll)
+          return;
+        if (ignoreNextScroll) {
+          ignoreNextScroll = false;
+          return;
+        }
+        vue.nextTick(() => {
+          const query = uni.createSelectorQuery();
+          const letters = Object.keys(petData.value);
+          letters.forEach((letter2) => {
+            query.select(`#letter-${letter2}`).boundingClientRect();
+          });
+          query.select(".alphabet-list").boundingClientRect();
+          query.exec((res) => {
+            if (!res || res.length < 2)
+              return;
+            const scrollViewRect = res[res.length - 1];
+            let active = letters[0];
+            for (let i = 0; i < letters.length; i++) {
+              const rect = res[i];
+              if (rect && rect.top - scrollViewRect.top <= 10) {
+                active = letters[i];
+              }
+            }
+            highlightLetter.value = `letter-${active}`;
+          });
+        });
+      };
+      const __returned__ = { tabs, activeTab, currentLetter, highlightLetter, petClass, petBreed, petData, hotPets, showBtn, navBarHeight, statusBarHeight, customBack, handleSkip, contentStyle, handleTabChange, scrollToLetter, GetPetTypeList, GetBreedList, petSearch, handleClearSearch, checkPet, get isManualScroll() {
+        return isManualScroll;
+      }, set isManualScroll(v) {
+        isManualScroll = v;
+      }, get ignoreNextScroll() {
+        return ignoreNextScroll;
+      }, set ignoreNextScroll(v) {
+        ignoreNextScroll = v;
+      }, onScroll, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, nextTick: vue.nextTick, get request() {
         return request;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
@@ -14857,89 +14949,98 @@ This will fail in production.`);
         onRightClick: $setup.handleSkip,
         fixed: ""
       }),
-      vue.createElementVNode("view", { class: "content-no-roll" }, [
-        vue.createCommentVNode(" 页签区域 "),
-        vue.createElementVNode("view", { class: "tabs" }, [
-          (vue.openBlock(true), vue.createElementBlock(
-            vue.Fragment,
-            null,
-            vue.renderList($setup.tabs, (tab) => {
-              return vue.openBlock(), vue.createElementBlock("view", {
-                key: tab.petClassId,
-                class: vue.normalizeClass(["tab-item", { active: $setup.activeTab === tab.petClassId }]),
-                onClick: ($event) => $setup.handleTabChange(tab)
-              }, vue.toDisplayString(tab.petClass), 11, ["onClick"]);
+      vue.createElementVNode(
+        "view",
+        {
+          class: "content-no-roll",
+          style: vue.normalizeStyle($setup.contentStyle)
+        },
+        [
+          vue.createCommentVNode(" 页签区域 "),
+          vue.createElementVNode("view", { class: "tabs" }, [
+            (vue.openBlock(true), vue.createElementBlock(
+              vue.Fragment,
+              null,
+              vue.renderList($setup.tabs, (tab) => {
+                return vue.openBlock(), vue.createElementBlock("view", {
+                  key: tab.petClassId,
+                  class: vue.normalizeClass(["tab-item", { active: $setup.activeTab === tab.petClassId }]),
+                  onClick: ($event) => $setup.handleTabChange(tab)
+                }, vue.toDisplayString(tab.petClass), 11, ["onClick"]);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            ))
+          ]),
+          vue.createCommentVNode(" 未养宠内容区域 "),
+          $setup.activeTab === "0" ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "no-pet-section"
+          }, [
+            vue.createCommentVNode(" 全屏背景图 "),
+            vue.createVNode(_component_up__image, {
+              src: "/static/home.png",
+              width: "100%",
+              height: "100%",
+              mode: "aspectFill"
             }),
-            128
-            /* KEYED_FRAGMENT */
-          ))
-        ]),
-        vue.createCommentVNode(" 未养宠内容区域 "),
-        $setup.activeTab === "0" ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "no-pet-section"
-        }, [
-          vue.createCommentVNode(" 全屏背景图 "),
-          vue.createVNode(_component_up__image, {
-            src: "/static/home.png",
-            width: "100%",
-            height: "100%",
-            mode: "aspectFill"
-          }),
-          vue.createCommentVNode(" 文字内容 "),
-          vue.createElementVNode("view", { class: "prompt-content" }, [
-            vue.createElementVNode("text", { class: "prompt-text" }, "快来领养一只宠物吧"),
-            vue.createElementVNode("text", { class: "brand-text" }, "优爱宠，期待您加入"),
-            vue.createElementVNode("text", { class: "slogan" }, "宠物生活一站式服务平台")
-          ])
-        ])) : (vue.openBlock(), vue.createElementBlock(
-          vue.Fragment,
-          { key: 1 },
-          [
-            vue.createCommentVNode(" 选择宠物状态 "),
-            vue.createElementVNode("view", { class: "pet-selection-section" }, [
-              vue.createCommentVNode(" 搜索栏 "),
-              vue.createElementVNode("view", { class: "search-bar" }, [
-                vue.createVNode(_component_uni_search_bar, {
-                  style: { "padding": "5rpx 5rpx" },
-                  placeholder: "搜索宠物品种",
-                  radius: "30",
-                  bgColor: "#F5F5F5",
-                  cancelButton: "none",
-                  onConfirm: $setup.petSearch,
-                  modelValue: $setup.petBreed,
-                  "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.petBreed = $event),
-                  onClear: $setup.petSearch
-                }, null, 8, ["modelValue"])
-              ]),
-              vue.createCommentVNode(" 热门品种 "),
-              $setup.hotPets ? (vue.openBlock(), vue.createElementBlock("view", {
-                key: 0,
-                class: "hot-section"
-              }, [
-                vue.createElementVNode("view", { class: "section-title" }, "热门:"),
-                vue.createElementVNode("view", { class: "hot-tags" }, [
-                  (vue.openBlock(true), vue.createElementBlock(
-                    vue.Fragment,
-                    null,
-                    vue.renderList($setup.hotPets, (pet, index2) => {
-                      return vue.openBlock(), vue.createElementBlock("text", {
-                        key: index2,
-                        class: "hot-tag",
-                        onClick: ($event) => $setup.checkPet(pet, $setup.petClass)
-                      }, vue.toDisplayString(pet), 9, ["onClick"]);
-                    }),
-                    128
-                    /* KEYED_FRAGMENT */
-                  ))
-                ])
-              ])) : vue.createCommentVNode("v-if", true)
+            vue.createCommentVNode(" 文字内容 "),
+            vue.createElementVNode("view", { class: "prompt-content" }, [
+              vue.createElementVNode("text", { class: "prompt-text" }, "快来领养一只宠物吧"),
+              vue.createElementVNode("text", { class: "brand-text" }, "优爱宠，期待您加入"),
+              vue.createElementVNode("text", { class: "slogan" }, "宠物生活一站式服务平台")
             ])
-          ],
-          2112
-          /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-        ))
-      ]),
+          ])) : (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 1 },
+            [
+              vue.createCommentVNode(" 选择宠物状态 "),
+              vue.createElementVNode("view", { class: "pet-selection-section" }, [
+                vue.createCommentVNode(" 搜索栏 "),
+                vue.createElementVNode("view", { class: "search-bar" }, [
+                  vue.createVNode(_component_uni_search_bar, {
+                    style: { "padding": "5rpx 5rpx" },
+                    placeholder: "搜索宠物品种",
+                    radius: "30",
+                    bgColor: "#F5F5F5",
+                    cancelButton: "none",
+                    onConfirm: $setup.petSearch,
+                    modelValue: $setup.petBreed,
+                    "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.petBreed = $event),
+                    onClear: $setup.handleClearSearch
+                  }, null, 8, ["modelValue"])
+                ]),
+                vue.createCommentVNode(" 热门品种 "),
+                $setup.hotPets ? (vue.openBlock(), vue.createElementBlock("view", {
+                  key: 0,
+                  class: "hot-section"
+                }, [
+                  vue.createElementVNode("view", { class: "section-title" }, "热门:"),
+                  vue.createElementVNode("view", { class: "hot-tags" }, [
+                    (vue.openBlock(true), vue.createElementBlock(
+                      vue.Fragment,
+                      null,
+                      vue.renderList($setup.hotPets, (pet, index2) => {
+                        return vue.openBlock(), vue.createElementBlock("text", {
+                          key: index2,
+                          class: "hot-tag",
+                          onClick: ($event) => $setup.checkPet(pet, $setup.petClass)
+                        }, vue.toDisplayString(pet), 9, ["onClick"]);
+                      }),
+                      128
+                      /* KEYED_FRAGMENT */
+                    ))
+                  ])
+                ])) : vue.createCommentVNode("v-if", true)
+              ])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          ))
+        ],
+        4
+        /* STYLE */
+      ),
       vue.createCommentVNode(" 字母分类列表 "),
       vue.createElementVNode("view", { class: "alphabet-section" }, [
         vue.createElementVNode("scroll-view", {
@@ -14947,7 +15048,8 @@ This will fail in production.`);
           "show-scrollbar": false,
           "scroll-y": "",
           "scroll-into-view": $setup.currentLetter,
-          "scroll-with-animation": true
+          "scroll-with-animation": true,
+          onScroll: $setup.onScroll
         }, [
           (vue.openBlock(true), vue.createElementBlock(
             vue.Fragment,
@@ -14982,7 +15084,7 @@ This will fail in production.`);
             128
             /* KEYED_FRAGMENT */
           ))
-        ], 8, ["scroll-into-view"]),
+        ], 40, ["scroll-into-view"]),
         vue.createCommentVNode(" 字母导航（右侧固定定位） "),
         !$setup.showBtn ? (vue.openBlock(), vue.createElementBlock("view", {
           key: 0,
@@ -14995,7 +15097,7 @@ This will fail in production.`);
               vue.renderList(Object.keys($setup.petData), (letter2) => {
                 return vue.openBlock(), vue.createElementBlock("text", {
                   key: letter2,
-                  class: vue.normalizeClass(["alphabet-char", { active: $setup.currentLetter === `letter-${letter2}` }]),
+                  class: vue.normalizeClass(["alphabet-char", { active: $setup.highlightLetter === `letter-${letter2}` }]),
                   onClick: ($event) => $setup.scrollToLetter(letter2)
                 }, vue.toDisplayString(letter2), 11, ["onClick"]);
               }),
@@ -15030,6 +15132,7 @@ This will fail in production.`);
     __name: "petInfo",
     setup(__props, { expose: __expose }) {
       __expose();
+      const navBarHeight = vue.ref("88px");
       const relativePath = vue.ref("");
       const authStore = useAuthStore();
       const petReactive = vue.reactive({
@@ -15087,7 +15190,7 @@ This will fail in production.`);
             // 强制转换为数字
           }
         });
-        formatAppLog("log", "at pages/petSelection/petInfo.vue:159", res);
+        formatAppLog("log", "at pages/petSelection/petInfo.vue:163", res);
         if (res.code === 4002) {
           uni.showToast({
             title: "您已填写过信息,为您前往下一个页面",
@@ -15113,11 +15216,17 @@ This will fail in production.`);
           url: "/pages/home/home"
         });
       };
+      vue.onMounted(() => {
+        const systemInfo2 = uni.getSystemInfoSync();
+        const statusBarHeight = systemInfo2.statusBarHeight || 44;
+        const navBarHeightValue = statusBarHeight + 44;
+        navBarHeight.value = `${navBarHeightValue}px`;
+      });
       onLoad((options2) => {
         petReactive.petBreed = decodeURIComponent(options2.petBreed);
         petReactive.petClass = decodeURIComponent(options2.petClass);
       });
-      const __returned__ = { relativePath, authStore, petReactive, handleSkip, handleBirthdayChange, handleArrivalDateChange, hasUploadedAvatar, UploadImage, isFormValid, complete, DatePicker, onMounted: vue.onMounted, computed: vue.computed, reactive: vue.reactive, ref: vue.ref, get onLoad() {
+      const __returned__ = { navBarHeight, relativePath, authStore, petReactive, handleSkip, handleBirthdayChange, handleArrivalDateChange, hasUploadedAvatar, UploadImage, isFormValid, complete, DatePicker, onMounted: vue.onMounted, computed: vue.computed, reactive: vue.reactive, ref: vue.ref, get onLoad() {
         return onLoad;
       }, get uploadImg() {
         return uploadImg;
@@ -15133,6 +15242,7 @@ This will fail in production.`);
   function _sfc_render$1J(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_up_navbar = resolveEasycom(vue.resolveDynamicComponent("up-navbar"), __easycom_0$5);
     const _component_up_image = resolveEasycom(vue.resolveDynamicComponent("up-image"), __easycom_1$e);
+    const _component_up_input = resolveEasycom(vue.resolveDynamicComponent("up-input"), __easycom_0$4);
     const _component_up_button = resolveEasycom(vue.resolveDynamicComponent("up-button"), __easycom_1$d);
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
@@ -15147,55 +15257,48 @@ This will fail in production.`);
             onRightClick: $setup.handleSkip,
             fixed: ""
           }),
-          vue.createTextVNode("s "),
           vue.createCommentVNode(" 头像上传 "),
-          vue.createElementVNode("view", {
-            class: "avatar-upload",
-            onClick: $setup.UploadImage
-          }, [
-            vue.createVNode(_component_up_image, {
-              width: "100%",
-              height: "100%",
-              src: $setup.petReactive.petAvatarURL,
-              shape: "circle"
-            }, null, 8, ["src"])
-          ]),
+          vue.createElementVNode(
+            "view",
+            {
+              class: "avatar-upload",
+              style: vue.normalizeStyle({ paddingTop: $setup.navBarHeight }),
+              onClick: $setup.UploadImage
+            },
+            [
+              vue.createVNode(_component_up_image, {
+                width: "100%",
+                height: "100%",
+                src: $setup.petReactive.petAvatarURL,
+                shape: "circle"
+              }, null, 8, ["src"])
+            ],
+            4
+            /* STYLE */
+          ),
           vue.createElementVNode("view", { class: "section-title" }, "为您的爱宠选一张靓照做头像"),
           vue.createCommentVNode(" 表单区域 "),
           vue.createElementVNode("view", { class: "form-group" }, [
             vue.createCommentVNode(" 手机号"),
             vue.createElementVNode("view", { class: "form-item" }, [
               vue.createElementVNode("text", { class: "label" }, "宠物品种:"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.petReactive.petBreed = $event),
-                  disabled: "",
-                  placeholder: "请输入"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $setup.petReactive.petBreed]
-              ])
+              vue.createVNode(_component_up_input, {
+                modelValue: $setup.petReactive.petBreed,
+                "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.petReactive.petBreed = $event),
+                disabled: "",
+                placeholder: "请输入",
+                shape: "circle"
+              }, null, 8, ["modelValue"])
             ]),
             vue.createCommentVNode(" 昵称 "),
             vue.createElementVNode("view", { class: "form-item" }, [
               vue.createElementVNode("text", { class: "label" }, "宠物昵称:"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.petReactive.petNickName = $event),
-                  placeholder: "请输入宠物昵称",
-                  maxlength: "10"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $setup.petReactive.petNickName]
-              ])
+              vue.createVNode(_component_up_input, {
+                modelValue: $setup.petReactive.petNickName,
+                "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.petReactive.petNickName = $event),
+                placeholder: "请输入宠物昵称",
+                shape: "circle"
+              }, null, 8, ["modelValue"])
             ]),
             vue.createCommentVNode(" 性别 "),
             vue.createElementVNode("view", { class: "form-item" }, [

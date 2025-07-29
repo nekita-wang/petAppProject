@@ -10,8 +10,8 @@
 		</view>
 		<!-- 登录按钮 -->
 		<view class="button-box">
-			<u-button type="primary" class="sjh" @click="handlePhoneLogin">手机号登录/注册</u-button>
-			<u-button class="qt" @click="navigateToOtherLogin">其他方式登录> </u-button>
+			<up-button type="primary" class="sjh" @click="handlePhoneLogin">手机号登录/注册</up-button>
+			<up-button class="qt" @click="navigateToOtherLogin">其他方式登录</up-button>
 		</view>
 		<!-- 底部协议描述 -->
 		<view class="desc">
@@ -27,8 +27,8 @@
 			</view>
 		</view>
 	</view>
-	<u-modal confirmText="同意" cancelText="不同意" :show="showAgreementModal" :title="title" :content='content'
-		showCancelButton width="300px" @confirm="handleAgreement(true)" @cancel="handleAgreement(false)"></u-modal>
+	<up-modal confirmText="同意" cancelText="不同意" :show="showAgreementModal" :title="title" :content='content'
+		showCancelButton width="300px" @confirm="handleAgreement(true)" @cancel="handleAgreement(false)"></up-modal>
 
 </template>
 
@@ -72,7 +72,7 @@
 		justify-content: center;
 
 		.logo {
-			margin-top: 20%;
+			margin-top: 35%;
 		}
 
 		.button-box {
