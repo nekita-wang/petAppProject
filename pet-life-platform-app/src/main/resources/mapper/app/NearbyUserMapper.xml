@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petlife.platform.app.mapper.NearbyUserMapper">
+
+    <!-- 用户位置信息结果映射 -->
+    <resultMap id="UserLocationResult" type="com.petlife.platform.common.pojo.entity.UserLocation">
+        <id property="locationId" column="location_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="accuracy" column="accuracy"/>
+        <result property="locationType" column="location_type"/>
+        <result property="address" column="address"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isActive" column="is_active"/>
+    </resultMap>
+
+    <!-- 用户在线状态结果映射 -->
+    <resultMap id="UserOnlineStatusResult" type="com.petlife.platform.common.pojo.entity.UserOnlineStatus">
+        <id property="statusId" column="status_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="isOnline" column="is_online"/>
+        <result property="lastActiveTime" column="last_active_time"/>
+        <result property="deviceType" column="device_type"/>
+        <result property="appVersion" column="app_version"/>
+        <result property="locationPermission" column="location_permission"/>
+        <result property="backgroundLocation" column="background_location"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 附近用户结果映射 -->
+    <resultMap id="NearbyUserResult" type="com.petlife.platform.common.pojo.dto.NearbyUserDto">
+        <result property="userId" column="user_id"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="distance" column="distance"/>
+        <result property="onlineDuration" column="online_duration"/>
+        <result property="personalSignature" column="personal_signature"/>
+        <result property="lastUpdateTime" column="last_update_time"/>
+    </resultMap>
+
+    <!-- 宠物简要信息结果映射 -->
+    <resultMap id="PetBriefInfoResult" type="com.petlife.platform.common.pojo.dto.NearbyUserDto$PetBriefInfo">
+        <result property="petBreed" column="pet_breed"/>
+        <result property="petGender" column="pet_gender"/>
+    </resultMap>
+
+    <!-- 更新用户位置信息 -->
+    <update id="updateUserLocation" parameterType="com.petlife.platform.common.pojo.entity.UserLocation">
+        UPDATE user_location 
+        SET latitude = #{latitude},
+            longitude = #{longitude},
+            accuracy = #{accuracy},
+            location_type = #{locationType},
+            address = #{address},
+            update_time = NOW()
+        WHERE user_id = #{userId} AND is_active = 1
+    </update>
+
+    <!-- 插入用户位置信息 -->
+    <insert id="insertUserLocation" parameterType="com.petlife.platform.common.pojo.entity.UserLocation">
+        <!-- 先将该用户的其他位置记录设为非活跃 -->
+        UPDATE user_location SET is_active = 0 WHERE user_id = #{userId};
+        
+        <!-- 插入新的位置记录 -->
+        INSERT INTO user_location (
+            user_id, latitude, longitude, accuracy, location_type, 
+            address, create_time, update_time, is_active
+        ) VALUES (
+            #{userId}, #{latitude}, #{longitude}, #{accuracy}, #{locationType},
+            #{address}, NOW(), NOW(), 1
+        )
+    </insert>
+
+    <!-- 获取用户当前位置 -->
+    <select id="getUserCurrentLocation" resultMap="UserLocationResult">
+        SELECT location_id, user_id, latitude, longitude, accuracy, location_type,
+               address, update_time, create_time, is_active
+        FROM user_location 
+        WHERE user_id = #{userId} AND is_active = 1
+        LIMIT 1
+    </select>
+
+    <!-- 更新用户在线状态 -->
+    <update id="updateUserOnlineStatus" parameterType="com.petlife.platform.common.pojo.entity.UserOnlineStatus">
+        UPDATE user_online_status 
+        SET is_online = #{isOnline},
+            last_active_time = #{lastActiveTime},
+            device_type = #{deviceType},
+            app_version = #{appVersion},
+            location_permission = #{locationPermission},
+            background_location = #{backgroundLocation},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 插入用户在线状态 -->
+    <insert id="insertUserOnlineStatus" parameterType="com.petlife.platform.common.pojo.entity.UserOnlineStatus">
+        INSERT INTO user_online_status (
+            user_id, is_online, last_active_time, device_type, app_version,
+            location_permission, background_location, update_time
+        ) VALUES (
+            #{userId}, #{isOnline}, #{lastActiveTime}, #{deviceType}, #{appVersion},
+            #{locationPermission}, #{backgroundLocation}, NOW()
+        )
+        ON DUPLICATE KEY UPDATE
+            is_online = #{isOnline},
+            last_active_time = #{lastActiveTime},
+            device_type = #{deviceType},
+            app_version = #{appVersion},
+            location_permission = #{locationPermission},
+            background_location = #{backgroundLocation},
+            update_time = NOW()
+    </insert>
+
+    <!-- 获取用户在线状态 -->
+    <select id="getUserOnlineStatus" resultMap="UserOnlineStatusResult">
+        SELECT status_id, user_id, is_online, last_active_time, device_type,
+               app_version, location_permission, background_location, update_time
+        FROM user_online_status 
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 查询附近用户（基础查询） -->
+    <select id="findNearbyUsers" resultMap="NearbyUserResult">
+        SELECT 
+            u.user_id,
+            u.avatar_url,
+            u.nick_name,
+            u.personal_signature,
+            calculate_distance(#{latitude}, #{longitude}, ul.latitude, ul.longitude) as distance,
+            format_online_duration(u.last_logoff_time) as online_duration,
+            ul.update_time as last_update_time
+        FROM user u
+        INNER JOIN user_location ul ON u.user_id = ul.user_id AND ul.is_active = 1
+        WHERE u.user_id != #{userId}
+          AND u.status = 0
+          AND calculate_distance(#{latitude}, #{longitude}, ul.latitude, ul.longitude) &lt;= #{radius}
+        ORDER BY distance ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询附近用户（包含筛选条件） -->
+    <select id="findNearbyUsersWithFilter" resultMap="NearbyUserResult">
+        SELECT 
+            u.user_id,
+            u.avatar_url,
+            u.nick_name,
+            u.personal_signature,
+            calculate_distance(#{latitude}, #{longitude}, ul.latitude, ul.longitude) as distance,
+            format_online_duration(u.last_logoff_time) as online_duration,
+            ul.update_time as last_update_time
+        FROM user u
+        INNER JOIN user_location ul ON u.user_id = ul.user_id AND ul.is_active = 1
+        LEFT JOIN user_online_status uos ON u.user_id = uos.user_id
+        WHERE u.user_id != #{userId}
+          AND u.status = 0
+          AND calculate_distance(#{latitude}, #{longitude}, ul.latitude, ul.longitude) &lt;= #{query.radius}
+          
+        <!-- 性别筛选 -->
+        <if test="query.genders != null and query.genders.size() > 0">
+            AND u.gender IN
+            <foreach collection="query.genders" item="gender" open="(" separator="," close=")">
+                #{gender}
+            </foreach>
+        </if>
+        
+        <!-- 年龄筛选 -->
+        <if test="query.minAge != null">
+            AND TIMESTAMPDIFF(YEAR, u.birthday, CURDATE()) >= #{query.minAge}
+        </if>
+        <if test="query.maxAge != null">
+            AND TIMESTAMPDIFF(YEAR, u.birthday, CURDATE()) &lt;= #{query.maxAge}
+        </if>
+        
+        <!-- 在线时间筛选 -->
+        <if test="query.onlineTimeLimit != null">
+            AND TIMESTAMPDIFF(MINUTE, u.last_logoff_time, NOW()) &lt;= #{query.onlineTimeLimit}
+        </if>
+        
+        <!-- 只显示在线用户 -->
+        <if test="query.onlineOnly != null and query.onlineOnly == true">
+            AND TIMESTAMPDIFF(SECOND, u.last_logoff_time, NOW()) &lt;= 60
+        </if>
+        
+        <!-- 关键词搜索 -->
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (u.nick_name LIKE CONCAT('%', #{query.keyword}, '%') 
+                 OR u.personal_signature LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        
+        <!-- 宠物品种筛选 -->
+        <if test="query.petBreeds != null and query.petBreeds.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM pet_info pi 
+                WHERE pi.user_id = u.user_id 
+                  AND pi.status = 0
+                  AND pi.pet_breed IN
+                  <foreach collection="query.petBreeds" item="breed" open="(" separator="," close=")">
+                      #{breed}
+                  </foreach>
+            )
+        </if>
+        
+        <!-- 排序 -->
+        <choose>
+            <when test="query.sortBy == 'online_time'">
+                ORDER BY u.last_logoff_time 
+                <if test="query.sortOrder == 'desc'">DESC</if>
+                <if test="query.sortOrder == 'asc'">ASC</if>
+            </when>
+            <when test="query.sortBy == 'register_time'">
+                ORDER BY u.register_time 
+                <if test="query.sortOrder == 'desc'">DESC</if>
+                <if test="query.sortOrder == 'asc'">ASC</if>
+            </when>
+            <otherwise>
+                ORDER BY distance ASC
+            </otherwise>
+        </choose>
+        
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计附近用户总数 -->
+    <select id="countNearbyUsers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user u
+        INNER JOIN user_location ul ON u.user_id = ul.user_id AND ul.is_active = 1
+        WHERE u.user_id != #{userId}
+          AND u.status = 0
+          AND calculate_distance(#{latitude}, #{longitude}, ul.latitude, ul.longitude) &lt;= #{radius}
+    </select>
+
+    <!-- 统计附近用户总数（包含筛选条件） -->
+    <select id="countNearbyUsersWithFilter" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user u
+        INNER JOIN user_location ul ON u.user_id = ul.user_id AND ul.is_active = 1
+        LEFT JOIN user_online_status uos ON u.user_id = uos.user_id
+        WHERE u.user_id != #{userId}
+          AND u.status = 0
+          AND calculate_distance(#{latitude}, #{longitude}, ul.latitude, ul.longitude) &lt;= #{query.radius}
+          
+        <!-- 筛选条件（与上面查询相同） -->
+        <if test="query.genders != null and query.genders.size() > 0">
+            AND u.gender IN
+            <foreach collection="query.genders" item="gender" open="(" separator="," close=")">
+                #{gender}
+            </foreach>
+        </if>
+        
+        <if test="query.minAge != null">
+            AND TIMESTAMPDIFF(YEAR, u.birthday, CURDATE()) >= #{query.minAge}
+        </if>
+        <if test="query.maxAge != null">
+            AND TIMESTAMPDIFF(YEAR, u.birthday, CURDATE()) &lt;= #{query.maxAge}
+        </if>
+        
+        <if test="query.onlineTimeLimit != null">
+            AND TIMESTAMPDIFF(MINUTE, u.last_logoff_time, NOW()) &lt;= #{query.onlineTimeLimit}
+        </if>
+        
+        <if test="query.onlineOnly != null and query.onlineOnly == true">
+            AND TIMESTAMPDIFF(SECOND, u.last_logoff_time, NOW()) &lt;= 60
+        </if>
+        
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (u.nick_name LIKE CONCAT('%', #{query.keyword}, '%') 
+                 OR u.personal_signature LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        
+        <if test="query.petBreeds != null and query.petBreeds.size() > 0">
+            AND EXISTS (
+                SELECT 1 FROM pet_info pi 
+                WHERE pi.user_id = u.user_id 
+                  AND pi.status = 0
+                  AND pi.pet_breed IN
+                  <foreach collection="query.petBreeds" item="breed" open="(" separator="," close=")">
+                      #{breed}
+                  </foreach>
+            )
+        </if>
+    </select>
+
+    <!-- 获取用户的宠物简要信息 -->
+    <select id="getUserPetBriefInfo" resultMap="PetBriefInfoResult">
+        SELECT pet_breed, pet_gender
+        FROM pet_info 
+        WHERE user_id = #{userId} AND status = 0
+        ORDER BY pet_id ASC
+    </select>
+
+    <!-- 批量获取多个用户的宠物简要信息 -->
+    <select id="getBatchUserPetBriefInfo" resultMap="PetBriefInfoResult">
+        SELECT user_id, pet_breed, pet_gender
+        FROM pet_info 
+        WHERE user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        AND status = 0
+        ORDER BY user_id, pet_id ASC
+    </select>
+
+    <!-- 更新用户最后活跃时间 -->
+    <update id="updateUserLastActiveTime">
+        UPDATE user_online_status 
+        SET last_active_time = NOW(), update_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 批量设置用户离线状态 -->
+    <update id="batchSetUsersOffline">
+        UPDATE user_online_status 
+        SET is_online = 0, update_time = NOW()
+        WHERE user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </update>
+
+    <!-- 记录位置更新日志 -->
+    <insert id="insertLocationUpdateLog">
+        INSERT INTO location_update_log (
+            user_id, old_latitude, old_longitude, new_latitude, new_longitude,
+            distance_moved, update_source, create_time
+        ) VALUES (
+            #{userId}, #{oldLatitude}, #{oldLongitude}, #{newLatitude}, #{newLongitude},
+            #{distanceMoved}, #{updateSource}, NOW()
+        )
+    </insert>
+
+    <!-- 清理过期的位置缓存 -->
+    <delete id="cleanExpiredLocationCache">
+        DELETE FROM nearby_users_cache 
+        WHERE expire_time &lt; NOW()
+    </delete>
+
+</mapper>
