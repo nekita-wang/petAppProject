@@ -1,6 +1,7 @@
 package com.petlife.platform.app.service.impl;
 
 import com.petlife.platform.app.mapper.NearbyUserMapper;
+import com.petlife.platform.app.service.MapService;
 import com.petlife.platform.app.service.INearbyUserService;
 import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.page.TableDataInfo;
@@ -34,6 +35,9 @@ public class NearbyUserServiceImpl implements INearbyUserService {
 
     @Autowired
     private NearbyUserMapper nearbyUserMapper;
+
+    @Autowired
+    private MapService mapService;
 
     @Override
     @Transactional
@@ -215,8 +219,14 @@ public class NearbyUserServiceImpl implements INearbyUserService {
                 return AjaxResult.error("地址不能为空");
             }
 
-            // 根据地址返回对应的坐标信息
-            Map<String, Object> result = parseAddressToLocation(address);
+            // 优先使用配置的地图API进行地址解析
+            Map<String, Object> result = mapService.geocoding(address);
+
+            // 如果地图API调用失败，使用本地模拟数据作为备选方案
+            if (result == null) {
+                log.warn("地图API调用失败，使用本地模拟数据: {}", address);
+                result = parseAddressToLocation(address);
+            }
 
             if (result != null) {
                 return AjaxResult.success("地址解析成功", result);

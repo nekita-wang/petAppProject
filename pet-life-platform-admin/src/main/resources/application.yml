@@ -150,3 +150,26 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# 地图API配置（支持高德地图和天地图）
+map:
+  # 地图服务提供商：amap（高德）、tianditu（天地图）
+  provider: tianditu
+  # 请求超时时间（毫秒）
+  timeout: 5000
+  # 高德地图配置
+  amap:
+    # 高德地图API Key（请替换为您申请的真实Key）
+    api-key: 6400f069a0114d30da1234f65063d8c9
+    # 地理编码API地址
+    geocoding-url: https://restapi.amap.com/v3/geocode/geo
+    # 逆地理编码API地址
+    regeo-url: https://restapi.amap.com/v3/geocode/regeo
+  # 天地图配置
+  tianditu:
+    # 天地图API Key（请替换为您申请的真实Key）
+    api-key: fbdcb52e93984baa59a47bed4948e511
+    # 地理编码API地址
+    geocoding-url: http://api.tianditu.gov.cn/geocoder
+    # 逆地理编码API地址
+    regeo-url: http://api.tianditu.gov.cn/geocoder
