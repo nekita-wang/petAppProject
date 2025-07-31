@@ -2,9 +2,9 @@ import {
   __commonJS
 } from "./chunk-Y2F7D3TJ.js";
 
-// ../../../../ChongAi/ChongAiApp/node_modules/url-search-params-polyfill/index.js
+// ../../../../petAppProject/ChongAiApp/node_modules/url-search-params-polyfill/index.js
 var require_url_search_params_polyfill = __commonJS({
-  "../../../../ChongAi/ChongAiApp/node_modules/url-search-params-polyfill/index.js"(exports) {
+  "../../../../petAppProject/ChongAiApp/node_modules/url-search-params-polyfill/index.js"(exports) {
     (function(self) {
       "use strict";
       var nativeURLSearchParams = function() {

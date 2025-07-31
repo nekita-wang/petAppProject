@@ -1,7 +1,7 @@
 import JSEncrypt from 'jsencrypt'
 import {
 	request
-} from '@/utils/request.js'
+} from '@/utils/request'
 // 从后端获取公钥的API
 export async function getPublicKey() {
 

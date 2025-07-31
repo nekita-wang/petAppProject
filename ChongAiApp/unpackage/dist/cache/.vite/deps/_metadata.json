@@ -1,32 +1,20 @@
 {
-  "hash": "16817a68",
-  "configHash": "f5dec2f0",
-  "lockfileHash": "3da15f1f",
-  "browserHash": "de16ece5",
+  "hash": "9f7ca555",
+  "configHash": "60bcdd0d",
+  "lockfileHash": "cbd0a146",
+  "browserHash": "fa348e07",
   "optimized": {
-    "uview-plus": {
-      "src": "../../../../../node_modules/uview-plus/index.js",
-      "file": "uview-plus.js",
-      "fileHash": "8ec58f6f",
-      "needsInterop": false
-    },
-    "lodash-es": {
-      "src": "../../../../../node_modules/lodash-es/lodash.js",
-      "file": "lodash-es.js",
-      "fileHash": "514c6939",
-      "needsInterop": false
-    },
-    "jsencrypt": {
-      "src": "../../../../../node_modules/jsencrypt/lib/index.js",
-      "file": "jsencrypt.js",
-      "fileHash": "39631787",
-      "needsInterop": false
-    },
     "url-search-params-polyfill": {
       "src": "../../../../../node_modules/url-search-params-polyfill/index.js",
       "file": "url-search-params-polyfill.js",
-      "fileHash": "734c5122",
+      "fileHash": "b93b1c6b",
       "needsInterop": true
+    },
+    "uview-plus": {
+      "src": "../../../../../node_modules/uview-plus/index.js",
+      "file": "uview-plus.js",
+      "fileHash": "5b96dd48",
+      "needsInterop": false
     }
   },
   "chunks": {

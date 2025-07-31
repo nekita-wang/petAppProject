@@ -1,0 +1,73 @@
+// utils/request.js
+import { useAuthStore } from "@/stores/auth";
+import { Env } from "./env";
+// const BASE_URL = 'https://122.228.237.118:53627'
+// when its dev enable debug mode
+const ENABLE_DEBUG = Env.VITE_USER_NODE_ENV === "development";
+const BASE_URL = Env.VITE_API_BASE_URL; //服务器
+const TIMEOUT = 5000;
+type RequestConfig = {
+  url: string;
+  method: "GET" | "POST";
+  data: any;
+  header: Record<string, string>;
+};
+
+export const request = <T>(config: RequestConfig) => {
+  if (!config) {
+    console.error("参数错误");
+    return;
+  }
+  const { url, method = "GET", data, header } = config;
+  const token = useAuthStore().token;
+  const allHeader = {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+    "ngrok-skip-browser-warning": "true",
+    ...header,
+  };
+  return new Promise<Response<T>>((resolve, reject) => {
+    uni.request({
+      url: BASE_URL + url,
+      method,
+      data: data,
+      header: allHeader,
+      success: (res) => {
+        //visual studio code compat
+        //@ts-ignore
+        const response: Response<T> = res.data;
+        if (response.success) {
+          resolve(response);
+          return;
+        }
+        const err = _response2ErrorMsg(response);
+        uni.showToast({ title: err.msg, icon: "none" });
+        reject(err);
+      },
+      fail: (err) => {
+        console.log(err);
+        uni.showToast({ title: "网络连接失败", icon: "none" });
+        reject({
+          statusCode: -1,
+          message: "网络错误",
+          error: err,
+        });
+      },
+    });
+  }).catch((err) => {
+    if (err.statusCode === 401) {
+      uni.navigateTo({ url: "/pages/login/login" });
+    }
+    throw err; // 继续抛出错误
+  });
+};
+type ErrorMsg = {
+  code: number;
+  msg: string;
+  data: unknown;
+};
+const _response2ErrorMsg = (res: Response<any>): ErrorMsg => ({
+  code: res.code,
+  msg: res.msg || "请求失败",
+  data: res.data,
+});

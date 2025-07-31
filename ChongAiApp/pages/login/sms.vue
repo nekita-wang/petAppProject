@@ -74,21 +74,22 @@
 					'phone': smsReactive.phone
 				}
 			});
+			console.log("进入")
+			// if (!res.success) return uni.showToast({
+			// 	title: res.msg,
+			// 	icon: 'none'
+			// });
 
-			if (!res.success) return uni.showToast({
-				title: res.msg,
-				icon: 'none'
-			});
+			// uni.showToast({
+			// 	title: '验证码已发送!',
+			// 	icon: 'success'
+			// });
+			// smsReactive.code = res.data;
+			// countdown.value = 60;
 
-			uni.showToast({
-				title: '验证码已发送!',
-				icon: 'success'
-			});
-			smsReactive.code = res.data;
-			countdown.value = 60;
-
-			const timer = setInterval(() => countdown.value <= 0 ? clearInterval(timer) : countdown.value--, 1000);
-		} catch {
+			// const timer = setInterval(() => countdown.value <= 0 ? clearInterval(timer) : countdown.value--, 1000);
+		} catch(err) {
+			console.error(err)
 			uni.showToast({
 				title: '获取验证码失败，请重试',
 				icon: 'none'
