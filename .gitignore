@@ -2,6 +2,7 @@
 
 # dependencies
 /ChongAiApp/node_modules
+/ChongAiApp/uni_modules
 /ChongAiApp/unpackage
 # testing
 /ChongAiApp/coverage
