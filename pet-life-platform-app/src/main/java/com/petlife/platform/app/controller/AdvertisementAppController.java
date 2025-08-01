@@ -2,7 +2,7 @@ package com.petlife.platform.app.controller;
 
 import com.petlife.platform.common.pojo.dto.AdvertisementAppDto;
 import com.petlife.platform.app.service.IAdvertisementAppService;
-import com.petlife.platform.common.core.domain.AjaxResult;
+import com.petlife.platform.common.core.api.ResponseData;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -34,24 +34,24 @@ public class AdvertisementAppController {
      */
     @ApiOperation("获取广告位广告")
     @GetMapping("/position/{adPosition}")
-    public AjaxResult getAdvertisement(
+    public ResponseData<AdvertisementAppDto> getAdvertisement(
             @ApiParam(value = "广告位标识(1-6)", required = true, example = "1") @PathVariable("adPosition") String adPosition) {
 
         log.info("APP端请求广告位 {} 的广告", adPosition);
 
         // 参数校验
         if (adPosition == null || adPosition.trim().isEmpty()) {
-            return AjaxResult.error("广告位参数不能为空");
+            return ResponseData.error(400, "广告位参数不能为空");
         }
 
         // 校验广告位范围（1-6）
         try {
             int position = Integer.parseInt(adPosition);
             if (position < 1 || position > 6) {
-                return AjaxResult.error("广告位参数无效，应为1-6之间的数字");
+                return ResponseData.error(400, "广告位参数无效，应为1-6之间的数字");
             }
         } catch (NumberFormatException e) {
-            return AjaxResult.error("广告位参数格式错误");
+            return ResponseData.error(400, "广告位参数格式错误");
         }
 
         try {
@@ -59,15 +59,15 @@ public class AdvertisementAppController {
 
             if (advertisement != null) {
                 log.info("APP端成功获取广告位 {} 的广告: {}", adPosition, advertisement.getAdName());
-                return AjaxResult.success("获取广告成功", advertisement);
+                return ResponseData.okWithMsg("获取广告成功", advertisement);
             } else {
                 log.info("APP端广告位 {} 暂无运行中的广告", adPosition);
-                return AjaxResult.success("暂无广告", null);
+                return ResponseData.okWithMsg("暂无广告", null);
             }
 
         } catch (Exception e) {
             log.error("APP端获取广告位 {} 广告失败: {}", adPosition, e.getMessage(), e);
-            return AjaxResult.error("获取广告失败");
+            return ResponseData.error(500, "获取广告失败");
         }
     }
 
@@ -76,24 +76,24 @@ public class AdvertisementAppController {
      */
     @ApiOperation("广告点击跳转")
     @PostMapping("/click/{adPosition}")
-    public AjaxResult clickAdvertisement(
+    public ResponseData<String> clickAdvertisement(
             @ApiParam(value = "广告位标识(1-6)", required = true, example = "1") @PathVariable("adPosition") String adPosition) {
 
         log.info("APP端广告位 {} 被点击", adPosition);
 
         // 参数校验
         if (adPosition == null || adPosition.trim().isEmpty()) {
-            return AjaxResult.error("广告位参数不能为空");
+            return ResponseData.error(400, "广告位参数不能为空");
         }
 
         // 校验广告位范围（1-6）
         try {
             int position = Integer.parseInt(adPosition);
             if (position < 1 || position > 6) {
-                return AjaxResult.error("广告位参数无效，应为1-6之间的数字");
+                return ResponseData.error(400, "广告位参数无效，应为1-6之间的数字");
             }
         } catch (NumberFormatException e) {
-            return AjaxResult.error("广告位参数格式错误");
+            return ResponseData.error(400, "广告位参数格式错误");
         }
 
         try {
@@ -102,7 +102,7 @@ public class AdvertisementAppController {
 
             if (advertisement == null) {
                 log.warn("广告位 {} 暂无运行中的广告，无法点击", adPosition);
-                return AjaxResult.error("暂无广告可点击");
+                return ResponseData.error(404, "暂无广告可点击");
             }
 
             // 记录点击量
@@ -111,16 +111,16 @@ public class AdvertisementAppController {
             if (clickRecorded) {
                 log.info("APP端成功记录广告位 {} 的点击，跳转到: {}", adPosition, advertisement.getTargetUrl());
                 // 返回跳转链接
-                return AjaxResult.success("点击成功", advertisement.getTargetUrl());
+                return ResponseData.okWithMsg("点击成功", advertisement.getTargetUrl());
             } else {
                 log.warn("APP端记录广告位 {} 点击失败，但仍返回跳转链接", adPosition);
                 // 即使统计失败，也要返回跳转链接，不影响用户体验
-                return AjaxResult.success("点击成功", advertisement.getTargetUrl());
+                return ResponseData.okWithMsg("点击成功", advertisement.getTargetUrl());
             }
 
         } catch (Exception e) {
             log.error("APP端处理广告位 {} 点击异常: {}", adPosition, e.getMessage(), e);
-            return AjaxResult.error("点击处理异常");
+            return ResponseData.error(500, "点击处理异常");
         }
     }
 
@@ -129,13 +129,13 @@ public class AdvertisementAppController {
      */
     @ApiOperation("批量获取广告")
     @GetMapping("/batch")
-    public AjaxResult getBatchAdvertisements(
+    public ResponseData<java.util.Map<String, AdvertisementAppDto>> getBatchAdvertisements(
             @ApiParam(value = "广告位列表，逗号分隔", required = true, example = "1,2,3") @RequestParam("adPositions") String adPositions) {
 
         log.info("APP端批量请求广告位: {}", adPositions);
 
         if (adPositions == null || adPositions.trim().isEmpty()) {
-            return AjaxResult.error("广告位参数不能为空");
+            return ResponseData.error(400, "广告位参数不能为空");
         }
 
         try {
@@ -151,11 +151,11 @@ public class AdvertisementAppController {
             }
 
             log.info("APP端批量获取广告完成，返回 {} 个广告位数据", result.size());
-            return AjaxResult.success("批量获取成功", result);
+            return ResponseData.okWithMsg("批量获取成功", result);
 
         } catch (Exception e) {
             log.error("APP端批量获取广告失败: {}", e.getMessage(), e);
-            return AjaxResult.error("批量获取失败");
+            return ResponseData.error(500, "批量获取失败");
         }
     }
 }

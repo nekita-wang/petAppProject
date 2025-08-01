@@ -3,7 +3,7 @@ import request from "@/utils/request";
 // 查询广告信息列表
 export function listAdvertisement(query) {
   return request({
-    url: "/advertisement/advertisement/list",
+    url: "/advertisement/list",
     method: "get",
     params: query,
   });
@@ -12,7 +12,7 @@ export function listAdvertisement(query) {
 // 查询广告信息详细
 export function getAdvertisement(id) {
   return request({
-    url: "/advertisement/advertisement/" + id,
+    url: "/advertisement/" + id,
     method: "get",
   });
 }
@@ -20,7 +20,7 @@ export function getAdvertisement(id) {
 // 新增广告信息
 export function addAdvertisement(data) {
   return request({
-    url: "/advertisement/advertisement",
+    url: "/advertisement",
     method: "post",
     data: data,
   });
@@ -29,7 +29,7 @@ export function addAdvertisement(data) {
 // 修改广告信息
 export function updateAdvertisement(data) {
   return request({
-    url: "/advertisement/advertisement",
+    url: "/advertisement",
     method: "put",
     data: data,
   });
@@ -38,7 +38,7 @@ export function updateAdvertisement(data) {
 // 删除广告信息
 export function delAdvertisement(id) {
   return request({
-    url: "/advertisement/advertisement/" + id,
+    url: "/advertisement/" + id,
     method: "delete",
   });
 }
@@ -46,7 +46,7 @@ export function delAdvertisement(id) {
 // 导出广告信息
 export function exportAdvertisement(query) {
   return request({
-    url: "/advertisement/advertisement/export",
+    url: "/advertisement/export",
     method: "post",
     params: query,
   });
@@ -55,7 +55,7 @@ export function exportAdvertisement(query) {
 // 获取广告位下拉选项
 export function getAdPositionOptions() {
   return request({
-    url: "/advertisement/advertisement/adPositionOptions",
+    url: "/advertisement/adPositionOptions",
     method: "get",
   });
 }
@@ -63,7 +63,7 @@ export function getAdPositionOptions() {
 // 根据广告位查询正在运行的广告
 export function getRunningAdvertisement(adPosition) {
   return request({
-    url: "/advertisement/advertisement/running/" + adPosition,
+    url: "/advertisement/running/" + adPosition,
     method: "get",
   });
 }
@@ -71,7 +71,7 @@ export function getRunningAdvertisement(adPosition) {
 // 失效广告
 export function invalidateAdvertisement(id) {
   return request({
-    url: "/advertisement/advertisement/invalidate/" + id,
+    url: "/advertisement/invalidate/" + id,
     method: "put",
   });
 }
@@ -79,7 +79,7 @@ export function invalidateAdvertisement(id) {
 // 结清广告
 export function clearanceAdvertisement(data) {
   return request({
-    url: "/advertisement/advertisement/clearance",
+    url: "/advertisement/clearance",
     method: "put",
     data: data,
   });
@@ -88,7 +88,7 @@ export function clearanceAdvertisement(data) {
 // 获取广告统计数据
 export function getAdvertisementStatistics() {
   return request({
-    url: "/advertisement/advertisement/statistics",
+    url: "/advertisement/statistics",
     method: "get",
   });
 }

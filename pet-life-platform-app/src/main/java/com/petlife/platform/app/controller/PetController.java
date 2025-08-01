@@ -1,6 +1,5 @@
 package com.petlife.platform.app.controller;
 
-import com.petlife.platform.common.core.domain.R;
 import com.petlife.platform.common.pojo.dto.PetBreedQuery;
 import com.petlife.platform.app.service.PetService;
 import com.petlife.platform.common.core.api.ResponseData;
@@ -29,9 +28,9 @@ public class PetController {
     @Autowired
     private TokenService tokenService;
 
-
     /**
      * 您养的宠物
+     * 
      * @param petInfoDTO
      * @return
      */
@@ -43,12 +42,13 @@ public class PetController {
             return ResponseData.error(401, "未登录或token无效");
         }
 
-        petService.addPetInfo(petInfoDTO,loginUser.getUserId());
+        petService.addPetInfo(petInfoDTO, loginUser.getUserId());
         return ResponseData.ok();
     }
 
     /**
      * 跳过宠物信息
+     * 
      * @return
      */
     @PostMapping("/skipPet")
@@ -59,28 +59,25 @@ public class PetController {
         return ResponseData.ok();
     }
 
-
     /**
      * 宠物查询
+     * 
      * @param petBreedQuery
      * @return
      */
     @GetMapping("/breeds")
-    public R list( PetBreedQuery petBreedQuery)
-    {
+    public ResponseData<Map<String, Object>> list(PetBreedQuery petBreedQuery) {
         Map<String, Object> map = petService.selectPetBreedAppList(petBreedQuery);
-        return R.ok(map);
+        return ResponseData.ok(map);
     }
-
 
     /**
      * 查询宠物类别
      */
     @GetMapping("/pet")
-    public R petList()
-    {
+    public ResponseData<List<PetClassVo>> petList() {
         List<PetClassVo> petClassVos = petService.selectPetClass();
-        return R.ok(petClassVos);
+        return ResponseData.ok(petClassVos);
     }
 
 }

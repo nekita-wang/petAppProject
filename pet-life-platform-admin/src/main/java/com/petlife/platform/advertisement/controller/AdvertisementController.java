@@ -30,7 +30,7 @@ import com.petlife.platform.common.core.page.TableDataInfo;
  * @date 2025-01-02
  */
 @RestController
-@RequestMapping("/advertisement/advertisement")
+@RequestMapping("/advertisement")
 public class AdvertisementController extends BaseController {
     @Autowired
     private IAdvertisementService advertisementService;
