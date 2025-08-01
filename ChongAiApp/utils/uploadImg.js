@@ -1,13 +1,15 @@
-import {
-	useAuthStore
-} from "../stores/auth";
+import { useUserStore } from '@/stores/user'
 
 export function uploadImg(AvatarCallback) {
 	// const URL = 'https://122.228.237.118:53627';
 	const URL = 'http://1.15.123.85' //服务器
 	
-	const authStore = useAuthStore();
-	const token = authStore.token;
+	const userStore = useUserStore();
+	const token = userStore.token;
+	
+	// 检查token是否存在，如果不存在则使用空字符串
+	const authToken = token || '';
+	
 	uni.chooseImage({
 		count: 1,
 		success: async (chooseImageRes) => {

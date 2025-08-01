@@ -1,6 +1,5 @@
 <template>
 	<view class="profile-container">
-
 		<!-- 头像上传 -->
 		<view class="avatar-upload" @click="UploadImage">
 			<up-image width="100%" height="100%" :src="rgtReactive.avatarUrl" shape="circle"> </up-image>
@@ -10,7 +9,7 @@
 			<!-- 手机号-->
 			<view class="form-item">
 				<text class="label">手机号:</text>
-				<up-input v-model="authStore.phone" disabled placeholder="请输入手机号" shape="circle"></up-input>
+				<up-input v-model="userStore.phone" disabled placeholder="请输入手机号" shape="circle"></up-input>
 			</view>
 
 			<!-- 昵称 -->
@@ -48,7 +47,7 @@
 				<DatePicker v-model="rgtReactive.birthday" @date-change="handleBirthdayChange"
 					:default-date="rgtReactive.birthday" />
 			</view>
-			
+
 			<!-- 密码输入 -->
 			<view class="form-item">
 				<text class="label">密码:</text>
@@ -96,39 +95,60 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 	import {
 		onLoad
 	} from '@dcloudio/uni-app'
 	import {
 		debounce
 	} from 'lodash-es'
-	import DatePicker from '@/components/DatePicker.vue'
+	import DatePicker from '@/components/DatePicker'
 	import {
 		onMounted,
 		computed,
 		ref,
 		reactive
 	} from 'vue'
-	import {
-		useAuthStore
-	} from '@/stores/auth'
+	import { useUserStore } from '@/stores/user'
 	import {
 		getPublicKey,
 		encryptWithRSA
 	} from '@/utils/rsa'
 	import {
 		uploadImg
-	} from '../../utils/uploadImg'
+	} from '@/utils/uploadImg'
 	import {
 		request
 	} from '../../utils/request'
-	const strengthLevel = ref(0) //密码强度
-	const ShowStrenth = ref(false) //显示密码强度
-	const relativePath = ref('') //不携带ip的头像地址
-	const authStore = useAuthStore() //使用pinia
-	const rgtReactive = reactive({
-		phone: authStore.phone,
+
+	// 类型定义
+	interface RegisterForm {
+		phone : string
+		nickName : string
+		password : string
+		birthday : string
+		gender : string
+		avatarUrl : string
+		passwordConfirm : string
+	}
+
+	interface AvatarCallback {
+		relativePath : string
+		fullUrl : string
+	}
+
+	interface RegisterResponse {
+		token : string
+		userId : string
+	}
+
+
+	const strengthLevel = ref<number>(0) //密码强度
+	const ShowStrenth = ref<boolean>(false) //显示密码强度
+	const relativePath = ref<string>('') //不携带ip的头像地址
+	const userStore = useUserStore()//使用pinia
+	const rgtReactive = reactive<RegisterForm>({
+		phone: userStore.phone,
 		nickName: '',
 		password: '',
 		birthday: '2000-06-06',
@@ -136,8 +156,8 @@
 		avatarUrl: '/static/tx.svg',
 		passwordConfirm: ''
 	})
-	const showPassword = ref(false) //密码显示按钮
-	const showCmPassword = ref(false) //确认密码显示按钮
+	const showPassword = ref<boolean>(false) //密码显示按钮
+	const showCmPassword = ref<boolean>(false) //确认密码显示按钮
 
 	// 按钮状态
 	const isFormValid = computed(() =>
@@ -145,30 +165,36 @@
 		rgtReactive.password &&
 		rgtReactive.passwordConfirm
 	)
+
 	//日期选择器
-	const handleBirthdayChange = (date) => {
+	const handleBirthdayChange = (date : string) : void => {
 		rgtReactive.birthday = date
 	}
+
 	// 用户是否上传头像
 	const hasUploadedAvatar = computed(() => rgtReactive.avatarUrl !== '/static/tx.svg')
+
 	//点击上传图片
-	const UploadImage = () => {
-		uploadImg((AvatarCallback) => {
+	const UploadImage = () : void => {
+		uploadImg((AvatarCallback : AvatarCallback) => {
 			rgtReactive.avatarUrl = AvatarCallback.fullUrl; //带有ip地址的
 			relativePath.value = AvatarCallback.relativePath
-
 		});
 	};
+
 	onLoad(() => {
 		rgtReactive.birthday = '2000-06-06' // 设置初始值
 	})
+
 	// 个人完善接口
-	const completeProfile = async () => {
+	const completeProfile = async () : Promise<void> => {
 		try {
 			// 获取密钥
 			const publicKey = await getPublicKey()
+			console.log('获取公钥成功');
 			const encryptedPwd = encryptWithRSA(publicKey, rgtReactive.password)
-			const res = await request({
+			console.log('密码加密成功');
+			const res = await request<RegisterResponse>({
 				url: '/app/user/registerProfile',
 				method: 'POST',
 				data: {
@@ -176,62 +202,63 @@
 					avatarUrl: relativePath.value,
 					password: encryptedPwd,
 					passwordConfirm: encryptedPwd
-				}
+				},
+				header: {}
 			})
-			if (!res.success) {
-				return uni.showToast({
-					title: res.msg || '登录失败',
+			console.log('注册响应:', res);
+			if (!res) {
+				uni.showToast({
+					title: '网络错误',
 					icon: 'none'
-				});
+				})
+				return
 			}
 			uni.showToast({
-					title: '注册成功',
-					icon: 'success'
-				}),
-				authStore.setUserInfo({
-					token: res.data.token,
-					userId: res.data.userId,
-					phone: rgtReactive.phone
-				})
+				title: '注册成功',
+				icon: 'success'
+			})
+			userStore.setUserInfo({
+				token: res.data.token,
+				userId: res.data.userId,
+				phone: rgtReactive.phone
+			})
+
 			uni.navigateTo({
 				url: '/pages/petSelection/petSelection'
 			})
 		} catch (error) {
-			const errorMsg = {
-				'getPublicKey': '获取加密密钥失败',
-				'encryptWithRSA': '密码加密失败'
-			} [error.type] || '操作失败'
-
-			uni.showToast({
-				title: errorMsg,
-				icon: 'none'
-			})
+			console.log(error);
 		}
 	}
-	const handelNext = () => {
+
+	const handelNext = () : void => {
 		if (rgtReactive.password !== rgtReactive.passwordConfirm) {
-			return uni.showToast({
+			uni.showToast({
 				title: '两次密码不一致',
 				icon: 'none'
 			})
+			return
 		}
 		if (!hasUploadedAvatar.value) {
-			return uni.showToast({
+			uni.showToast({
 				title: '请上传头像',
 				icon: 'none'
 			})
+			return
 		}
 		completeProfile()
 	}
+
 	// 密码规则校验
 	const hasLength = computed(() => rgtReactive.password.length >= 10)
 	const hasLowercase = computed(() => /[a-z]/.test(rgtReactive.password))
 	const hasUppercase = computed(() => /[A-Z]/.test(rgtReactive.password))
 	const hasNumber = computed(() => /\d/.test(rgtReactive.password))
 	const hasSpecialChar = computed(() => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(rgtReactive.password))
+
 	// 缺失规则提示
 	const missingRules = computed(() => {
-		const rules = []
+		const rules : string[] = []
 		// if (!hasLength.value) rules.push('长度不足10位')
 		if (!hasNumber.value) rules.push('数字')
 		if (!hasUppercase.value) rules.push('大写字母')
@@ -239,8 +266,9 @@
 		if (!hasSpecialChar.value) rules.push('特殊符号')
 		return rules
 	})
+
 	// 密码强度校验
-	const checkPasswordStrength = debounce((e) => {
+	const checkPasswordStrength = debounce((e : string) => {
 		rgtReactive.password = e.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
 		const pwd = rgtReactive.password
 		if (!pwd) {
@@ -340,11 +368,8 @@
 		image {
 			width: 70%;
 			height: 70%;
-
-
 		}
 	}
-
 
 	/* 文字标签 */
 	.gender-tag {
@@ -453,7 +478,6 @@
 		margin-left: 160rpx;
 		display: flex;
 		align-items: center;
-
 	}
 
 	/* 缺失提示样式 */

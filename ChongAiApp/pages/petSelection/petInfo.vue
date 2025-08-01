@@ -77,7 +77,7 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 	import DatePicker from '@/components/DatePicker.vue'
 	import {
 		onMounted,

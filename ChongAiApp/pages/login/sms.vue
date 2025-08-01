@@ -6,7 +6,7 @@
 		<view class="phone-box">
 			<view class="input-group">
 				<view class="prefix">+86</view>
-				<up-input placeholder="请输入手机号" focus type='number' shape="circle" clearable v-model="smsReactive.phone"
+				<up-input placeholder="请输入手机号" focus type='number' shape="circle" clearable v-model="smsReactive.phone" 
 					maxlength="11"></up-input>
 			</view>
 			<!-- 验证码输入组 -->
@@ -31,7 +31,7 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 	import {
 		ref,
 		computed,
@@ -39,114 +39,141 @@
 		onDeactivated,
 		reactive
 	} from 'vue'
-	import {
-		useAuthStore
-	} from '@/stores/auth'
-	import {
-		request
-	} from '../../utils/request'
-	const smsReactive = reactive({
-		grantType: 'phone', //后端指定类型
-		phone: '', //手机号
-		code: '' //验证码
+	import { useUserStore } from '@/stores/user'
+	import { request } from '@/utils/request'
+		const userStore = useUserStore()
+	// 定义SMS登录表单类型
+	interface SMSForm {
+		grantType: string
+		phone: string
+		code: string
+	}
+	
+	// 定义登录返回的数据类型
+	interface LoginResponseData {
+		userId: number
+		token: string
+		expire: number
+		needPetInfo: boolean
+	}
+	
+	//验证码登录
+	const smsReactive = reactive<SMSForm>({
+		grantType: 'phone',
+		phone: '',
+		code: ''
 	})
-	const showPhoneError = ref(false) //手机号格式
-	const countdown = ref(0) //验证码倒计时
+	
+	const showPhoneError = ref<boolean>(false)
+	const countdown = ref<number>(0)
+	
 	// 返回
-	const customBack = () => uni.redirectTo({
-		url:'/pages/login/login'
-	})
-	//点击跳转手机密码登录
-	const ToPasswordLogin = () => uni.navigateTo({
-		url: '/pages/login/pwd'
-	})
+	const customBack = (): void => {
+		uni.redirectTo({
+			url: '/pages/login/login'
+		})
+	}
+	
+	// 点击跳转手机密码登录
+	const ToPasswordLogin = (): void => {
+		uni.navigateTo({
+			url: '/pages/login/pwd'
+		})
+	}
 
 	// 按钮状态
-	const isFormValid = computed(() => smsReactive.phone && smsReactive.code)
+	const isFormValid = computed<boolean>(() => Boolean(smsReactive.phone && smsReactive.code))
+	
 	// 获取验证码
-	const getSMSCode = async () => {
-		if (!smsReactive.phone || countdown.value > 0) return;
+	const getSMSCode = async (): Promise<void> => {
+		if (!smsReactive.phone || countdown.value > 0) return
+		
 		try {
-			const res = await request({
+			const res = await request<Response<string>>({ 
 				url: '/app/auth/sendCode',
 				method: 'POST',
 				data: {
 					'phone': smsReactive.phone
-				}
-			});
-			if (!res.success) return uni.showToast({
-				title: res.msg,
-				icon: 'none'
-			});
+				},
+				header: {}
+			})
+			
+			if (!res?.success) {
+				return uni.showToast({
+					title: res?.msg || '发送失败',
+					icon: 'none'
+				})
+			}
 
 			uni.showToast({
 				title: '验证码已发送!',
 				icon: 'success'
-			});
-			smsReactive.code = res.data;
-			countdown.value = 60;
+			})
+			smsReactive.code = String(res.data)
+			countdown.value = 60
 
-			const timer = setInterval(() => countdown.value <= 0 ? clearInterval(timer) : countdown.value--, 1000);
-		} catch(err) {
+			const timer = setInterval(() => {
+				if (countdown.value <= 0) {
+					clearInterval(timer)
+				} else {
+					countdown.value--
+				}
+			}, 1000)
+		} catch (err) {
 			console.error(err)
 			uni.showToast({
 				title: '获取验证码失败，请重试',
 				icon: 'none'
-			});
+			})
 		}
 	}
 
 	// 点击登录
-	const handleLogin = async () => {
+	const handleLogin = async (): Promise<void> => {
 		try {
-			const authStore = useAuthStore();
-			const res = await request({
+			const res = await request<LoginResponseData>({
 				url: '/app/auth/login',
 				method: 'POST',
 				data: {
 					...smsReactive
-				}
-			});
-			console.log(res);
-			// 未注册
-			if (res.code === 1000) {
-				uni.showToast({
-					title: res.msg,
-					icon: 'none'
-				});
-				await authStore.setUserInfo({
-					phone: smsReactive.phone
-				});
-				return uni.navigateTo({
-					url: '/pages/login/register'
-				});
-			}
-
-			if (!res.success) {
-				return uni.showToast({
-					title: res.msg || '登录失败',
-					icon: 'none'
-				});
-			}
-
-			await authStore.setUserInfo({
-				token: res.data.token || '',
-				userId: res.data.userId,
+				},
+				header: {}
+			})
+			 if (!res) {
+			            uni.showToast({
+			                title: '网络错误',
+			                icon: 'none'
+			            })
+			            return
+			        }
+			        
+			userStore.setUserInfo({
+				token: res.data.token , 
+				userId: String(res.data.userId),
 				phone: smsReactive.phone
-			});
-
+			})
 			uni.navigateTo({
-				url: res.data.needPetInfo ?
+				url: res.data.needPetInfo ?  
 					'/pages/petSelection/petSelection' : '/pages/home/home'
-			});
-
+			})
+			
 		} catch (error) {
-			uni.showToast({
-				title: error.msg || '网络错误，请重试',
-				icon: 'none'
-			});
+			// 未注册
+			if ((error as any).code === 1000) {
+				uni.showToast({
+					title: (error as any).msg,
+					icon: 'none'
+				})
+				userStore.setUserInfo({
+					phone: smsReactive.phone
+				})
+				uni.navigateTo({
+					url: '/pages/login/register'
+				})
+				return
+			}
 		}
-	};
+	}
 </script>
 
 <style lang="scss" scoped>

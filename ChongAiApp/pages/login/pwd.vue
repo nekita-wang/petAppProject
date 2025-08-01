@@ -24,97 +24,115 @@
 			<up-button class="login-btn" :disabled="!isFormValid" @click="handleLogin">
 				登录
 			</up-button>
-			<u-modal confirmText="去注册" cancelText="取消" :show="showAgreementModal" :title="title" :content='content'
+			<up-modal confirmText="去注册" cancelText="取消" :show="showAgreementModal" :title="title" :content='content'
 				showCancelButton width="260px" @confirm="handleAgreement(true)"
-				@cancel="handleAgreement(false)"></u-modal>
+				@cancel="handleAgreement(false)"></up-modal>
 		</view>
 	</view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 	import {
 		ref,
 		computed,
 		reactive
 	} from 'vue'
-	import {
-		useAuthStore
-	} from '@/stores/auth'
-	import {
-		request
-	} from '../../utils/request'
-	const pwdReactive = reactive({
+	import { useUserStore } from '@/stores/user'
+	import { request } from '@/utils/request'
+	
+	// 定义密码登录表单类型
+	interface PwdForm {
+		grantType: string
+		phone: string
+		password: string
+	}
+	
+	// 定义登录返回的数据类型
+	interface LoginResponseData {
+		userId: number
+		token: string
+		expire: number
+		needPetInfo: boolean
+	}
+	
+	// 响应式数据定义
+	const pwdReactive = reactive<PwdForm>({
 		grantType: 'password', //后端指定类型
 		phone: '', //手机号
 		password: '' //密码
 	})
-	const showAgreementModal = ref(false) //模态框
-	const title = ref('温馨提示');
-	const content = ref('该手机号未注册，请先通过手机号注册');
-	const showPassword = ref(false) //密码显示按钮
-	const authStore = useAuthStore();
+	
+	const showAgreementModal = ref<boolean>(false) //模态框
+	const title = ref<string>('温馨提示')
+	const content = ref<string>('该手机号未注册，请先通过手机号注册')
+	const showPassword = ref<boolean>(false) //密码显示按钮
+	const userStore = useUserStore()
+	
 	// 返回
-	const customBack = () => uni.redirectTo({
+	const customBack = (): Promise<any> => uni.redirectTo({
 		url:'/pages/login/login'
 	})
+	
 	//点击跳转手机验证码登录
-	const ToSMSLogin = () => uni.navigateTo({
+	const ToSMSLogin = (): Promise<any> => uni.navigateTo({
 		url: '/pages/login/sms',
 	})
+	
 	// 模态框
-	const handleAgreement = async (agree) => {
+	const handleAgreement = async (agree: boolean): Promise<void> => {
 		if (agree) {
-			await authStore.setUserInfo({
+			userStore.setUserInfo({
 				phone: pwdReactive.phone
-			});
-			uni.navigateTo({
+			})
+			await uni.navigateTo({
 				url: '/pages/login/register'
-			});
+			})
 		}
-		showAgreementModal.value = false;
+		showAgreementModal.value = false
 	}
+	
 	// 按钮状态
-	const isFormValid = computed(() => pwdReactive.phone && pwdReactive.password)
+	const isFormValid = computed<boolean>(() => Boolean(pwdReactive.phone && pwdReactive.password))
+	
 	// 点击登录
-	const handleLogin = async () => {
+	const handleLogin = async (): Promise<void> => {
 		try {
-			const res = await request({
+			const res = await request<LoginResponseData>({
 				url: '/app/auth/login',
 				method: 'POST',
 				data: {
 					...pwdReactive
-				}
-			});
-			if (!res.success) {
-				// 未注册
-				if (res.code === 1000) {
-					return showAgreementModal.value = true
-				}
-				 uni.showToast({
-					title: res.msg || '登录失败',
+				},
+				header: {}
+			})
+			if (!res) {
+				uni.showToast({
+					title: '网络错误',
 					icon: 'none'
-				});
+				})
 				return
 			}
-
-			await authStore.setUserInfo({
+			userStore.setUserInfo({
 				token: res.data.token || '',
-				userId: res.data.userId,
+				userId: String(res.data.userId),
 				phone: pwdReactive.phone
-			});
-
+			})
 			uni.navigateTo({
 				url: res.data.needPetInfo ?
 					'/pages/petSelection/petSelection' : '/pages/home/home'
-			});
+			})
 
 		} catch (error) {
-			uni.showToast({
-				title: error.message || '网络错误，请重试',
-				icon: 'none'
-			});
+			// 未注册
+			if ((error as any).code === 1000) {
+				showAgreementModal.value = true
+				userStore.setUserInfo({
+					phone: pwdReactive.phone
+				})
+				return
+			}
 		}
-	};
+	}
 </script>
 
 <style lang="scss" scoped>

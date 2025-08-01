@@ -85,7 +85,7 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 	import {
 		ref,
 		onMounted,
@@ -196,9 +196,10 @@
 			const res = await request({
 				url: '/app/pet/pet',
 			})
+			console.log(res);
 			tabs.value = res.data
 
-		} catch (error) {
+		} catch (error) { 
 			console.error('获取宠物类型失败:', error)
 		}
 	}

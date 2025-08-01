@@ -1,4 +1,4 @@
-interface Response<T> {
+declare interface Response<T> {
     code: number
     msg:string
     success: boolean

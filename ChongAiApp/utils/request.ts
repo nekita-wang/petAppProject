@@ -1,6 +1,6 @@
 // utils/request.js
-import { useAuthStore } from "@/stores/auth";
 import { Env } from "./env";
+import { useUserStore } from "@/stores/user";
 // const BASE_URL = 'https://122.228.237.118:53627'
 // when its dev enable debug mode
 const ENABLE_DEBUG = Env.VITE_USER_NODE_ENV === "development";
@@ -19,7 +19,7 @@ export const request = <T>(config: RequestConfig) => {
     return;
   }
   const { url, method = "GET", data, header } = config;
-  const token = useAuthStore().token;
+   const token = useUserStore().token;
   const allHeader = {
     "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -41,11 +41,11 @@ export const request = <T>(config: RequestConfig) => {
           return;
         }
         const err = _response2ErrorMsg(response);
+		console.log(err);
         uni.showToast({ title: err.msg, icon: "none" });
         reject(err);
       },
       fail: (err) => {
-        console.log(err);
         uni.showToast({ title: "网络连接失败", icon: "none" });
         reject({
           statusCode: -1,

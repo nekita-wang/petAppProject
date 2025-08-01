@@ -10,8 +10,8 @@
 		</view>
 		<!-- 登录按钮 -->
 		<view class="button-box">
-			<up-button type="primary" class="sjh" @click="handlePhoneLogin">手机号登录/注册</up-button>
-			<up-button class="qt" @click="navigateToOtherLogin">其他方式登录</up-button>
+			<up-button type="primary" class="phone" @click="handlePhoneLogin">手机号登录/注册</up-button>
+			<up-button class="other" @click="navigateToOtherLogin">其他方式登录</up-button>
 		</view>
 		<!-- 底部协议描述 -->
 		<view class="desc">
@@ -20,8 +20,8 @@
 				</up-checkbox>
 				<text class="desc">
 					我已阅读并同意
-					<text class="link" @click="navigateTo('agreement')">《宠主用户协议》</text>
-					<text class="link" @click="navigateTo('privacy')">《个人信息保护政策》</text>
+					<text class="link">《宠主用户协议》</text>
+					<text class="link">《个人信息保护政策》</text>
 					我已明确知晓宠主平台禁止未满18周岁的未成年注册和使用
 				</text>
 			</view>
@@ -32,22 +32,26 @@
 
 </template>
 
-<script setup>
+<script setup lang="ts">
 	import {
 		ref
 	} from 'vue'
-	const agreed = ref(false)
-	const showAgreementModal = ref(false)
-	const title = ref('温馨提示');
-	const content = ref('请先阅读并同意《宠主用户协议》和《个人信息保护政策》');
+	
+	// 响应式数据定义
+	const agreed = ref<boolean>(false)
+	const showAgreementModal = ref<boolean>(false)
+	const title = ref<string>('温馨提示')
+	const content = ref<string>('请先阅读并同意《宠主用户协议》和《个人信息保护政策》')
+	
 	// 点击手机号登录
-	const handlePhoneLogin = () => {
+	const handlePhoneLogin = (): void => {
 		!agreed.value ? showAgreementModal.value = true : uni.navigateTo({
 			url: '/pages/login/sms'
 		})
 	}
+	
 	// 模态框
-	const handleAgreement = (agree) => {
+	const handleAgreement = (agree: boolean): void => {
 		agreed.value = agree
 		showAgreementModal.value = false
 		if (!agree) uni.showToast({
@@ -55,8 +59,9 @@
 			icon: 'none'
 		})
 	}
+	
 	// 点击其他方式登录
-	const navigateToOtherLogin = () => {
+	const navigateToOtherLogin = (): void => {
 		uni.showToast({
 			title: '暂不支持其他登录方式，敬请期待',
 			icon: 'none'
@@ -88,11 +93,11 @@
 
 			}
 
-			.sjh {
+			.phone {
 				color: white;
 			}
 
-			.qt {
+			.other {
 				border-radius: 60rpx;
 				margin-top: 20rpx;
 				margin-bottom: 40rpx;
