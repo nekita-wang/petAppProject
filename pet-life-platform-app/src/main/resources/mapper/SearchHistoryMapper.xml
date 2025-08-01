@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petlife.platform.app.mapper.SearchHistoryMapper">
+
+    <resultMap id="SearchHistoryResult" type="com.petlife.platform.app.pojo.SearchHistory">
+        <id property="id" column="id"/>
+        <result property="keyword" column="keyword"/>
+        <result property="resultAddress" column="result_address"/>
+        <result property="successful" column="successful"/>
+        <result property="searchCount" column="search_count"/>
+        <result property="lastSearchTime" column="last_search_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectSearchHistoryVo">
+        select id, keyword, result_address, successful, search_count, last_search_time, create_time, update_time
+        from search_history
+    </sql>
+
+    <!-- 插入搜索历史记录 -->
+    <insert id="insert" parameterType="com.petlife.platform.app.pojo.SearchHistory" useGeneratedKeys="true" keyProperty="id">
+        insert into search_history
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="keyword != null and keyword != ''">keyword,</if>
+            <if test="resultAddress != null">result_address,</if>
+            <if test="successful != null">successful,</if>
+            <if test="searchCount != null">search_count,</if>
+            <if test="lastSearchTime != null">last_search_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="keyword != null and keyword != ''">#{keyword},</if>
+            <if test="resultAddress != null">#{resultAddress},</if>
+            <if test="successful != null">#{successful},</if>
+            <if test="searchCount != null">#{searchCount},</if>
+            <if test="lastSearchTime != null">#{lastSearchTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <!-- 根据关键词查询搜索历史 -->
+    <select id="selectByKeyword" parameterType="String" resultMap="SearchHistoryResult">
+        <include refid="selectSearchHistoryVo"/>
+        where keyword = #{keyword}
+        limit 1
+    </select>
+
+    <!-- 更新搜索历史记录 -->
+    <update id="updateByKeyword" parameterType="com.petlife.platform.app.pojo.SearchHistory">
+        update search_history
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="resultAddress != null">result_address = #{resultAddress},</if>
+            <if test="successful != null">successful = #{successful},</if>
+            <if test="searchCount != null">search_count = #{searchCount},</if>
+            <if test="lastSearchTime != null">last_search_time = #{lastSearchTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where keyword = #{keyword}
+    </update>
+
+    <!-- 获取热门搜索关键词 -->
+    <select id="selectPopularKeywords" resultType="String">
+        select keyword
+        from search_history
+        where successful = true
+        order by search_count desc, last_search_time desc
+        limit #{limit}
+    </select>
+
+    <!-- 根据关键词前缀获取搜索建议 -->
+    <select id="selectSuggestionsByPrefix" resultType="String">
+        select keyword
+        from search_history
+        where keyword like concat(#{keywordPrefix}, '%')
+        and successful = true
+        order by search_count desc, last_search_time desc
+        limit #{limit}
+    </select>
+
+    <!-- 获取成功搜索的地址建议 -->
+    <select id="selectSuccessfulAddressesByPrefix" resultType="String">
+        select distinct result_address
+        from search_history
+        where (keyword like concat(#{keywordPrefix}, '%') or result_address like concat('%', #{keywordPrefix}, '%'))
+        and successful = true
+        and result_address is not null
+        order by search_count desc, last_search_time desc
+        limit #{limit}
+    </select>
+
+    <!-- 清理过期的搜索历史记录 -->
+    <delete id="deleteOldRecords">
+        delete from search_history
+        where create_time &lt; date_sub(now(), interval #{days} day)
+    </delete>
+
+</mapper>

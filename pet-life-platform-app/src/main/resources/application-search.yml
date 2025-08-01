@@ -1,0 +1,170 @@
+# Elasticsearch 通用配置
+elasticsearch:
+  # 连接配置
+  connection:
+    # 集群地址
+    hosts:
+      - "localhost:9200"
+    # 连接超时时间（秒）
+    connection-timeout: 5
+    # 读取超时时间（秒）
+    read-timeout: 30
+    # 用户名（可选）
+    username:
+    # 密码（可选）
+    password:
+    # 是否启用SSL
+    ssl-enabled: false
+
+  # 索引配置
+  indices:
+    # 地图位置索引
+    location:
+      name: "petlife_locations"
+      shards: 1
+      replicas: 1
+      refresh-interval: "1s"
+
+    # 用户动态索引
+    user-posts:
+      name: "petlife_user_posts"
+      shards: 2
+      replicas: 1
+      refresh-interval: "5s"
+
+    # 宠物品种索引
+    pet-breeds:
+      name: "petlife_pet_breeds"
+      shards: 1
+      replicas: 1
+      refresh-interval: "30s"
+
+    # 广告展位索引
+    advertisements:
+      name: "petlife_advertisements"
+      shards: 1
+      replicas: 1
+      refresh-interval: "10s"
+
+    # 附近用户索引
+    nearby-users:
+      name: "petlife_nearby_users"
+      shards: 2
+      replicas: 1
+      refresh-interval: "1s"
+
+  # 搜索配置
+  search:
+    # 默认搜索配置
+    default:
+      # 默认页面大小
+      page-size: 10
+      # 最大页面大小
+      max-page-size: 100
+      # 搜索超时时间（毫秒）
+      timeout: 5000
+      # 是否启用高亮
+      highlight-enabled: true
+
+    # 地图搜索配置
+    location:
+      # 默认搜索半径（公里）
+      default-radius: 10
+      # 最大搜索半径（公里）
+      max-radius: 100
+      # 精度评估启用
+      accuracy-evaluation: true
+      # 搜索建议数量
+      suggestion-limit: 5
+
+    # 用户动态搜索配置
+    user-posts:
+      # 默认排序方式：time(时间), popularity(热度), relevance(相关性)
+      default-sort: "time"
+      # 内容搜索字段权重
+      content-boost: 2.0
+      # 标签搜索字段权重
+      tag-boost: 1.5
+      # 是否启用内容过滤
+      content-filter: true
+
+    # 宠物品种搜索配置
+    pet-breeds:
+      # 品种名称权重
+      breed-name-boost: 3.0
+      # 特征描述权重
+      feature-boost: 1.5
+      # 是否启用模糊匹配
+      fuzzy-matching: true
+
+    # 广告搜索配置
+    advertisements:
+      # 默认排序：priority(优先级), ctr(点击率), time(时间)
+      default-sort: "priority"
+      # 地理位置权重
+      geo-boost: 2.0
+      # 是否启用A/B测试
+      ab-testing: true
+
+    # 附近用户搜索配置
+    nearby-users:
+      # 默认搜索半径（公里）
+      default-radius: 5
+      # 最大搜索半径（公里）
+      max-radius: 50
+      # 在线状态权重
+      online-boost: 2.0
+      # 活跃度权重
+      activity-boost: 1.5
+
+  # 缓存配置
+  cache:
+    # 是否启用缓存
+    enabled: true
+    # 缓存过期时间（分钟）
+    ttl: 30
+    # 热门搜索缓存时间（小时）
+    popular-search-ttl: 24
+    # 搜索建议缓存时间（分钟）
+    suggestion-ttl: 60
+
+  # 分析器配置
+  analyzers:
+    # 中文分析器
+    chinese:
+      type: "ik_max_word"
+      search-analyzer: "ik_smart"
+    # 拼音分析器（可选）
+    pinyin:
+      enabled: false
+
+  # 监控配置
+  monitoring:
+    # 是否启用性能监控
+    performance-enabled: true
+    # 慢查询阈值（毫秒）
+    slow-query-threshold: 1000
+    # 是否记录搜索统计
+    search-stats: true
+
+# 搜索历史配置
+search-history:
+  # 是否启用搜索历史
+  enabled: true
+  # 历史记录保留天数
+  retention-days: 30
+  # 自动清理配置
+  cleanup:
+    enabled: true
+    interval-days: 7
+    min-search-count: 2
+
+# 日志配置
+logging:
+  level:
+    # Elasticsearch相关日志
+    org.elasticsearch: WARN
+    org.springframework.data.elasticsearch: INFO
+    # 业务搜索服务日志
+    com.petlife.platform.app.service.search: INFO
+    com.petlife.platform.app.service.elasticsearch: DEBUG

@@ -76,6 +76,8 @@ public class NearbyUserServiceImpl implements INearbyUserService {
                     log.info("用户 {} 位置更新成功", userId);
                 } else {
                     // 如果更新失败，插入新记录
+                    // 先将该用户的其他位置记录设为非活跃
+                    nearbyUserMapper.deactivateUserLocations(userId);
                     nearbyUserMapper.insertUserLocation(newLocation);
                     log.info("用户 {} 位置插入成功", userId);
                 }
@@ -91,6 +93,8 @@ public class NearbyUserServiceImpl implements INearbyUserService {
                         "app");
             } else {
                 // 首次定位，直接插入
+                // 先将该用户的其他位置记录设为非活跃（防止数据不一致）
+                nearbyUserMapper.deactivateUserLocations(userId);
                 nearbyUserMapper.insertUserLocation(newLocation);
                 log.info("用户 {} 首次定位成功", userId);
             }

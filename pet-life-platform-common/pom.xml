@@ -153,6 +153,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Apache HttpComponents for SMS service -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

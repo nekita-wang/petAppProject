@@ -2,9 +2,11 @@ package com.petlife.platform.app.controller;
 
 import com.petlife.platform.app.service.INearbyUserService;
 import com.petlife.platform.app.service.LocationService;
+import com.petlife.platform.app.service.SmartSearchService;
 import com.petlife.platform.common.core.controller.BaseController;
 import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.page.TableDataInfo;
+import com.petlife.platform.common.pojo.dto.LocationConfirmDto;
 import com.petlife.platform.common.pojo.dto.LocationUpdateDto;
 import com.petlife.platform.common.pojo.dto.NearbyQueryDto;
 import io.swagger.annotations.Api;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,6 +37,9 @@ public class NearbyController extends BaseController {
     @Autowired
     private LocationService locationService;
 
+    @Autowired
+    private SmartSearchService smartSearchService;
+
     /**
      * 2.1.1 定位器 - 通过地址搜索获取精确坐标
      * 用户在搜索框输入具体位置，返回精确坐标信息
@@ -50,55 +56,112 @@ public class NearbyController extends BaseController {
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) result.get("data");
 
-            // 增强返回信息，符合定位器需求
+            // 返回核心定位信息
             Map<String, Object> locationInfo = new HashMap<>();
             locationInfo.put("searchAddress", address);
             locationInfo.put("longitude", data.get("longitude"));
             locationInfo.put("latitude", data.get("latitude"));
-            locationInfo.put("accuracy", "≤10米"); // 符合需求的定位精度
-            locationInfo.put("locationType", "GPS + 基站 + Wi-Fi 三角定位");
-            locationInfo.put("provider", data.get("provider"));
-            locationInfo.put("timestamp", System.currentTimeMillis());
+            // 使用动态精度评估
+            String accuracy = locationService.evaluateSearchAccuracy(address);
+            locationInfo.put("accuracy", accuracy);
+
+            // 记录搜索历史（包含结果地址）
+            String resultAddress = data.get("address") != null ? data.get("address").toString() : address;
+            locationService.recordSearchHistory(address, resultAddress, true);
+
+            // 可选：保留provider用于调试和日志
+            // locationInfo.put("provider", data.get("provider"));
 
             return AjaxResult.success("定位成功", locationInfo);
+        } else {
+            // 记录搜索失败
+            locationService.recordSearchHistory(address, false);
         }
 
         return result;
     }
 
     /**
+     * 2.1.0 地址搜索建议接口
+     * 为用户提供智能搜索建议，基于历史搜索和热门地点
+     */
+    @ApiOperation("地址搜索建议")
+    @GetMapping("/location/suggestions")
+    public AjaxResult getLocationSuggestions(
+            @ApiParam(value = "搜索关键词", required = true, example = "上海外滩") @RequestParam("keyword") String keyword,
+            @ApiParam(value = "建议数量", required = false, example = "5") @RequestParam(value = "limit", required = false, defaultValue = "5") Integer limit) {
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return AjaxResult.error("搜索关键词不能为空");
+        }
+
+        try {
+            List<String> suggestions = locationService.getSearchSuggestions(keyword.trim(), limit);
+
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("suggestions", suggestions);
+            responseData.put("keyword", keyword.trim());
+            responseData.put("count", suggestions.size());
+
+            return AjaxResult.success("获取建议成功", responseData);
+        } catch (Exception e) {
+            return AjaxResult.error("获取建议失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 2.1.0 热门搜索接口
+     * 获取当前热门的搜索关键词
+     */
+    @ApiOperation("热门搜索")
+    @GetMapping("/location/popular")
+    public AjaxResult getPopularSearches(
+            @ApiParam(value = "热门搜索数量", required = false, example = "8") @RequestParam(value = "limit", required = false, defaultValue = "8") Integer limit) {
+
+        try {
+            List<String> popularSearches = smartSearchService.getPopularSuggestions(limit);
+
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("popular", popularSearches);
+            responseData.put("count", popularSearches.size());
+            responseData.put("updateTime", System.currentTimeMillis());
+
+            return AjaxResult.success("获取热门搜索成功", responseData);
+        } catch (Exception e) {
+            return AjaxResult.error("获取热门搜索失败：" + e.getMessage());
+        }
+    }
+
+    /**
      * 2.1.1 定位器 - 确认地图定位
      * 用户点击【地图定位】按钮后，更新用户位置并返回附近页面
+     * 支持JSON格式请求体
      */
     @ApiOperation("定位器 - 确认地图定位")
     @PostMapping("/location/confirm")
-    public AjaxResult confirmLocation(
-            @ApiParam(value = "用户ID", required = true) @RequestParam("userId") Long userId,
-            @ApiParam(value = "经度", required = true) @RequestParam("longitude") BigDecimal longitude,
-            @ApiParam(value = "纬度", required = true) @RequestParam("latitude") BigDecimal latitude,
-            @ApiParam(value = "地址", required = false) @RequestParam(value = "address", required = false) String address) {
+    public AjaxResult confirmLocation(@RequestBody LocationConfirmDto confirmDto) {
 
         // 验证坐标有效性
-        if (!locationService.isValidCoordinate(latitude, longitude)) {
+        if (!locationService.isValidCoordinate(confirmDto.getLatitude(), confirmDto.getLongitude())) {
             return AjaxResult.error("坐标无效");
         }
 
         // 更新用户位置
         LocationUpdateDto locationDto = new LocationUpdateDto();
-        locationDto.setLatitude(latitude);
-        locationDto.setLongitude(longitude);
-        locationDto.setAddress(address);
+        locationDto.setLatitude(confirmDto.getLatitude());
+        locationDto.setLongitude(confirmDto.getLongitude());
+        locationDto.setAddress(confirmDto.getAddress());
         locationDto.setLocationType((byte) 4); // 混合定位
 
-        AjaxResult updateResult = nearbyUserService.updateUserLocation(userId, locationDto);
+        AjaxResult updateResult = nearbyUserService.updateUserLocation(confirmDto.getUserId(), locationDto);
 
         if (updateResult.isSuccess()) {
             // 返回更新后的位置信息
             Map<String, Object> locationInfo = new HashMap<>();
-            locationInfo.put("userId", userId);
-            locationInfo.put("longitude", longitude);
-            locationInfo.put("latitude", latitude);
-            locationInfo.put("address", address);
+            locationInfo.put("userId", confirmDto.getUserId());
+            locationInfo.put("longitude", confirmDto.getLongitude());
+            locationInfo.put("latitude", confirmDto.getLatitude());
+            locationInfo.put("address", confirmDto.getAddress());
             locationInfo.put("updateTime", System.currentTimeMillis());
             locationInfo.put("message", "位置更新成功，附近用户距离已刷新");
 

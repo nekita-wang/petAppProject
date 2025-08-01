@@ -12,21 +12,19 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author pet-life
  */
 @EnableScheduling
-@MapperScan({"com.petlife.platform.app.mapper", "com.petlife.platform.admin.mapper", "com.petlife.platform.system.mapper"})
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class }, 
-                      scanBasePackages = {"com.petlife.platform"})
-public class PetLifeApplication
-{
-    public static void main(String[] args)
-    {
+@MapperScan({ "com.petlife.platform.app.mapper", "com.petlife.platform.admin.mapper",
+        "com.petlife.platform.system.mapper" })
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class }, scanBasePackages = { "com.petlife.platform" })
+public class PetLifeApplication {
+    public static void main(String[] args) {
         // System.setProperty("spring.devtools.restart.enabled", "false");
         SpringApplication.run(PetLifeApplication.class, args);
-        System.out.println("(♥◠‿◠)ﾉﾞ  宠物一站式服务平台启动成功   ლ(´ڡ`ლ)ﾞ  \n"+
+        System.out.println("(♥◠‿◠)ﾉﾞ  宠物一站式服务平台启动成功   ლ(´ڡ`ლ)ﾞ  \n" +
                 "            _   \n" +
                 " _ __   ___| |_ \n" +
                 "| '_ \\ / _ \\ __|\n" +
                 "| |_) |  __/ |_ \n" +
                 "| .__/ \\___|\\__|\n" +
-                "|_|             \n" );
+                "|_|             \n");
     }
 }

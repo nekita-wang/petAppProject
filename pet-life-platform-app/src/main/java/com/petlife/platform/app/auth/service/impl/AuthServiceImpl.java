@@ -19,6 +19,8 @@ import com.petlife.platform.common.utils.PasswordStrengthUtils;
 import com.petlife.platform.common.utils.StringUtils;
 import com.petlife.platform.common.utils.sign.RsaUtils;
 import com.petlife.platform.framework.web.service.TokenService;
+import com.petlife.platform.common.sms.SmsService;
+import com.petlife.platform.common.sms.SmsResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -43,6 +45,8 @@ public class AuthServiceImpl implements AuthService {
     private PetService petService;
     @Autowired
     private StatusInfoMapper statusInfoMapper;
+    @Autowired
+    private SmsService smsService;
 
     @Override
     public ResponseData<String> sendLoginCode(SendCodeDTO dto) {
@@ -76,17 +80,27 @@ public class AuthServiceImpl implements AuthService {
             return ResponseData.error(AuthExceptionCode.CODE_SEND_TOO_FREQUENT);
         }
         // 生成 6 位验证码
-        String code = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
+        String code = String.valueOf((int) ((Math.random() * 9 + 1) * 100000));
         // 保存验证码，有效期 5 分钟
         redisTemplate.opsForValue().set(
                 AbstractTokenGranter.VERIFY_CODE_KEY_PREFIX + phone,
                 code,
-                Duration.ofMinutes(5)
-        );
-        // TODO: 调用第三方短信服务发送验证码（暂时只打印）
-        log.info("发送登录验证码: phone={}, code={}", phone, code);
-        // 开发环境（临时返回code）：
-        return ResponseData.ok(code);
+                Duration.ofMinutes(5));
+        // 调用短信服务发送验证码
+        try {
+            SmsResult smsResult = smsService.sendVerificationCode(phone, code);
+            if (smsResult.isSuccess()) {
+                log.info("验证码发送成功: phone={}, provider={}", phone, smsResult.getProvider());
+                return ResponseData.ok("验证码发送成功");
+            } else {
+                log.warn("验证码发送失败: phone={}, provider={}, error={}",
+                        phone, smsResult.getProvider(), smsResult.getMessage());
+                return ResponseData.error(AuthExceptionCode.CODE_SEND_FAILED);
+            }
+        } catch (Exception e) {
+            log.error("验证码发送异常: phone={}", phone, e);
+            return ResponseData.error(AuthExceptionCode.CODE_SEND_FAILED);
+        }
     }
 
     @Override

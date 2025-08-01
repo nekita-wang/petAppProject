@@ -47,6 +47,13 @@
             <artifactId>fastjson2</artifactId>
         </dependency>
 
+        <!-- Elasticsearch (可选，用于高级搜索功能) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+            <optional>true</optional>
+        </dependency>
+
     </dependencies>
 
 

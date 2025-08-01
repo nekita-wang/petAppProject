@@ -36,6 +36,7 @@
         <spring-security.version>5.7.12</spring-security.version>
         <spring-framework.version>5.3.39</spring-framework.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
+        <httpclient.version>4.5.14</httpclient.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -237,6 +238,13 @@
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${mapstruct.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <!-- Apache HttpComponents -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
             </dependency>
 
         </dependencies>

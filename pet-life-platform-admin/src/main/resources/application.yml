@@ -168,8 +168,49 @@ map:
   # 天地图配置
   tianditu:
     # 天地图API Key（请替换为您申请的真实Key）
-    api-key: fbdcb52e93984baa59a47bed4948e511
+    api-key: YOUR_TIANDITU_API_KEY_HERE
     # 地理编码API地址
     geocoding-url: http://api.tianditu.gov.cn/geocoder
     # 逆地理编码API地址
     regeo-url: http://api.tianditu.gov.cn/geocoder
+
+# 保持原有高德地图配置以兼容现有代码
+amap:
+  # 高德地图API Key（请替换为您申请的真实Key）
+  api-key: 6400f069a0114d30da1234f65063d8c9
+  # 地理编码API地址
+  geocoding-url: https://restapi.amap.com/v3/geocode/geo
+  # 逆地理编码API地址
+  regeo-url: https://restapi.amap.com/v3/geocode/regeo
+  # 请求超时时间（毫秒）
+  timeout: 5000
+
+# 短信服务配置
+sms:
+  # 当前使用的服务商：wangwei（望为）、sanwang（三网106）
+  provider: wangwei
+  # 请求超时时间（毫秒）
+  timeout: 10000
+  # 验证码模板配置
+  templates:
+    # 登录验证码模板
+    login-code:
+      content: "code:{code}"
+      expire-minutes: 5
+  # 望为短信配置
+  wangwei:
+    host: https://wwsms.market.alicloudapi.com
+    path: /send_sms
+    app-code: fd4e6d2d32214e16a4b5e2bfe0857d86
+    app-key: 204633337
+    app-secret: jL82g8Q1N79SzKuMpP8dnLkIe7S0Kf7w
+    template-id: wangweisms996
+  # 三网106短信配置
+  sanwang:
+    host: https://gyytz.market.alicloudapi.com
+    path: /sms/smsSend
+    app-code: fd4e6d2d32214e16a4b5e2bfe0857d86
+    app-key: 204633337
+    app-secret: jL82g8Q1N79SzKuMpP8dnLkIe7S0Kf7w
+    sms-sign-id: 2e65b1bb3d054466b82f0c9d125465e2
+    template-id: 908e94ccf08b4476ba6c876d13f084ad

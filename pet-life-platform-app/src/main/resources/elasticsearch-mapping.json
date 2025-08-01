@@ -1,0 +1,72 @@
+{
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "address": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "location": {
+        "type": "geo_point"
+      },
+      "type": {
+        "type": "keyword"
+      },
+      "category": {
+        "type": "keyword"
+      },
+      "city": {
+        "type": "keyword"
+      },
+      "district": {
+        "type": "keyword"
+      },
+      "keywords": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart"
+      },
+      "popularity": {
+        "type": "double"
+      },
+      "accuracyLevel": {
+        "type": "integer"
+      },
+      "createTime": {
+        "type": "date"
+      },
+      "updateTime": {
+        "type": "date"
+      }
+    }
+  },
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1,
+    "analysis": {
+      "analyzer": {
+        "ik_max_word": {
+          "type": "ik_max_word"
+        },
+        "ik_smart": {
+          "type": "ik_smart"
+        }
+      }
+    }
+  }
+}

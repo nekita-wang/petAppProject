@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +21,9 @@ public class LocationService {
 
     @Autowired
     private MapService mapService;
+
+    @Autowired
+    private SmartSearchService smartSearchService;
 
     /**
      * 计算两点之间的距离（使用Haversine公式）
@@ -231,5 +235,89 @@ public class LocationService {
             return true; // 首次定位
         }
         return movedDistance.compareTo(new BigDecimal(threshold)) > 0;
+    }
+
+    /**
+     * 获取地址搜索建议
+     * 基于历史搜索和热门地点提供智能建议
+     *
+     * @param keyword 搜索关键词
+     * @param limit   建议数量限制
+     * @return 搜索建议列表
+     */
+    public List<String> getSearchSuggestions(String keyword, Integer limit) {
+        return smartSearchService.getSmartSuggestions(keyword, limit);
+    }
+
+    /**
+     * 记录搜索历史
+     *
+     * @param keyword       搜索关键词
+     * @param resultAddress 搜索结果地址
+     * @param successful    搜索是否成功
+     */
+    public void recordSearchHistory(String keyword, String resultAddress, boolean successful) {
+        smartSearchService.recordSearchHistory(keyword, resultAddress, successful);
+    }
+
+    /**
+     * 记录搜索历史（兼容旧接口）
+     *
+     * @param keyword    搜索关键词
+     * @param successful 搜索是否成功
+     */
+    public void recordSearchHistory(String keyword, boolean successful) {
+        smartSearchService.recordSearchHistory(keyword, null, successful);
+    }
+
+    /**
+     * 评估搜索精度
+     * 根据地址特征动态评估定位精度
+     *
+     * @param address 搜索地址
+     * @return 精度描述
+     */
+    public String evaluateSearchAccuracy(String address) {
+        if (address == null || address.trim().isEmpty()) {
+            return "未知精度";
+        }
+
+        String addr = address.trim();
+
+        // 具体门牌号地址 - 高精度
+        if (addr.matches(".*\\d+号.*") || addr.matches(".*\\d+\\-\\d+.*") || addr.matches(".*\\d+栋.*")) {
+            return "≤10米";
+        }
+
+        // 具体建筑物/商场/学校等 - 中高精度
+        if (addr.contains("大厦") || addr.contains("广场") || addr.contains("商场") ||
+                addr.contains("医院") || addr.contains("学校") || addr.contains("大学") ||
+                addr.contains("酒店") || addr.contains("银行") || addr.contains("超市") ||
+                addr.contains("公园") || addr.contains("体育馆") || addr.contains("机场") ||
+                addr.contains("火车站") || addr.contains("地铁站")) {
+            return "≤50米";
+        }
+
+        // 具体街道地址 - 中等精度
+        if (addr.contains("街") || addr.contains("路") || addr.contains("巷") ||
+                addr.contains("胡同") || addr.contains("弄")) {
+            return "≤100米";
+        }
+
+        // 区域性地标 - 低精度
+        if (addr.matches(".*[市县区].*") && (addr.contains("区") || addr.contains("县") || addr.contains("市"))) {
+            if (addr.length() <= 6 && !addr.matches(".*\\d+.*")) {
+                return "≤1000米";
+            }
+            return "≤200米";
+        }
+
+        // 知名地标但位置模糊 - 中低精度
+        if (addr.length() <= 8 && !addr.matches(".*\\d+.*")) {
+            return "≤500米";
+        }
+
+        // 默认中等精度
+        return "≤100米";
     }
 }

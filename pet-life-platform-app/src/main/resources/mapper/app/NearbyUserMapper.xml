@@ -60,14 +60,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         WHERE user_id = #{userId} AND is_active = 1
     </update>
 
+    <!-- 将用户的其他位置记录设为非活跃 -->
+    <update id="deactivateUserLocations">
+        UPDATE user_location SET is_active = 0 WHERE user_id = #{userId}
+    </update>
+
     <!-- 插入用户位置信息 -->
     <insert id="insertUserLocation" parameterType="com.petlife.platform.common.pojo.entity.UserLocation">
-        <!-- 先将该用户的其他位置记录设为非活跃 -->
-        UPDATE user_location SET is_active = 0 WHERE user_id = #{userId};
-        
-        <!-- 插入新的位置记录 -->
         INSERT INTO user_location (
-            user_id, latitude, longitude, accuracy, location_type, 
+            user_id, latitude, longitude, accuracy, location_type,
             address, create_time, update_time, is_active
         ) VALUES (
             #{userId}, #{latitude}, #{longitude}, #{accuracy}, #{locationType},
