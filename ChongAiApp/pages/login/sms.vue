@@ -87,7 +87,6 @@
 	// 获取验证码
 	const getSMSCode = async (): Promise<void> => {
 		if (!smsReactive.phone || countdown.value > 0) return
-		
 		try {
 			const res = await request<Response<string>>({ 
 				url: '/app/auth/sendCode',
@@ -120,7 +119,7 @@
 				}
 			}, 1000)
 		} catch (err) {
-			console.error(err)
+			console.log(err);
 			uni.showToast({
 				title: '获取验证码失败，请重试',
 				icon: 'none'
@@ -139,14 +138,6 @@
 				},
 				header: {}
 			})
-			 if (!res) {
-			            uni.showToast({
-			                title: '网络错误',
-			                icon: 'none'
-			            })
-			            return
-			        }
-			        
 			userStore.setUserInfo({
 				token: res.data.token , 
 				userId: String(res.data.userId),
@@ -157,11 +148,12 @@
 					'/pages/petSelection/petSelection' : '/pages/home/home'
 			})
 			
-		} catch (error) {
+		} catch (err) {
+			console.log(err);
 			// 未注册
-			if ((error as any).code === 1000) {
+			if ((err as any).code === 1000) {
 				uni.showToast({
-					title: (error as any).msg,
+					title: (err as any).msg,
 					icon: 'none'
 				})
 				userStore.setUserInfo({

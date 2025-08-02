@@ -45,9 +45,13 @@
 	
 	// 点击手机号登录
 	const handlePhoneLogin = (): void => {
-		!agreed.value ? showAgreementModal.value = true : uni.navigateTo({
-			url: '/pages/login/sms'
-		})
+		if (!agreed.value) {
+			showAgreementModal.value = true
+		} else {
+			uni.navigateTo({
+				url: '/pages/login/sms'
+			})
+		}
 	}
 	
 	// 模态框

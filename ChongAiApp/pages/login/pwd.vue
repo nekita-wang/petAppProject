@@ -105,13 +105,6 @@
 				},
 				header: {}
 			})
-			if (!res) {
-				uni.showToast({
-					title: '网络错误',
-					icon: 'none'
-				})
-				return
-			}
 			userStore.setUserInfo({
 				token: res.data.token || '',
 				userId: String(res.data.userId),
@@ -122,9 +115,9 @@
 					'/pages/petSelection/petSelection' : '/pages/home/home'
 			})
 
-		} catch (error) {
+		} catch (err) {
 			// 未注册
-			if ((error as any).code === 1000) {
+			if ((err as any).code === 1000) {
 				showAgreementModal.value = true
 				userStore.setUserInfo({
 					phone: pwdReactive.phone

@@ -142,7 +142,6 @@
 		userId : string
 	}
 
-
 	const strengthLevel = ref<number>(0) //密码强度
 	const ShowStrenth = ref<boolean>(false) //显示密码强度
 	const relativePath = ref<string>('') //不携带ip的头像地址
@@ -191,9 +190,7 @@
 		try {
 			// 获取密钥
 			const publicKey = await getPublicKey()
-			console.log('获取公钥成功');
 			const encryptedPwd = encryptWithRSA(publicKey, rgtReactive.password)
-			console.log('密码加密成功');
 			const res = await request<RegisterResponse>({
 				url: '/app/user/registerProfile',
 				method: 'POST',
@@ -205,7 +202,6 @@
 				},
 				header: {}
 			})
-			console.log('注册响应:', res);
 			if (!res) {
 				uni.showToast({
 					title: '网络错误',
@@ -222,12 +218,11 @@
 				userId: res.data.userId,
 				phone: rgtReactive.phone
 			})
-
 			uni.navigateTo({
 				url: '/pages/petSelection/petSelection'
 			})
-		} catch (error) {
-			console.log(error);
+		} catch (err) {
+			console.log(err);
 		}
 	}
 

@@ -9,8 +9,7 @@ export async function getPublicKey() {
 		url: '/public/publicKey',
 		method: 'GET'
 	})
-	// 调试输出完整响应
-	// console.log('公钥接口完整响应:', res.publicKey)
+
 	return res.publicKey
 }
 
