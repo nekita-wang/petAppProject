@@ -44,7 +44,7 @@
 			<!-- 生日-->
 			<view class="form-item">
 				<text class="label">您的生日:</text>
-				<DatePicker v-model="rgtReactive.birthday" @date-change="handleBirthdayChange"
+				<DatePicker v-model="rgtReactive.birthday" @dateChange="handleBirthdayChange"
 					:default-date="rgtReactive.birthday" />
 			</view>
 
@@ -53,12 +53,12 @@
 				<text class="label">密码:</text>
 				<view class="form-item-pwd">
 					<up-input shape="circle" clearable maxlength="10" v-model="rgtReactive.password"
-						:type="showPassword ? 'text' : 'password'" placeholder="密码需10位包含字母、数字、符号"
+						:type="pwdReactive.showPassword ? 'text' : 'password'" placeholder="密码需10位包含字母、数字、符号"
 						@change="checkPasswordStrength">
 						<template #suffix>
-							<up-icon :name="showPassword ? 'eye-fill' : 'eye-off'"
-								:color="showPassword ? '#2979ff' : '#c0c4cc'" size="25"
-								@click="showPassword = !showPassword" />
+							<up-icon :name="pwdReactive.showPassword ? 'eye-fill' : 'eye-off'"
+								:color="pwdReactive.showPassword ? '#2979ff' : '#c0c4cc'" size="25"
+								@click="pwdReactive.showPassword = !pwdReactive.showPassword" />
 						</template>
 					</up-input>
 				</view>
@@ -75,12 +75,12 @@
 				<text class="label">密码确认:</text>
 				<view class="form-item-pwd">
 					<up-input shape="circle" clearable v-model="rgtReactive.passwordConfirm"
-						:type="showCmPassword ? 'text' : 'password'" placeholder="请输入确认密码" :passwordIcon="false"
+						:type="pwdReactive.showCmPassword ? 'text' : 'password'" placeholder="请输入确认密码" :passwordIcon="false"
 						maxlength="10">
 						<template #suffix>
-							<up-icon :name="showCmPassword ? 'eye-fill' : 'eye-off'"
-								:color="showCmPassword ? '#2979ff' : '#c0c4cc'" size="25"
-								@click="showCmPassword = !showCmPassword" />
+							<up-icon :name="pwdReactive.showCmPassword ? 'eye-fill' : 'eye-off'"
+								:color="pwdReactive.showCmPassword ? '#2979ff' : '#c0c4cc'" size="25"
+								@click="pwdReactive.showCmPassword = !pwdReactive.showCmPassword" />
 						</template>
 					</up-input>
 				</view>
@@ -131,6 +131,13 @@
 		avatarUrl : string
 		passwordConfirm : string
 	}
+	interface pwdReactive {
+		strengthLevel : number
+		showStrength : boolean
+		relativePath : string
+		showPassword : boolean,
+		showCmPassword : boolean
+	}
 
 	interface AvatarCallback {
 		relativePath : string
@@ -141,11 +148,9 @@
 		token : string
 		userId : string
 	}
-
-	const strengthLevel = ref<number>(0) //密码强度
-	const ShowStrenth = ref<boolean>(false) //显示密码强度
-	const relativePath = ref<string>('') //不携带ip的头像地址
-	const userStore = useUserStore()//使用pinia
+	//使用pinia
+	const userStore = useUserStore()
+	
 	const rgtReactive = reactive<RegisterForm>({
 		phone: userStore.phone,
 		nickName: '',
@@ -155,8 +160,13 @@
 		avatarUrl: '/static/tx.svg',
 		passwordConfirm: ''
 	})
-	const showPassword = ref<boolean>(false) //密码显示按钮
-	const showCmPassword = ref<boolean>(false) //确认密码显示按钮
+	const pwdReactive = reactive<pwdReactive>({
+		strengthLevel: 0, // 密码强度
+		showStrength: false, // 显示密码强度
+		relativePath: '', // 不携带ip的头像地址
+		showPassword: false, // 密码显示按钮
+		showCmPassword: false // 确认密码显示按钮
+	})
 
 	// 按钮状态
 	const isFormValid = computed(() =>
@@ -170,19 +180,16 @@
 		rgtReactive.birthday = date
 	}
 
-	// 用户是否上传头像
-	const hasUploadedAvatar = computed(() => rgtReactive.avatarUrl !== '/static/tx.svg')
-
 	//点击上传图片
 	const UploadImage = () : void => {
 		uploadImg((AvatarCallback : AvatarCallback) => {
 			rgtReactive.avatarUrl = AvatarCallback.fullUrl; //带有ip地址的
-			relativePath.value = AvatarCallback.relativePath
+			pwdReactive.relativePath = AvatarCallback.relativePath
 		});
 	};
 
 	onLoad(() => {
-		rgtReactive.birthday = '2000-06-06' // 设置初始值
+		rgtReactive.birthday = '2000-06-06' 
 	})
 
 	// 个人完善接口
@@ -196,19 +203,11 @@
 				method: 'POST',
 				data: {
 					...rgtReactive,
-					avatarUrl: relativePath.value,
+					avatarUrl: pwdReactive.relativePath,
 					password: encryptedPwd,
 					passwordConfirm: encryptedPwd
-				},
-				header: {}
+				}
 			})
-			if (!res) {
-				uni.showToast({
-					title: '网络错误',
-					icon: 'none'
-				})
-				return
-			}
 			uni.showToast({
 				title: '注册成功',
 				icon: 'success'
@@ -234,7 +233,7 @@
 			})
 			return
 		}
-		if (!hasUploadedAvatar.value) {
+		if (rgtReactive.avatarUrl === '/static/tx.svg') {
 			uni.showToast({
 				title: '请上传头像',
 				icon: 'none'
@@ -254,7 +253,6 @@
 	// 缺失规则提示
 	const missingRules = computed(() => {
 		const rules : string[] = []
-		// if (!hasLength.value) rules.push('长度不足10位')
 		if (!hasNumber.value) rules.push('数字')
 		if (!hasUppercase.value) rules.push('大写字母')
 		if (!hasLowercase.value) rules.push('小写字母')
@@ -267,10 +265,10 @@
 		rgtReactive.password = e.replace(/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '')
 		const pwd = rgtReactive.password
 		if (!pwd) {
-			ShowStrenth.value = false
+			pwdReactive.showStrength = false
 			return
 		}
-		ShowStrenth.value = true
+		pwdReactive.showStrength = true
 	}, 300)
 </script>
 

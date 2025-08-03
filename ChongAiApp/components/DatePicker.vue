@@ -1,164 +1,202 @@
 <template>
-  <view class="date-picker-wrapper">
-    <picker-view class="picker" :value="pickerValue" @change="handleDateChange" :indicator-style="indicatorStyle">
-      <picker-view-column>
-        <view class="item" v-for="year in years" :key="year">{{year}}年</view>
-      </picker-view-column>
-      <picker-view-column>
-        <view class="item" v-for="month in months" :key="month">{{month}}月</view>
-      </picker-view-column>
-      <picker-view-column>
-        <view class="item" v-for="day in days" :key="day">{{day}}日</view>
-      </picker-view-column>
-    </picker-view>
-  </view>
+	<view class="date-picker-wrapper">
+		<picker-view class="picker" :value="dateData.pickerValue" @change="handleDateChange"
+			:indicator-style="'height: 80rpx;'">
+			<picker-view-column>
+				<view class="item" v-for="year in dateData.years" :key="year">{{year}}年</view>
+			</picker-view-column>
+			<picker-view-column>
+				<view class="item" v-for="month in dateData.months" :key="month">{{month}}月</view>
+			</picker-view-column>
+			<picker-view-column>
+				<view class="item" v-for="day in dateData.days" :key="day">{{day}}日</view>
+			</picker-view-column>
+		</picker-view>
+	</view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+	import { ref, reactive, onMounted, watch } from 'vue'
 
-// 类型定义
-interface DatePickerProps {
-  modelValue?: string
-  defaultDate?: Date | string
-}
+	//Props类型
+	interface Props {
+		modelValue ?: string
+		defaultDate ?: Date | string | number
+	}
+	//数据类型定义
+	interface DateData {
+		years : number[]
+		months : number[]
+		days : number[]
+		selectedYear : number
+		selectedMonth : number
+		selectedDay : number
+		pickerValue : number[]
+	}
 
-interface DateChangeEvent {
-  detail: {
-    value: number[]
-  }
-}
+	// 定义事件类型
+	interface DateChangeEvent {
+		detail : {
+			value : number[]
+		}
+	}
+	
+	const props = withDefaults(defineProps<Props>(), {
+		modelValue: '',
+		defaultDate: () => Date.now()
+	})
 
-// Props 定义
-const props = withDefaults(defineProps<DatePickerProps>(), {
-  modelValue: '',
-  defaultDate: () => new Date('2000-06-06')
-})
+	const emit = defineEmits<{
+		'update:modelValue' : [value: string]
+		'dateChange' : [value: string]
+	}>()
 
-// Emits 定义
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'date-change': [value: string]
-}>()
+	// 基础数据
+	const currentDate = new Date()
 
-// 数据定义
-const currentDate = new Date()
-const years = ref<number[]>(Array.from({length: currentDate.getFullYear() - 1949}, (_, i) => 1950 + i))
-const months = ref<number[]>([])
-const days = ref<number[]>([])
-const year = ref<number>(2000) // 显式设置初始值
-const month = ref<number>(6)
-const day = ref<number>(6)
-const pickerValue = ref<number[]>([])
-const indicatorStyle = `height: ${uni.upx2px(80)}px;`
+	const dateData = reactive<DateData>({
+		years: [],
+		months: [],
+		days: [],
+		selectedYear: 2000,
+		selectedMonth: 6,
+		selectedDay: 6,
+		pickerValue: [0, 0, 0]
+	})
 
-// 同步日期数据
-const syncDateData = (): void => {
-  const date = props.defaultDate ? new Date(props.defaultDate) : new Date('2000-06-06')
-  year.value = date.getFullYear()
-  month.value = date.getMonth() + 1
-  day.value = date.getDate()
-  
-  // 更新关联数据
-  updateMonths()
-  updateDays()
-  updatePickerValue()
-}
 
-// 更新月份列表
-const updateMonths = (): void => {
-  const maxMonth = year.value === currentDate.getFullYear() ? 
-    currentDate.getMonth() + 1 : 12
-  months.value = Array.from({length: maxMonth}, (_, i) => i + 1)
-  month.value = Math.min(month.value, maxMonth)
-}
+	// 生成年份列表
+	const generateYears = () : void => {
+		const startYear = 1950
+		const endYear = currentDate.getFullYear()
+		dateData.years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i)
+	}
 
-// 更新日期列表
-const updateDays = (): void => {
-  let maxDay = new Date(year.value, month.value, 0).getDate()
-  if (year.value === currentDate.getFullYear() && month.value === currentDate.getMonth() + 1) {
-    maxDay = currentDate.getDate()
-  }
-  days.value = Array.from({length: maxDay}, (_, i) => i + 1)
-  day.value = Math.min(day.value, maxDay)
-}
+	// 生成月份列表
+	const generateMonths = () : void => {
+		const maxMonth = dateData.selectedYear === currentDate.getFullYear() ?
+			currentDate.getMonth() + 1 : 12
+		dateData.months = Array.from({ length: maxMonth }, (_, i) => i + 1)
+	}
 
-// 更新选择器位置
-const updatePickerValue = async (): Promise<void> => {
-  await nextTick()
-  pickerValue.value = [
-    years.value.indexOf(year.value),
-    months.value.indexOf(month.value),
-    days.value.indexOf(day.value)
-  ]
-}
+	// 生成日期列表
+	const generateDays = () : void => {
+		// 获取当月最大天数
+		const maxDay = new Date(dateData.selectedYear, dateData.selectedMonth, 0).getDate()
 
-// 日期变化处理
-const handleDateChange = (e: DateChangeEvent): void => {
-  const [yIdx, mIdx, dIdx] = e.detail.value
-  year.value = years.value[yIdx]
-  month.value = months.value[mIdx]
-  day.value = days.value[dIdx]
-  
-  // 联动更新
-  if (yIdx !== pickerValue.value[0]) updateMonths()
-  if (mIdx !== pickerValue.value[1]) updateDays()
-  
-  updatePickerValue()
-  
-  const formattedDate = [
-    year.value,
-    String(month.value).padStart(2, '0'),
-    String(day.value).padStart(2, '0')
-  ].join('-')
-  
-  emit('update:modelValue', formattedDate)
-  emit('date-change', formattedDate)
-}
+		// 如果是当前年月，限制到当前日期
+		const limitDay = dateData.selectedYear === currentDate.getFullYear() &&
+			dateData.selectedMonth === currentDate.getMonth() + 1 ?
+			currentDate.getDate() : maxDay
 
-// 初始化
-onMounted((): void => {
-  syncDateData()
-  
-  // 双重保险：500ms后再次同步
-  setTimeout(() => {
-    syncDateData()
-  }, 500)
-})
+		dateData.days = Array.from({ length: limitDay }, (_, i) => i + 1)
+	}
 
-// 监听默认值变化
-watch(() => props.defaultDate, () => {
-  syncDateData()
-}, { immediate: true })
+	// 更新选择器位置
+	const updatePickerPosition = () : void => {
+		const yearIndex = dateData.years.indexOf(dateData.selectedYear)
+		const monthIndex = dateData.months.indexOf(dateData.selectedMonth)
+		const dayIndex = dateData.days.indexOf(dateData.selectedDay)
+
+		dateData.pickerValue = [
+			yearIndex >= 0 ? yearIndex : 0,
+			monthIndex >= 0 ? monthIndex : 0,
+			dayIndex >= 0 ? dayIndex : 0
+		]
+	}
+
+	// 初始化日期数据
+	const initDateData = () : void => {
+		// 解析默认日期
+		const defaultDate = new Date(props.defaultDate || '2000-06-06')
+
+		dateData.selectedYear = defaultDate.getFullYear()
+		dateData.selectedMonth = defaultDate.getMonth() + 1
+		dateData.selectedDay = defaultDate.getDate()
+
+		// 生成所有数据
+		generateYears()
+		generateMonths()
+		generateDays()
+		updatePickerPosition()
+
+	}
+
+
+
+	// 处理日期变化
+	const handleDateChange = (e : DateChangeEvent) : void => {
+		const [yearIndex, monthIndex, dayIndex] = e.detail.value
+
+		// 更新选中的日期
+		dateData.selectedYear = dateData.years[yearIndex]
+		dateData.selectedMonth = dateData.months[monthIndex]
+		dateData.selectedDay = dateData.days[dayIndex]
+
+		// 如果年份或月份变化，需要重新生成数据
+		if (yearIndex !== dateData.pickerValue[0]) {
+			generateMonths()
+			generateDays()
+		} else if (monthIndex !== dateData.pickerValue[1]) {
+			generateDays()
+		}
+
+		// 更新选择器位置
+		updatePickerPosition()
+
+		// 格式化日期并发送事件
+		const formattedDate = [
+			dateData.selectedYear,
+			String(dateData.selectedMonth).padStart(2, '0'),
+			String(dateData.selectedDay).padStart(2, '0')
+		].join('-')
+
+		emit('update:modelValue', formattedDate)
+		emit('dateChange', formattedDate)
+	}
+
+	// 组件挂载时初始化
+	onMounted(() => {
+		initDateData()
+	})
+
+	// 监听默认日期变化
+	watch(() => props.defaultDate, () => {
+		initDateData()
+	}, { immediate: true })
 </script>
 
 <style scoped>
-.date-picker-wrapper {
-  display: flex;
-  align-items: center;
-  width: 75%;
-}
+	.date-picker-wrapper {
+		display: flex;
+		align-items: center;
+		width: 75%;
+		min-height: 200rpx;
+		/* 添加最小高度 */
+		background-color: #f8f8f8;
+		/* 添加背景色便于调试 */
+	}
 
-.picker {
-  flex: 1;
-  height: 200rpx;
-}
+	.picker {
+		flex: 1;
+		height: 200rpx;
+	}
 
-picker-view {
-  width: 100%;
-  height: 100%;
-}
+	picker-view {
+		width: 100%;
+		height: 100%;
+	}
 
-.item {
-  line-height: 80rpx;
-  text-align: center;
-  font-size: 32rpx;
-  color: #666;
-}
+	.item {
+		line-height: 80rpx;
+		text-align: center;
+		font-size: 32rpx;
+		color: #666;
+	}
 
-picker-view-column view.item {
-  font-weight: bold;
-  color: black;
-  background-color: #f4f4f4;
-}
+	picker-view-column view.item {
+		font-weight: bold;
+		color: black;
+		background-color: #f4f4f4;
+	}
 </style>

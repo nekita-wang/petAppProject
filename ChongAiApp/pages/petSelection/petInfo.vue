@@ -3,7 +3,7 @@
 	<view class="pet-info-container">
 		<up-navbar title="您养的宠物（2/2）" rightText="跳过" :autoBack="true" @rightClick="handleSkip" fixed></up-navbar>
 		<!-- 头像上传 -->
-		<view class="avatar-upload" :style="{ paddingTop: navBarHeight }" @click="UploadImage">
+		<view class="avatar-upload" :style="contentStyle" @click="UploadImage">
 			<up-image width="100%" height="100%" :src="petReactive.petAvatarURL" shape="circle"></up-image>
 		</view>
 		<view class="section-title">为您的爱宠选一张靓照做头像</view>
@@ -60,13 +60,13 @@
 			<!-- 宠物生日 -->
 			<view class="form-item">
 				<text class="label">宠物生日:</text>
-				<DatePicker v-model="petReactive.petBirthday" @date-change="handleBirthdayChange" />
+				<DatePicker v-model="petReactive.petBirthday" @dateChange="handleBirthdayChange" :default-date="petReactive.petBirthday" />
 			</view>
 
 			<!-- 到家日期 -->
 			<view class="form-item">
 				<text class="label">到家日期:</text>
-				<DatePicker v-model="petReactive.adoptionDate" @date-change="handleArrivalDateChange" />
+				<DatePicker v-model="petReactive.adoptionDate" @dateChange="handleArrivalDateChange"  :default-date="petReactive.adoptionDate"/>
 			</view>
 		</view>
 		<!-- 完成按钮 -->
@@ -97,7 +97,10 @@
 	import {
 		request
 	} from '../../utils/request'
+	import { useNavBar } from '@/utils/navBar'
 
+	// 计算导航栏高度
+	const { navBarHeight, statusBarHeight, contentStyle } = useNavBar()
 	// 类型定义
 	interface PetInfo {
 		petAvatarURL : string
@@ -122,8 +125,6 @@
 		data : any
 	}
 
-	// 响应式数据
-	const navBarHeight = ref<string>('88px') // 默认值
 	const relativePath = ref<string>('')
 	const userStore = useUserStore() // 使用 pinia
 
@@ -154,8 +155,6 @@
 		petReactive.adoptionDate = date
 	}
 
-	// 用户是否上传头像
-	const hasUploadedAvatar = computed(() => petReactive.petAvatarURL !== '/static/tx.svg')
 
 	// 点击上传图片
 	const UploadImage = () : void => {
@@ -170,7 +169,7 @@
 
 	// 点击完成
 	const complete = async () : Promise<void> => {
-		if (!hasUploadedAvatar.value) {
+		if (petReactive.petAvatarURL === '/static/tx.svg') {
 			uni.showToast({
 				title: '请上传宠物头像',
 				icon: 'none'
@@ -187,7 +186,6 @@
 					userId: Number(userStore.userId)
 				}
 			})
-			console.log(res);
 			uni.showToast({
 				title: '添加成功',
 				icon: 'success'
@@ -211,22 +209,9 @@
 			}
 		}
 	}
-
-	// 初始化时动态计算导航栏高度
-	onMounted(() : void => {
-		try {
-			// 动态获取系统信息计算导航栏高度
-			const systemInfo = uni.getSystemInfoSync()
-			const statusBarHeight = systemInfo.statusBarHeight || 44
-			const navBarHeightValue = statusBarHeight + 44 // 44是导航栏高度
-			navBarHeight.value = `${navBarHeightValue}px`
-		} catch (error) {
-			console.error('获取系统信息失败:', error)
-			navBarHeight.value = '88px' // 使用默认值
-		}
-	})
-
 	onLoad((options : any) : void => {
+			petReactive.petBirthday = '2000-06-06'
+			petReactive.adoptionDate = '2000-06-06'
 		try {
 			petReactive.petBreed = decodeURIComponent(options.petBreed) // 必须解码
 			petReactive.petClass = decodeURIComponent(options.petClass)

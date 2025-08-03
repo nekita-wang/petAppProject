@@ -6,12 +6,12 @@
 			<!-- 页签区域 -->
 			<view class="tabs">
 				<view v-for="tab in tabs" :key="tab.petClassId"
-					:class="['tab-item', { active: activeTab === tab.petClassId }]" @click="handleTabChange(tab)">
+					:class="['tab-item', { active: pageState.activeTab === tab.petClassId }]" @click="handleTabChange(tab)">
 					{{ tab.petClass }}
 				</view>
 			</view>
 			<!-- 未养宠内容区域 -->
-			<view v-if="activeTab === '0'" class="no-pet-section">
+			<view v-if="pageState.activeTab === '0'" class="no-pet-section">
 				<!-- 全屏背景图 -->
 				<up--image src="/static/home.png" width="100%" height="100%" mode="aspectFill"></up--image>
 
@@ -27,14 +27,14 @@
 				<!-- 搜索栏 -->
 				<view class="search-bar">
 					<uni-search-bar style="padding: 5rpx 5rpx;" placeholder="搜索宠物品种" radius="30" bgColor="#F5F5F5"
-						cancelButton="none" @confirm="petSearch" v-model="petBreed" @clear="handleClearSearch" />
+						cancelButton="none" @confirm="petSearch" v-model="petData.petBreed" @clear="handleClearSearch" />
 				</view>
 				<!-- 热门品种 -->
-				<view class="hot-section" v-if="hotPets">
+				<view class="hot-section" v-if="hotPets.length > 0">
 					<view class="section-title">热门:</view>
 					<view class="hot-tags">
 						<text v-for="(pet, index) in hotPets" :key="index" class="hot-tag"
-							@click="checkPet(pet,petClass)">
+							@click="checkPet(pet, petData.petClass)">
 							{{ pet }}
 						</text>
 					</view>
@@ -43,21 +43,21 @@
 		</view>
 		<!-- 字母分类列表 -->
 		<view class="alphabet-section">
-			<scroll-view class="alphabet-list" :show-scrollbar="false" scroll-y :scroll-into-view="currentLetter"
+			<scroll-view class="alphabet-list" :show-scrollbar="false" scroll-y :scroll-into-view="pageState.currentLetter"
 				:scroll-with-animation="true" @scroll="onScroll">
-				<view v-for="(pets, letter) in petData" :key="letter" :id="`letter-${letter}`">
+				<view v-for="(pets, letter) in breedsData" :key="letter" :id="`letter-${letter}`">
 					<text class="letter-title">{{ letter }}</text>
 					<view v-for="(pet, index) in pets" :key="index" class="pet-item"
-						@click="checkPet(pet.petBreed, petClass)">
+						@click="checkPet(pet.petBreed, petData.petClass)">
 						{{ pet.petBreed }}
 					</view>
 				</view>
 			</scroll-view>
 			<!-- 字母导航（右侧固定定位） -->
-			<view class="alphabet-nav-wrapper" v-if="!showBtn">
+			<view class="alphabet-nav-wrapper" v-if="!pageState.showBtn">
 				<view class="alphabet-nav">
-					<text v-for="letter in Object.keys(petData)" :key="letter"
-						:class="['alphabet-char', { active: highlightLetter === `letter-${letter}` }]"
+					<text v-for="letter in Object.keys(breedsData)" :key="letter"
+						:class="['alphabet-char', { active: pageState.highlightLetter === `letter-${letter}` }]"
 						@click="scrollToLetter(letter)">
 						{{ letter }}
 					</text>
@@ -65,7 +65,7 @@
 			</view>
 		</view>
 		<!-- 固定底部按钮 -->
-		<view class="fixed-footer" v-if="showBtn">
+		<view class="fixed-footer" v-if="pageState.showBtn">
 			<up-button type="primary" shape="circle" hair-line="false" @click="handleSkip">完成</up-button>
 		</view>
 	</view>
@@ -74,6 +74,7 @@
 <script setup lang="ts">
 	import {
 		ref,
+		reactive,
 		onMounted,
 		computed,
 		nextTick
@@ -81,7 +82,10 @@
 	import {
 		request
 	} from '../../utils/request'
+	import { useNavBar } from '@/utils/navBar'
 
+	// 计算导航栏高度
+	const { navBarHeight, statusBarHeight, contentStyle } = useNavBar()
 	// 精简的类型定义
 	interface PetTab {
 		petClassId : string
@@ -103,22 +107,25 @@
 	type SystemInfo = UniApp.GetSystemInfoResult
 	type ScrollRect = UniApp.NodeInfo
 
-	// 响应式数据
-	const tabs = ref<PetTab[]>([]) // 宠物分类
-	const activeTab = ref<string>('0') //默认尚无养宠
-	const currentLetter = ref<string>('') // 用于 scroll-into-view
-	const highlightLetter = ref<string>('') // 用于高亮
-	const petClass = ref<string>('') //宠物类名
+	// 状态
+	const pageState = reactive({
+		activeTab: '0',
+		currentLetter: '',
+		highlightLetter: '',
+		showBtn: true
+	})
 
-	const petBreed = ref<string>('')
-	const petData = ref<PetData>({})
+	// 宠物数据 
+	const petData = reactive({
+		petClass: '',
+		petBreed: ''
+	})
 
-	const hotPets = ref<string[]>([]) //热门宠物
-	const showBtn = ref<boolean>(true) //显示按钮
+	const tabs = ref<PetTab[]>([]) //tab栏数据
+	const breedsData = ref<PetData>({})	//宠物列表数据
+	const hotPets = ref<string[]>([])	//热门数据
 
-	// 动态计算导航栏高度
-	const navBarHeight = ref<number>(0)
-	const statusBarHeight = ref<number>(0)
+
 
 	// 滚动相关变量
 	let isManualScroll : boolean = false
@@ -140,59 +147,40 @@
 
 	// 初始化
 	onMounted(() : void => {
-		// 获取系统信息
-		try {
-			const systemInfo : SystemInfo = uni.getSystemInfoSync()
-			statusBarHeight.value = systemInfo.statusBarHeight || 0
-
-			// 计算导航栏高度：状态栏高度 + 导航栏内容高度(44px)
-			navBarHeight.value = statusBarHeight.value + 44
-		} catch (error) {
-			console.error('获取系统信息失败:', error)
-			// 设置默认值
-			statusBarHeight.value = 20
-			navBarHeight.value = 64
-		}
-
 		GetPetTypeList()
 	})
 
-	// 计算内容区域样式
-	const contentStyle = computed(() => ({
-		marginTop: navBarHeight.value + 'px',
-		top: navBarHeight.value + 'px'
-	}))
 
 	// 切换tab栏
 	const handleTabChange = async (tab : PetTab) : Promise<void> => {
-		petClass.value = tab.petClass
-		activeTab.value = tab.petClassId
+		petData.petClass = tab.petClass
+		pageState.activeTab = tab.petClassId
 		// 重置
-		petBreed.value = ''
-		currentLetter.value = ''
-		highlightLetter.value = ''
+		petData.petBreed = ''
+		pageState.currentLetter = ''
+		pageState.highlightLetter = ''
 
-		if (activeTab.value === '0') {
+		if (pageState.activeTab === '0') {
 			uni.pageScrollTo({
 				scrollTop: 0,
 				duration: 0
 			})
-			showBtn.value = true
+			pageState.showBtn = true
 			return
 		}
-		showBtn.value = false
+		pageState.showBtn = false
 
 		await GetBreedList()
 
 		// 先清空 currentLetter，nextTick 后再设置
 		nextTick(() => {
-			currentLetter.value = ''
-			highlightLetter.value = ''
+			pageState.currentLetter = ''
+			pageState.highlightLetter = ''
 			nextTick(() => {
-				const letters : string[] = Object.keys(petData.value)
+				const letters : string[] = Object.keys(breedsData.value)
 				if (letters.length > 0) {
-					currentLetter.value = `letter-${letters[0]}`
-					highlightLetter.value = `letter-${letters[0]}`
+					pageState.currentLetter = `letter-${letters[0]}`
+					pageState.highlightLetter = `letter-${letters[0]}`
 					ignoreNextScroll = true
 				}
 			})
@@ -202,8 +190,8 @@
 	//点击字母显示高亮并滚动
 	const scrollToLetter = (letter : string) : void => {
 		isManualScroll = true
-		currentLetter.value = `letter-${letter}`
-		highlightLetter.value = `letter-${letter}`
+		pageState.currentLetter = `letter-${letter}`
+		pageState.highlightLetter = `letter-${letter}`
 		setTimeout(() => {
 			isManualScroll = false
 		}, 500)
@@ -235,25 +223,25 @@
 			const res = await request<BreedResponse>({
 				url: '/app/pet/breeds',
 				data: {
-					petClass: petClass.value,
-					petBreed: petBreed.value
+					petClass: petData.petClass,
+					petBreed: petData.petBreed
 				},
 			})
 			// 处理空数据情况
-			if (Object.keys(res.data.breeds).length === 0 && petBreed.value) {
+			if (Object.keys(res.data.breeds).length === 0 && petData.petBreed) {
 				uni.showToast({
-					title: `未找到"${petBreed.value}"相关品种`,
+					title: `未找到"${petData.petBreed}"相关品种`,
 					icon: 'none',
 					duration: 2000
 				})
 			}
 			hotPets.value = res.data.hot
-			petData.value = res.data.breeds
+			breedsData.value = res.data.breeds
 
 			// 设置默认选中的字母为数据的第一个字母
 			const letters : string[] = Object.keys(res.data.breeds)
 			if (letters.length > 0) {
-				currentLetter.value = `letter-${letters[0]}`
+				pageState.currentLetter = `letter-${letters[0]}`
 			}
 
 			uni.hideLoading()
@@ -268,15 +256,15 @@
 
 	// 搜索框
 	const petSearch = () : void => {
-		petBreed.value = petBreed.value.trim()
-		if (petBreed.value) {
+		petData.petBreed = petData.petBreed.trim()
+		if (petData.petBreed) {
 			GetBreedList()
 		}
 	}
 
 	// 清空搜索
 	const handleClearSearch = () : void => {
-		petBreed.value = ''
+		petData.petBreed = ''
 		GetBreedList() // 重新获取完整数据
 	}
 
@@ -292,7 +280,7 @@
 	}
 
 	// 监听滚动
-	const onScroll = (): void => {
+	const onScroll = () : void => {
 		if (isManualScroll) return
 		if (ignoreNextScroll) {
 			ignoreNextScroll = false
@@ -300,21 +288,21 @@
 		}
 		nextTick(() => {
 			const query = uni.createSelectorQuery()
-			const letters: string[] = Object.keys(petData.value)
+			const letters : string[] = Object.keys(breedsData.value)
 			// 依次查询每个字母标题的位置
 			letters.forEach(letter => {
 				query.select(`#letter-${letter}`).boundingClientRect()
 			})
 			query.select('.alphabet-list').boundingClientRect()
-			query.exec((res: any[]) => {
+			query.exec((res : any[]) => {
 				if (!res || res.length < 2) return
-				
+
 				const scrollViewRect = res[res.length - 1]
 				// 检查 scrollViewRect 是否存在且有 top 属性
 				if (!scrollViewRect || typeof scrollViewRect.top === 'undefined') return
-				
+
 				// 找到第一个出现在顶部的字母
-				let active: string = letters[0]
+				let active : string = letters[0]
 				for (let i = 0; i < letters.length; i++) {
 					const rect = res[i]
 					// 检查 rect 是否存在且有 top 属性
@@ -322,7 +310,7 @@
 						active = letters[i]
 					}
 				}
-				highlightLetter.value = `letter-${active}`
+				pageState.highlightLetter = `letter-${active}`
 			})
 		})
 	}

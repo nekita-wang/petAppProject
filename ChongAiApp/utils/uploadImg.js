@@ -1,9 +1,7 @@
 import { useUserStore } from '@/stores/user'
-
+import { Env } from './env'
 export function uploadImg(AvatarCallback) {
-	// const URL = 'https://122.228.237.118:53627';
-	const URL = 'http://1.15.123.85' //服务器
-	
+	const URL = Env.VITE_API_BASE_URL
 	const userStore = useUserStore();
 	const token = userStore.token;
 	
