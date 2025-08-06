@@ -120,6 +120,7 @@
 	import {
 		request
 	} from '../../utils/request'
+import { AvatarCallbackData } from '@/types/avatarCallbackData'
 
 	// 类型定义
 	interface RegisterForm {
@@ -137,11 +138,6 @@
 		relativePath : string
 		showPassword : boolean,
 		showCmPassword : boolean
-	}
-
-	interface AvatarCallback {
-		relativePath : string
-		fullUrl : string
 	}
 
 	interface RegisterResponse {
@@ -182,9 +178,9 @@
 
 	//点击上传图片
 	const UploadImage = () : void => {
-		uploadImg((AvatarCallback : AvatarCallback) => {
-			rgtReactive.avatarUrl = AvatarCallback.fullUrl; //带有ip地址的
-			pwdReactive.relativePath = AvatarCallback.relativePath
+		uploadImg((avatarCallback : AvatarCallbackData) => {
+			rgtReactive.avatarUrl = avatarCallback.fullUrl; //带有ip地址的
+			pwdReactive.relativePath = avatarCallback.relativePath
 		});
 	};
 

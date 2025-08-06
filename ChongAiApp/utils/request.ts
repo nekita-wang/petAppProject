@@ -27,7 +27,7 @@ export const request = <T>(config : RequestConfig) => {
 		"ngrok-skip-browser-warning": "true",
 		...header,
 	};
-	return new Promise<Response<T>>((resolve, reject) => {
+	return new Promise<Response<T>>((resolve, reject:(reason: ErrorResponse) => void) => {
 		uni.request({
 			url: BASE_URL + url,
 			method,
@@ -42,15 +42,15 @@ export const request = <T>(config : RequestConfig) => {
 					return;
 				}
 				const err = _response2ErrorMsg(response);
-				console.log(err);
+				// console.log(err);
 				uni.showToast({ title: err.msg, icon: "none" });
 				reject(err);
 			},
 			fail: (err) => {
 				uni.showToast({ title: "网络连接失败", icon: "none" });
 				reject({
-					statusCode: -1,
-					message: "网络错误",
+					code: -1,
+					msg: "网络错误",
 					error: err,
 				});
 			},
@@ -62,13 +62,8 @@ export const request = <T>(config : RequestConfig) => {
 		throw err; // 继续抛出错误
 	});
 };
-type ErrorMsg = {
-	code : number;
-	msg : string;
-	data : unknown;
-};
-const _response2ErrorMsg = (res : Response<any>) : ErrorMsg => ({
+const _response2ErrorMsg = (res : Response<any>) : ErrorResponse => ({
 	code: res.code,
 	msg: res.msg || "请求失败",
-	data: res.data,
+	error: res.data,
 });

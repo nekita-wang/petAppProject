@@ -1,12 +1,13 @@
 import { useUserStore } from '@/stores/user'
 import { Env } from './env'
-export function uploadImg(AvatarCallback) {
+import { AvatarCallbackData } from '@/types/avatarCallbackData';
+export function uploadImg(avatarCallbackFn:(avatarCallbackData: AvatarCallbackData)=>void) {
 	const URL = Env.VITE_API_BASE_URL
 	const userStore = useUserStore();
 	const token = userStore.token;
 	
 	// 检查token是否存在，如果不存在则使用空字符串
-	const authToken = token || '';
+	// const authToken = token || '';
 	
 	uni.chooseImage({
 		count: 1,
@@ -29,7 +30,7 @@ export function uploadImg(AvatarCallback) {
 				});
 				console.log(chooseImageRes.tempFilePaths[0]);
 				const response = JSON.parse(uploadRes.data);
-				AvatarCallback?.({
+				avatarCallbackFn?.({
 					relativePath: response.imgUrl,
 					fullUrl: chooseImageRes.tempFilePaths[0]
 					// fullUrl: URL + response.imgUrl
