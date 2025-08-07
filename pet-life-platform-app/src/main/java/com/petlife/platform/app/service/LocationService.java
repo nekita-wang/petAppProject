@@ -25,6 +25,15 @@ public class LocationService {
     @Autowired
     private SmartSearchService smartSearchService;
 
+    @Autowired
+    private LocationValidationService locationValidationService;
+
+    @Autowired
+    private MultiSourceLocationService multiSourceLocationService;
+
+    @Autowired
+    private SmartLocationCacheService smartLocationCacheService;
+
     /**
      * 计算两点之间的距离（使用Haversine公式）
      * 
@@ -128,13 +137,76 @@ public class LocationService {
     }
 
     /**
-     * 通过地址获取坐标（集成天地图API）
-     * 
+     * 通过地址获取坐标（智能多源验证）
+     *
      * @param address 地址
      * @return 坐标信息
      */
     public AjaxResult getCoordinatesByAddress(String address) {
+        return getCoordinatesByAddressWithSmartValidation(address);
+    }
+
+    /**
+     * 智能地址解析（多源验证 + 缓存 + 学习）
+     *
+     * @param address 地址
+     * @return 坐标信息
+     */
+    public AjaxResult getCoordinatesByAddressWithSmartValidation(String address) {
         try {
+            // 1. 首先检查智能缓存
+            SmartLocationCacheService.CachedLocation cached = smartLocationCacheService.getCachedLocation(address);
+            if (cached != null && cached.getFeedbackScore() > 0.6) {
+                Map<String, Object> locationData = new HashMap<>();
+                locationData.put("address", cached.getAddress());
+                locationData.put("longitude", cached.getLongitude());
+                locationData.put("latitude", cached.getLatitude());
+                locationData.put("provider", cached.getProvider() + " (cached)");
+                locationData.put("accuracy", cached.getConfidenceLevel() + "精度");
+                locationData.put("source", "智能缓存");
+                Map<String, Object> cacheInfo = new HashMap<>();
+                cacheInfo.put("accessCount", cached.getAccessCount());
+                cacheInfo.put("feedbackScore", cached.getFeedbackScore());
+                locationData.put("cacheInfo", cacheInfo);
+
+                return AjaxResult.success("地址解析成功（缓存）", locationData);
+            }
+
+            // 2. 使用多源验证获取位置
+            MultiSourceLocationService.LocationResult multiSourceResult =
+                multiSourceLocationService.getLocationWithValidation(address);
+
+            if (multiSourceResult.isSuccess()) {
+                Map<String, Object> locationData = new HashMap<>();
+                locationData.put("address", address);
+                locationData.put("longitude", multiSourceResult.getLongitude());
+                locationData.put("latitude", multiSourceResult.getLatitude());
+                locationData.put("provider", multiSourceResult.getSelectedProvider());
+                locationData.put("accuracy", multiSourceResult.getConfidenceLevel() + "精度");
+                locationData.put("source", "多源验证");
+                Map<String, Object> validationData = new HashMap<>();
+                validationData.put("method", multiSourceResult.getValidationMethod() != null ?
+                    multiSourceResult.getValidationMethod() : "unknown");
+                validationData.put("confidence", multiSourceResult.getConfidenceLevel() != null ?
+                    multiSourceResult.getConfidenceLevel() : "low");
+                validationData.put("sourcesCount", multiSourceResult.getSources().size());
+                validationData.put("maxDistance", multiSourceResult.getMaxDistanceBetweenSources() != null ?
+                    multiSourceResult.getMaxDistanceBetweenSources() : 0);
+                locationData.put("validation", validationData);
+
+                // 3. 缓存结果
+                smartLocationCacheService.cacheLocation(
+                    address,
+                    multiSourceResult.getLongitude(),
+                    multiSourceResult.getLatitude(),
+                    multiSourceResult.getSelectedProvider(),
+                    multiSourceResult.getConfidenceLevel()
+                );
+
+                return AjaxResult.success("地址解析成功", locationData);
+            }
+
+            // 4. 多源验证失败，尝试单一API（保持原有逻辑作为备选）
             Map<String, Object> result = mapService.geocoding(address);
 
             if (result != null) {
@@ -147,14 +219,63 @@ public class LocationService {
                     BigDecimal latitude = new BigDecimal(latStr);
 
                     if (isValidCoordinate(latitude, longitude)) {
-                        Map<String, Object> locationData = new HashMap<>();
-                        locationData.put("address", address);
-                        locationData.put("longitude", longitude);
-                        locationData.put("latitude", latitude);
-                        locationData.put("provider", mapService.getCurrentProvider());
-                        locationData.put("accuracy", "≤10米");
+                        // 验证坐标准确性
+                        LocationValidationService.LocationValidationResult validation =
+                            locationValidationService.validateLocation(address, longitude, latitude);
 
-                        return AjaxResult.success("地址解析成功", locationData);
+                        Map<String, Object> locationData = new HashMap<>();
+
+                        if (validation.isValid()) {
+                            // 使用原始坐标或优化后的坐标
+                            LocationValidationService.LocationInfo enhancedLocation =
+                                locationValidationService.enhanceLocationAccuracy(address, longitude, latitude);
+
+                            locationData.put("address", result.get("address") != null ? result.get("address") : address);
+                            locationData.put("longitude", enhancedLocation.getLongitude());
+                            locationData.put("latitude", enhancedLocation.getLatitude());
+                            locationData.put("provider", mapService.getCurrentProvider());
+                            locationData.put("accuracy", evaluateSearchAccuracy(address));
+                            Map<String, Object> validationData = new HashMap<>();
+                            validationData.put("status", "valid");
+                            validationData.put("accuracyLevel", validation.getAccuracyLevel() != null ?
+                                validation.getAccuracyLevel() : "unknown");
+                            validationData.put("isKnownLandmark", validation.isKnownLandmark());
+                            locationData.put("validation", validationData);
+
+                            return AjaxResult.success("地址解析成功", locationData);
+                        } else {
+                            // 坐标验证失败，但提供建议坐标
+                            if (validation.getSuggestedLongitude() != null && validation.getSuggestedLatitude() != null) {
+                                locationData.put("address", validation.getExpectedAddress() != null ?
+                                    validation.getExpectedAddress() : address);
+                                locationData.put("longitude", validation.getSuggestedLongitude());
+                                locationData.put("latitude", validation.getSuggestedLatitude());
+                                locationData.put("provider", "corrected");
+                                locationData.put("accuracy", "高精度（已修正）");
+                                Map<String, Object> validationData = new HashMap<>();
+                                validationData.put("status", "corrected");
+                                validationData.put("originalError", validation.getErrorMessage() != null ?
+                                    validation.getErrorMessage() : "unknown error");
+                                validationData.put("correctionApplied", true);
+                                locationData.put("validation", validationData);
+
+                                return AjaxResult.success("地址解析成功（已自动修正坐标）", locationData);
+                            } else {
+                                // 无法修正，返回原始坐标但标记为低精度
+                                locationData.put("address", address);
+                                locationData.put("longitude", longitude);
+                                locationData.put("latitude", latitude);
+                                locationData.put("provider", mapService.getCurrentProvider());
+                                locationData.put("accuracy", "低精度（需要验证）");
+                                Map<String, Object> validationData = new HashMap<>();
+                                validationData.put("status", "warning");
+                                validationData.put("warning", validation.getErrorMessage() != null ?
+                                    validation.getErrorMessage() : "validation warning");
+                                locationData.put("validation", validationData);
+
+                                return AjaxResult.success("地址解析成功（精度待验证）", locationData);
+                            }
+                        }
                     }
                 }
             }

@@ -5,6 +5,7 @@ import com.petlife.platform.app.service.LocationService;
 import com.petlife.platform.app.service.SmartSearchService;
 import com.petlife.platform.common.core.controller.BaseController;
 import com.petlife.platform.common.core.api.ResponseData;
+import com.petlife.platform.common.core.domain.AjaxResult;
 import com.petlife.platform.common.core.page.TableDataInfo;
 import com.petlife.platform.common.pojo.dto.LocationConfirmDto;
 import com.petlife.platform.common.pojo.dto.LocationUpdateDto;
@@ -49,39 +50,37 @@ public class NearbyController extends BaseController {
     public ResponseData<Map<String, Object>> searchLocation(
             @ApiParam(value = "搜索地址", required = true, example = "北京市朝阳区三里屯") @RequestParam("address") String address) {
 
-        // 使用天地图API进行地址解析，精度≤10米
-        // 注意：这里需要适配LocationService的返回类型，暂时保持原有逻辑
+        // 使用LocationService进行地址解析，精度≤10米
         try {
-            // 暂时使用原有方法，后续需要适配
-            // Map<String, Object> coordinatesData =
-            // locationService.getCoordinatesByAddress(address);
-            // 临时处理，需要根据实际LocationService接口调整
-            Map<String, Object> coordinatesData = new HashMap<>();
-            // TODO: 调用实际的LocationService方法
+            // 调用LocationService的地址解析方法
+            AjaxResult result = locationService.getCoordinatesByAddress(address);
 
-            if (coordinatesData != null && coordinatesData.containsKey("longitude")
-                    && coordinatesData.containsKey("latitude")) {
-                // 返回核心定位信息
-                Map<String, Object> locationInfo = new HashMap<>();
-                locationInfo.put("searchAddress", address);
-                locationInfo.put("longitude", coordinatesData.get("longitude"));
-                locationInfo.put("latitude", coordinatesData.get("latitude"));
-                // 使用动态精度评估
-                String accuracy = locationService.evaluateSearchAccuracy(address);
-                locationInfo.put("accuracy", accuracy);
+            if (result.isSuccess()) {
+                Map<String, Object> coordinatesData = (Map<String, Object>) result.get("data");
 
-                // 记录搜索历史（包含结果地址）
-                String resultAddress = coordinatesData.get("address") != null
-                        ? coordinatesData.get("address").toString()
-                        : address;
-                locationService.recordSearchHistory(address, resultAddress, true);
+                if (coordinatesData != null && coordinatesData.containsKey("longitude")
+                        && coordinatesData.containsKey("latitude")) {
+                    // 返回核心定位信息
+                    Map<String, Object> locationInfo = new HashMap<>();
+                    locationInfo.put("searchAddress", address);
+                    locationInfo.put("longitude", coordinatesData.get("longitude"));
+                    locationInfo.put("latitude", coordinatesData.get("latitude"));
+                    locationInfo.put("provider", coordinatesData.get("provider"));
+                    locationInfo.put("accuracy", coordinatesData.get("accuracy"));
 
-                return ResponseData.okWithMsg("定位成功", locationInfo);
-            } else {
-                // 记录搜索失败
-                locationService.recordSearchHistory(address, false);
-                return ResponseData.error(404, "地址解析失败");
+                    // 记录搜索历史（包含结果地址）
+                    String resultAddress = coordinatesData.get("address") != null
+                            ? coordinatesData.get("address").toString()
+                            : address;
+                    locationService.recordSearchHistory(address, resultAddress, true);
+
+                    return ResponseData.okWithMsg("定位成功", locationInfo);
+                }
             }
+
+            // 记录搜索失败
+            locationService.recordSearchHistory(address, false);
+            return ResponseData.error(404, "地址解析失败");
         } catch (Exception e) {
             // 记录搜索失败
             locationService.recordSearchHistory(address, false);
