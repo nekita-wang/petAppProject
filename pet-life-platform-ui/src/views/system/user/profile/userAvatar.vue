@@ -131,12 +131,14 @@ export default {
         formData.append("avatarfile", data, this.options.filename)
         uploadAvatar(formData).then(response => {
           // 上传成功后，调用更新头像接口
+          // 适配新的返回格式：从 response.data 中获取图片URL
+          const imgUrl = response.data || response.imgUrl;
           const avatarData = {
-            avatar: response.imgUrl
+            avatar: imgUrl
           }
           return updateUserProfile(avatarData).then(() => {
             this.open = false
-            this.options.img = process.env.VUE_APP_BASE_API + response.imgUrl
+            this.options.img = process.env.VUE_APP_BASE_API + imgUrl
             store.commit('SET_AVATAR', this.options.img)
             this.$modal.msgSuccess("修改成功")
             this.visible = false

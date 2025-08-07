@@ -58,7 +58,8 @@ const user = {
     Login({ commit, dispatch }, userInfo) {
       return new Promise((resolve, reject) => {
         dispatch("getPublicKey").then((res) => {
-          let publicKey = res.publicKey;
+          // 适配新的返回格式：从 res.data 中获取公钥
+          let publicKey = res.data || res.publicKey;
           const username = userInfo.username.trim();
           //调用加密方法(传密码和公钥)
           const password = encrypt(userInfo.password, publicKey);

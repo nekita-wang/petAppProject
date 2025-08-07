@@ -19,11 +19,11 @@ public class AjaxResult extends HashMap<String, Object> {
     /** 返回内容 */
     public static final String MSG_TAG = "msg";
 
-    /** 数据对象 */
-    public static final String DATA_TAG = "data";
-
     /** 成功标识 */
     public static final String SUCCESS_TAG = "success";
+
+    /** 数据对象 */
+    public static final String DATA_TAG = "data";
 
     /**
      * 初始化一个新创建的 AjaxResult 对象，使其表示一个空消息。

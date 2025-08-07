@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 短信服务管理器
@@ -32,11 +33,17 @@ public class SmsService {
 
     @PostConstruct
     public void init() {
-        // 初始化服务商映射
-        for (SmsProvider provider : smsProviders) {
-            providerMap.put(provider.getProviderName(), provider);
-            log.info("注册短信服务提供商: {}", provider.getProviderName());
-        }
+        // 异步初始化，避免阻塞启动
+        CompletableFuture.runAsync(() -> {
+            try {
+                for (SmsProvider provider : smsProviders) {
+                    providerMap.put(provider.getProviderName(), provider);
+                    log.info("注册短信服务提供商: {}", provider.getProviderName());
+                }
+            } catch (Exception e) {
+                log.error("短信服务初始化失败: {}", e.getMessage());
+            }
+        });
     }
 
     /**

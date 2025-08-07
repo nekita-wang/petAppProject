@@ -5,7 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 短信服务配置验证器
@@ -14,7 +19,8 @@ import org.springframework.stereotype.Component;
  * @author petlife
  * @date 2025-07-31
  */
- @Component
+@Component
+@ConditionalOnProperty(name = "sms.validation.enabled", havingValue = "true", matchIfMissing = false)
 public class SmsConfigValidator implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(SmsConfigValidator.class);
@@ -29,21 +35,24 @@ public class SmsConfigValidator implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("开始验证短信服务配置...");
 
+        // 添加超时机制
+        CompletableFuture<Void> validationTask = CompletableFuture.runAsync(() -> {
+            try {
+                validateBasicConfig();
+                validateProviderConfig();
+                // 跳过服务可用性验证，避免网络超时
+                // validateServiceAvailability();
+                log.info("短信服务配置验证完成 ✓");
+            } catch (Exception e) {
+                log.warn("短信服务配置验证失败: {}", e.getMessage());
+            }
+        });
+
         try {
-            // 验证基本配置
-            validateBasicConfig();
-
-            // 验证服务提供商配置
-            validateProviderConfig();
-
-            // 验证服务可用性
-            validateServiceAvailability();
-
-            log.info("短信服务配置验证完成 ✓");
-
-        } catch (Exception e) {
-            log.error("短信服务配置验证失败: {}", e.getMessage());
-            log.warn("请检查短信服务配置，某些功能可能无法正常使用");
+            validationTask.get(5, TimeUnit.SECONDS); // 5秒超时
+        } catch (TimeoutException e) {
+            log.warn("短信服务配置验证超时，跳过验证");
+            validationTask.cancel(true);
         }
     }
 

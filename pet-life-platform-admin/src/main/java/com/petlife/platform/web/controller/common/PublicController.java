@@ -27,51 +27,94 @@ public class PublicController {
      * APP端图片上传接口（仅APP用户可用）
      */
     @PostMapping("/app/upload/avatar")
-    public AjaxResult uploadAppAvatar(@RequestParam("avatarfile") MultipartFile file) throws IOException, InvalidExtensionException {
-        if (file.isEmpty()) {
-            return AjaxResult.error("上传图片不能为空");
+    public AjaxResult uploadAppAvatar(@RequestParam("avatarfile") MultipartFile file)
+            throws IOException, InvalidExtensionException {
+        try {
+            if (file.isEmpty()) {
+                return AjaxResult.error(400, "上传图片不能为空");
+            }
+
+            // 验证文件类型和大小
+            if (file.getSize() > 10 * 1024 * 1024) { // 10MB限制
+                return AjaxResult.error(400, "图片大小不能超过10MB");
+            }
+
+            // 上传到临时目录
+            String avatar = FileUploadUtils.upload(RuoYiConfig.getTempAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION,
+                    true);
+
+            // 返回标准格式：msg, code, success, data
+            return AjaxResult.success("上传成功", avatar);
+
+        } catch (Exception e) {
+            return AjaxResult.error(500, "上传失败：" + e.getMessage());
         }
-        // 上传到临时目录
-        String avatar = FileUploadUtils.upload(RuoYiConfig.getTempAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION, true);
-        AjaxResult ajax = AjaxResult.success();
-        ajax.put("imgUrl", avatar);
-        return ajax;
     }
 
     /**
      * 后台管理系统图片上传接口（仅SYS_USER可用）
      */
     @PostMapping("/admin/upload/avatar")
-    public AjaxResult uploadAdminAvatar(@RequestParam("avatarfile") MultipartFile file) throws IOException, InvalidExtensionException {
-        LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
-        if (loginUser == null || loginUser.getUserType() == null || !"SYS_USER".equals(loginUser.getUserType().name())) {
-            return AjaxResult.error(401, "无权限：仅后台管理员可用");
+    public AjaxResult uploadAdminAvatar(@RequestParam("avatarfile") MultipartFile file)
+            throws IOException, InvalidExtensionException {
+        try {
+            LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
+            if (loginUser == null || loginUser.getUserType() == null
+                    || !"SYS_USER".equals(loginUser.getUserType().name())) {
+                return AjaxResult.error(401, "无权限：仅后台管理员可用");
+            }
+
+            if (file.isEmpty()) {
+                return AjaxResult.error(400, "上传图片不能为空");
+            }
+
+            // 验证文件类型和大小
+            if (file.getSize() > 10 * 1024 * 1024) { // 10MB限制
+                return AjaxResult.error(400, "图片大小不能超过10MB");
+            }
+
+            String avatar = FileUploadUtils.upload(RuoYiConfig.getAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION,
+                    true);
+
+            // 返回标准格式：msg, code, success, data
+            return AjaxResult.success("上传成功", avatar);
+
+        } catch (Exception e) {
+            return AjaxResult.error(500, "上传失败：" + e.getMessage());
         }
-        if (file.isEmpty()) {
-            return AjaxResult.error("上传图片不能为空");
-        }
-        String avatar = FileUploadUtils.upload(RuoYiConfig.getAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION, true);
-        AjaxResult ajax = AjaxResult.success();
-        ajax.put("imgUrl", avatar);
-        return ajax;
     }
 
     /**
      * 后台管理系统广告图片上传接口（仅SYS_USER可用）
      */
     @PostMapping("/admin/upload/advertisement")
-    public AjaxResult uploadAdminAdvertisement(@RequestParam("avatarfile") MultipartFile file) throws IOException, InvalidExtensionException {
-        LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
-        if (loginUser == null || loginUser.getUserType() == null || !"SYS_USER".equals(loginUser.getUserType().name())) {
-            return AjaxResult.error(401, "无权限：仅后台管理员可用");
+    public AjaxResult uploadAdminAdvertisement(@RequestParam("avatarfile") MultipartFile file)
+            throws IOException, InvalidExtensionException {
+        try {
+            LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
+            if (loginUser == null || loginUser.getUserType() == null
+                    || !"SYS_USER".equals(loginUser.getUserType().name())) {
+                return AjaxResult.error(401, "无权限：仅后台管理员可用");
+            }
+
+            if (file.isEmpty()) {
+                return AjaxResult.error(400, "上传图片不能为空");
+            }
+
+            // 验证文件类型和大小
+            if (file.getSize() > 10 * 1024 * 1024) { // 10MB限制
+                return AjaxResult.error(400, "图片大小不能超过10MB");
+            }
+
+            String advertisement = FileUploadUtils.upload(RuoYiConfig.getAdvertisementPath(), file,
+                    MimeTypeUtils.IMAGE_EXTENSION, true);
+
+            // 返回标准格式：msg, code, success, data
+            return AjaxResult.success("上传成功", advertisement);
+
+        } catch (Exception e) {
+            return AjaxResult.error(500, "上传失败：" + e.getMessage());
         }
-        if (file.isEmpty()) {
-            return AjaxResult.error("上传图片不能为空");
-        }
-        String advertisement = FileUploadUtils.upload(RuoYiConfig.getAdvertisementPath(), file, MimeTypeUtils.IMAGE_EXTENSION, true);
-        AjaxResult ajax = AjaxResult.success();
-        ajax.put("imgUrl", advertisement);
-        return ajax;
     }
 
     /**
@@ -79,8 +122,15 @@ public class PublicController {
      */
     @GetMapping("/publicKey")
     public AjaxResult getPublicKey() {
-        AjaxResult ajax = AjaxResult.success();
-        ajax.put("publicKey", RsaUtils.getPublicKey());
-        return ajax;
+        try {
+            String publicKey = RsaUtils.getPublicKey();
+            if (publicKey == null || publicKey.isEmpty()) {
+                return AjaxResult.error(500, "RSA公钥未初始化，请重启应用");
+            }
+            // 返回标准格式：msg, code, success, data
+            return AjaxResult.success("操作成功", publicKey);
+        } catch (Exception e) {
+            return AjaxResult.error(500, "获取公钥失败");
+        }
     }
 }

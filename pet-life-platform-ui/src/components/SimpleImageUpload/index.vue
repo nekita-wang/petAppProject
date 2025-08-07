@@ -125,10 +125,12 @@ export default {
                 }
             }).then(response => {
                 this.open = false
+                // 适配新的返回格式：从 response.data 中获取图片URL
+                const imgUrl = response.data || response.imgUrl;
                 // 更新图片URL
-                this.options.img = this.getImageUrl(response.imgUrl)
+                this.options.img = this.getImageUrl(imgUrl)
                 // 触发v-model更新
-                this.$emit('input', response.imgUrl)
+                this.$emit('input', imgUrl)
                 this.$modal.msgSuccess("上传成功")
             }).catch(error => {
                 this.$modal.msgError("上传失败：" + (error.message || "未知错误"))
