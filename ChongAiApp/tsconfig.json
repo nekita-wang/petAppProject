@@ -17,7 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
   },
   "exclude": ["node_modules", "unpackage", "src/**/*.nvue"]
 }

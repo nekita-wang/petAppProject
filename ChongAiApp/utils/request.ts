@@ -42,7 +42,6 @@ export const request = <T>(config : RequestConfig) => {
 					return;
 				}
 				const err = _response2ErrorMsg(response);
-				// console.log(err);
 				uni.showToast({ title: err.msg, icon: "none" });
 				reject(err);
 			},
