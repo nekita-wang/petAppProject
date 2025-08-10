@@ -158,7 +158,7 @@ import { onMounted, computed, ref, reactive } from "vue";
 import { useUserStore } from "@/stores/user";
 import { getPublicKey, encryptWithRSA } from "@/utils/rsa";
 import { uploadImg } from "@/utils/uploadImg";
-import { request } from "../../utils/request";
+import { request } from "@/utils/request";
 import { AvatarCallbackData } from "@/types/avatarCallbackData";
 import { Env } from "@/utils/env";
 
@@ -188,7 +188,7 @@ interface RegisterResponse {
 const userStore = useUserStore();
 
 const rgtReactive = reactive<RegisterForm>({
-  phone: userStore.phone,
+  phone: userStore.phone || "",
   nickName: "",
   password: "",
   birthday: "2000-06-06",

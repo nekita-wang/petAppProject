@@ -76,12 +76,11 @@
 		ref,
 		reactive,
 		onMounted,
-		computed,
 		nextTick
 	} from 'vue'
 	import {
 		request
-	} from '../../utils/request'
+	} from '@/utils/request'
 	import { useNavBar } from '@/utils/navBar'
 
 	// 计算导航栏高度

@@ -90,13 +90,13 @@
 	} from '@dcloudio/uni-app'
 	import {
 		uploadImg
-	} from '../../utils/uploadImg'
+	} from '@/utils/uploadImg'
 	import {
 		useUserStore
-	} from '../../stores/user'
+	} from '@/stores/user'
 	import {
 		request
-	} from '../../utils/request'
+	} from '@/utils/request'
 	import { useNavBar } from '@/utils/navBar'
 
 	// 计算导航栏高度
