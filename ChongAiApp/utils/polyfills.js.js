@@ -1,4 +1,4 @@
-
+// 真机运行URLSearchParams未定义问题
 if (typeof URLSearchParams === 'undefined') {
   class URLSearchParamsPolyfill {
     constructor(init) {

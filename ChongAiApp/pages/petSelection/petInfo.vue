@@ -60,13 +60,15 @@
 			<!-- 宠物生日 -->
 			<view class="form-item">
 				<text class="label">宠物生日:</text>
-				<DatePicker v-model="petReactive.petBirthday" @dateChange="handleBirthdayChange" :default-date="petReactive.petBirthday" />
+				<DatePicker v-model="petReactive.petBirthday" @dateChange="handleBirthdayChange"
+					:default-date="petReactive.petBirthday" />
 			</view>
 
 			<!-- 到家日期 -->
 			<view class="form-item">
 				<text class="label">到家日期:</text>
-				<DatePicker v-model="petReactive.adoptionDate" @dateChange="handleArrivalDateChange"  :default-date="petReactive.adoptionDate"/>
+				<DatePicker v-model="petReactive.adoptionDate" @dateChange="handleArrivalDateChange"
+					:default-date="petReactive.adoptionDate" />
 			</view>
 		</view>
 		<!-- 完成按钮 -->
@@ -98,7 +100,7 @@
 		request
 	} from '@/utils/request'
 	import { useNavBar } from '@/utils/navBar'
-
+	import { Env } from "@/utils/env";
 	// 计算导航栏高度
 	const { navBarHeight, statusBarHeight, contentStyle } = useNavBar()
 	// 类型定义
@@ -158,10 +160,30 @@
 
 	// 点击上传图片
 	const UploadImage = () : void => {
-		uploadImg((AvatarCallback : AvatarCallback) => {
-			petReactive.petAvatarURL = AvatarCallback.fullUrl // 带有ip地址的
-			relativePath.value = AvatarCallback.relativePath
-		})
+		uni.chooseImage({
+			count: 1,
+			success: async (chooseImageRes) => {
+				uni.showLoading({
+					title: "上传中...",
+					mask: true,
+				});
+				const { data: imgUrl } = await uploadImg<string>(
+					"/public/app/upload/avatar",
+					chooseImageRes.tempFilePaths[0],
+					"avatarfile"
+				);
+				petReactive.petAvatarURL = Env.VITE_API_IMAGE_BASE_URL + imgUrl;
+				relativePath.value = imgUrl
+			},
+			fail: (error) => {
+				uni.hideLoading();
+				console.error("选择图片失败:", error);
+				uni.showToast({
+					title: "选择图片失败",
+					icon: "none",
+				});
+			},
+		});
 	}
 
 	// 按钮状态
@@ -210,8 +232,8 @@
 		}
 	}
 	onLoad((options : any) : void => {
-			petReactive.petBirthday = '2000-06-06'
-			petReactive.adoptionDate = '2000-06-06'
+		petReactive.petBirthday = '2000-06-06'
+		petReactive.adoptionDate = '2000-06-06'
 		try {
 			petReactive.petBreed = decodeURIComponent(options.petBreed) // 必须解码
 			petReactive.petClass = decodeURIComponent(options.petClass)

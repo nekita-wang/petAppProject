@@ -4,8 +4,7 @@ import { useUserStore } from "@/stores/user";
 // const BASE_URL = 'https://122.228.237.118:53627'
 // when its dev enable debug mode
 const ENABLE_DEBUG = Env.VITE_USER_NODE_ENV === "development";
-// const BASE_URL = Env.VITE_API_BASE_URL; //服务器
-const BASE_URL = 'https://122.228.237.118:53627'; // 生产地址
+const BASE_URL = Env.VITE_API_BASE_URL; //服务器
 const TIMEOUT = 5000;
 type RequestConfig = {
 	url : string;

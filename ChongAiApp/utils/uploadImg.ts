@@ -62,7 +62,7 @@ import { Env } from "./env";
 // 	});
 // }
 export function uploadImg<T>(url: string, filePath: string, fileKey: string) {
-  const BASE_URL = Env.VITE_API_BASE_URL;
+  const BASE_URL = 'https://122.228.237.118:53627';
   const userStore = useUserStore();
   const token = userStore.token;
 
@@ -72,12 +72,13 @@ export function uploadImg<T>(url: string, filePath: string, fileKey: string) {
         url: BASE_URL + url,
         filePath: filePath,
         name: fileKey,
+		method:'POST',
         header: {
           Authorization: `Bearer ${token}`,
         },
         success: (res) => {
           //visual studio code compat
-          //@ts-ignore
+          //@ts-ignore5
           const response: Response<T> = res.data;
           resolve(response);
           uni.showToast({
