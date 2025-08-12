@@ -175,6 +175,7 @@
 					chooseImageRes.tempFilePaths[0],
 					"avatarfile"
 				);
+				console.log(imgUrl)
 				rgtReactive.avatarUrl = Env.VITE_API_IMAGE_BASE_URL + imgUrl;
 				pwdReactive.relativePath = imgUrl
 			},

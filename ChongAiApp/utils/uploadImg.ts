@@ -18,7 +18,7 @@ export function uploadImg<T>(url : string, filePath : string, fileKey : string) 
 				success: (res) => {
 					//visual studio code compat
 					//@ts-ignore
-					const response : Response<T> = res.data;
+					const response : Response<T> = JSON.parse(res.data);
 					resolve(response);
 					uni.showToast({
 						title: "上传成功",
