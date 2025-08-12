@@ -34,13 +34,13 @@ public class PublicController {
     private TokenService tokenService;
 
     /**
-     * APP端头像上传接口（仅APP用户可用）
+     * APP端头像上传接口
      *
-     * 业务规则：
-     * 1. 只允许上传1张头像图片
-     * 2. 支持格式：JPG/PNG
-     * 3. 文件大小：≤10MB
-     * 4. 支持圆形裁剪
+     * 业务需求：
+     * 1. 图片大小≤10MB
+     * 2. 1次只允许上传1张图片（MultipartFile file参数天然支持）
+     * 3. 支持图片格式（基于若依框架MimeTypeUtils.IMAGE_EXTENSION）
+     * 4. 支持圆形裁剪信息记录
      */
     @PostMapping("/app/upload/avatar")
     public AjaxResult uploadAppAvatar(
@@ -50,68 +50,74 @@ public class PublicController {
             HttpServletRequest request)
             throws IOException, InvalidExtensionException {
         try {
-            // ==================== 1. 严格限制只能上传1张图片 ====================
-            AjaxResult multiFileCheck = validateSingleFileUpload(request, "avatarfile");
-            if (multiFileCheck != null) {
-                return multiFileCheck; // 如果检测到多文件上传，直接返回错误
+            // 1. 检测多文件上传（业务需求：只允许上传1张图片）
+            if (request instanceof MultipartHttpServletRequest) {
+                MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+                List<MultipartFile> files = multipartRequest.getFiles("avatarfile");
+
+                if (files != null && files.size() > 1) {
+                    log.warn("检测到多文件上传尝试，文件数量: {}, 用户: {}", files.size(), userId);
+                    return AjaxResult.error(400, "头像上传只允许选择1张图片，当前选择了" + files.size() + "张，请重新选择");
+                }
             }
 
-            // ==================== 2. 基础验证 ====================
-            if (file == null || file.isEmpty()) {
+            // 2. 基础验证
+            if (file.isEmpty()) {
                 return AjaxResult.error(400, "请选择要上传的头像图片");
             }
 
-            // ==================== 3. 头像专用验证 ====================
-            AjaxResult validationResult = validateAvatarFile(file);
-            if (validationResult != null) {
-                return validationResult; // 验证失败
+            // 3. 业务需求：文件大小≤10MB
+            long maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.getSize() > maxSize) {
+                return AjaxResult.error(400, "头像文件大小不能超过10MB，当前大小：" + formatFileSize(file.getSize()));
             }
 
-            // ==================== 4. 记录上传信息 ====================
-            String originalFilename = file.getOriginalFilename();
-            log.info("APP端头像上传 - 用户ID: {}, 文件名: {}, 大小: {}KB",
-                userId, originalFilename, file.getSize() / 1024);
-
-            // ==================== 5. 执行文件上传 ====================
+            // 4. 使用若依框架进行文件上传和验证
+            // 注意：MultipartFile file 参数天然只接收1个文件，满足"1次只允许上传1张图片"的需求
+            // 若依框架会自动进行：
+            // - 图片格式验证（bmp, gif, jpg, jpeg, png）
+            // - 文件名长度验证
+            // - 文件内容验证
             String avatar = FileUploadUtils.upload(
-                RuoYiConfig.getTempAvatarPath(),
-                file,
-                new String[]{"jpg", "jpeg", "png"}, // 严格限制格式
-                true // 使用UUID文件名
+                    RuoYiConfig.getTempAvatarPath(),
+                    file,
+                    MimeTypeUtils.IMAGE_EXTENSION, // 若依定义的图片格式：bmp, gif, jpg, jpeg, png
+                    true // 使用UUID文件名
             );
 
-            // ==================== 6. 记录日志和返回结果 ====================
-            // 记录详细的上传信息用于监控
-            log.info("APP端头像上传成功 - 用户: {}, 原文件: {}, 大小: {}, 路径: {}",
-                userId, originalFilename, formatFileSize(file.getSize()), avatar);
+            // 5. 记录上传日志
+            log.info("APP端头像上传成功 - 用户: {}, 文件: {}, 大小: {}, 路径: {}",
+                    userId, file.getOriginalFilename(), formatFileSize(file.getSize()), avatar);
 
-            // 如果有裁剪信息，记录下来
+            // 6. 记录裁剪信息（如果有）
             if (cropInfo != null && !cropInfo.trim().isEmpty()) {
                 log.info("收到裁剪信息: {}", cropInfo);
             }
 
-            // 按照您要求的格式返回：data 直接是图片路径字符串
+            // 7. 返回简洁格式：data直接是图片路径
             return AjaxResult.success("头像上传成功", avatar);
 
         } catch (InvalidExtensionException e) {
             log.error("头像格式错误: {}", e.getMessage());
-            return AjaxResult.error(400, "头像格式不支持，请上传 JPG 或 PNG 格式的图片");
+            return AjaxResult.error(400, "头像格式不支持，请上传图片格式文件");
         } catch (Exception e) {
-            log.error("头像上传失败: {}", e.getMessage(), e);
-            return AjaxResult.error(500, "头像上传失败，请重试：" + e.getMessage());
+            log.error("头像上传失败: userId={}, error={}", userId, e.getMessage(), e);
+            return AjaxResult.error(500, "头像上传失败：" + e.getMessage());
         }
     }
 
     /**
-     * 后台管理系统图片上传接口（仅SYS_USER可用）
+     * 管理端头像上传接口
+     *
+     * 使用若依框架现有实现，保持一致性
      */
     @PostMapping("/admin/upload/avatar")
     public AjaxResult uploadAdminAvatar(@RequestParam("avatarfile") MultipartFile file)
             throws IOException, InvalidExtensionException {
         try {
+            // 权限验证
             LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
-            if (loginUser == null || loginUser.getUserType() == null
-                    || !"SYS_USER".equals(loginUser.getUserType().name())) {
+            if (loginUser == null || !"SYS_USER".equals(loginUser.getUserType().name())) {
                 return AjaxResult.error(401, "无权限：仅后台管理员可用");
             }
 
@@ -119,32 +125,37 @@ public class PublicController {
                 return AjaxResult.error(400, "上传图片不能为空");
             }
 
-            // 验证文件类型和大小
-            if (file.getSize() > 10 * 1024 * 1024) { // 10MB限制
-                return AjaxResult.error(400, "图片大小不能超过10MB");
-            }
+            // 使用若依框架的标准实现
+            String avatar = FileUploadUtils.upload(
+                    RuoYiConfig.getAvatarPath(),
+                    file,
+                    MimeTypeUtils.IMAGE_EXTENSION,
+                    true
+            );
 
-            String avatar = FileUploadUtils.upload(RuoYiConfig.getAvatarPath(), file, MimeTypeUtils.IMAGE_EXTENSION,
-                    true);
+            log.info("管理端头像上传成功 - 用户: {}, 路径: {}", loginUser.getUsername(), avatar);
+            return AjaxResult.success("头像上传成功", avatar);
 
-            // 返回标准格式：msg, code, success, data
-            return AjaxResult.success("上传成功", avatar);
-
+        } catch (InvalidExtensionException e) {
+            log.error("管理端头像格式错误: {}", e.getMessage());
+            return AjaxResult.error(400, "头像格式不支持，请上传图片格式文件");
         } catch (Exception e) {
-            return AjaxResult.error(500, "上传失败：" + e.getMessage());
+            log.error("管理端头像上传失败: {}", e.getMessage(), e);
+            return AjaxResult.error(500, "头像上传失败：" + e.getMessage());
         }
     }
 
     /**
-     * 后台管理系统广告图片上传接口（仅SYS_USER可用）
+     * 广告图片上传接口
+     *
+     * 保持现有实现
      */
     @PostMapping("/admin/upload/advertisement")
     public AjaxResult uploadAdminAdvertisement(@RequestParam("avatarfile") MultipartFile file)
             throws IOException, InvalidExtensionException {
         try {
             LoginUser loginUser = tokenService.getLoginUser(ServletUtils.getRequest());
-            if (loginUser == null || loginUser.getUserType() == null
-                    || !"SYS_USER".equals(loginUser.getUserType().name())) {
+            if (loginUser == null || !"SYS_USER".equals(loginUser.getUserType().name())) {
                 return AjaxResult.error(401, "无权限：仅后台管理员可用");
             }
 
@@ -152,18 +163,18 @@ public class PublicController {
                 return AjaxResult.error(400, "上传图片不能为空");
             }
 
-            // 验证文件类型和大小
-            if (file.getSize() > 10 * 1024 * 1024) { // 10MB限制
-                return AjaxResult.error(400, "图片大小不能超过10MB");
-            }
+            String advertisement = FileUploadUtils.upload(
+                    RuoYiConfig.getAdvertisementPath(),
+                    file,
+                    MimeTypeUtils.IMAGE_EXTENSION,
+                    true
+            );
 
-            String advertisement = FileUploadUtils.upload(RuoYiConfig.getAdvertisementPath(), file,
-                    MimeTypeUtils.IMAGE_EXTENSION, true);
-
-            // 返回标准格式：msg, code, success, data
+            log.info("广告图片上传成功 - 管理员: {}, 路径: {}", loginUser.getUsername(), advertisement);
             return AjaxResult.success("上传成功", advertisement);
 
         } catch (Exception e) {
+            log.error("广告图片上传失败: {}", e.getMessage(), e);
             return AjaxResult.error(500, "上传失败：" + e.getMessage());
         }
     }
@@ -178,160 +189,18 @@ public class PublicController {
             if (publicKey == null || publicKey.isEmpty()) {
                 return AjaxResult.error(500, "RSA公钥未初始化，请重启应用");
             }
-            // 返回标准格式：msg, code, success, data
             return AjaxResult.success("操作成功", publicKey);
         } catch (Exception e) {
+            log.error("获取公钥失败: {}", e.getMessage());
             return AjaxResult.error(500, "获取公钥失败");
         }
     }
 
-    // ==================== 私有验证方法 ====================
-
-    /**
-     * 验证是否为单文件上传（防止多文件上传）
-     *
-     * @param request HTTP请求
-     * @param paramName 参数名
-     * @return 如果检测到多文件上传返回错误结果，否则返回null
-     */
-    private AjaxResult validateSingleFileUpload(HttpServletRequest request, String paramName) {
-        try {
-            if (request instanceof MultipartHttpServletRequest) {
-                MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-                List<MultipartFile> files = multipartRequest.getFiles(paramName);
-
-                if (files != null && files.size() > 1) {
-                    log.warn("检测到多文件上传尝试，文件数量: {}, 参数名: {}", files.size(), paramName);
-                    return AjaxResult.error(400, "头像上传只允许选择1张图片，请重新选择");
-                }
-
-                // 检查是否有其他同名参数
-                if (files != null && files.size() == 1) {
-                    MultipartFile file = files.get(0);
-                    if (file.isEmpty()) {
-                        return AjaxResult.error(400, "上传的文件为空，请选择有效的图片文件");
-                    }
-                }
-            }
-
-            return null; // 验证通过
-        } catch (Exception e) {
-            log.error("多文件验证失败: {}", e.getMessage());
-            return AjaxResult.error(500, "文件验证失败");
-        }
-    }
-
-    /**
-     * 验证头像文件的格式和大小
-     *
-     * @param file 上传的文件
-     * @return 如果验证失败返回错误结果，否则返回null
-     */
-    private AjaxResult validateAvatarFile(MultipartFile file) {
-        try {
-            String originalFilename = file.getOriginalFilename();
-            if (originalFilename == null || originalFilename.trim().isEmpty()) {
-                return AjaxResult.error(400, "文件名不能为空");
-            }
-
-            // 1. 文件格式验证（头像只支持JPG/PNG）
-            String fileExtension = getFileExtension(originalFilename).toLowerCase();
-            if (!isValidAvatarFormat(fileExtension)) {
-                return AjaxResult.error(400, "头像仅支持 JPG、JPEG、PNG 格式，当前格式：" + fileExtension.toUpperCase());
-            }
-
-            // 2. 文件大小验证
-            long maxSize = 10 * 1024 * 1024; // 10MB
-            if (file.getSize() > maxSize) {
-                return AjaxResult.error(400, "头像文件大小不能超过10MB，当前大小：" + formatFileSize(file.getSize()));
-            }
-
-            // 3. 文件内容验证（检查文件头，防止伪造）
-            if (!isValidImageContent(file)) {
-                return AjaxResult.error(400, "文件内容不是有效的图片格式，请上传真实的图片文件");
-            }
-
-            // 4. 文件名安全检查
-            if (containsUnsafeCharacters(originalFilename)) {
-                return AjaxResult.error(400, "文件名包含非法字符，请重命名后重试");
-            }
-
-            return null; // 验证通过
-        } catch (Exception e) {
-            log.error("头像文件验证失败: {}", e.getMessage());
-            return AjaxResult.error(500, "文件验证失败");
-        }
-    }
-
-    /**
-     * 获取文件扩展名
-     */
-    private String getFileExtension(String filename) {
-        if (filename == null || !filename.contains(".")) {
-            return "";
-        }
-        return filename.substring(filename.lastIndexOf(".") + 1);
-    }
-
-    /**
-     * 验证是否为有效的头像格式
-     */
-    private boolean isValidAvatarFormat(String extension) {
-        return "jpg".equals(extension) || "jpeg".equals(extension) || "png".equals(extension);
-    }
-
-    /**
-     * 验证文件内容是否为有效图片（检查文件头魔数）
-     */
-    private boolean isValidImageContent(MultipartFile file) {
-        try {
-            byte[] header = new byte[10];
-            int bytesRead = file.getInputStream().read(header);
-            if (bytesRead < 4) return false;
-
-            // JPEG文件头: FF D8 FF
-            if (header[0] == (byte) 0xFF && header[1] == (byte) 0xD8 && header[2] == (byte) 0xFF) {
-                return true;
-            }
-
-            // PNG文件头: 89 50 4E 47
-            if (header[0] == (byte) 0x89 && header[1] == 0x50 &&
-                header[2] == 0x4E && header[3] == 0x47) {
-                return true;
-            }
-
-            return false;
-        } catch (Exception e) {
-            log.error("文件内容验证失败: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * 检查文件名是否包含不安全字符
-     */
-    private boolean containsUnsafeCharacters(String filename) {
-        if (filename == null) return true;
-
-        // 检查路径遍历攻击
-        if (filename.contains("..") || filename.contains("/") ||
-            filename.contains("\\") || filename.contains(":")) {
-            return true;
-        }
-
-        // 检查其他危险字符
-        String[] dangerousChars = {"<", ">", "|", "?", "*", "\"", "\0"};
-        for (String dangerous : dangerousChars) {
-            if (filename.contains(dangerous)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /**
      * 格式化文件大小
+     *
+     * @param size 文件大小（字节）
+     * @return 格式化后的文件大小字符串
      */
     private String formatFileSize(long size) {
         if (size < 1024) {
